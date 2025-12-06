@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import '../../domain/models/api_response.dart';
+import 'pretty_dio_logger.dart';
 
 /// API client for network requests
 class ApiClient {
@@ -33,17 +34,8 @@ class ApiClient {
       return client;
     };
 
-    // Add interceptors for logging and error handling
-    _dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
-      ),
-    );
+    // Add custom pretty logger interceptor for formatted JSON output
+    _dio.interceptors.add(PrettyDioLoggerInterceptor());
   }
 
   /// Set authorization token

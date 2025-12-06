@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import '../services/local/storage_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -45,6 +46,10 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString('userPhone', user.phone);
     await prefs.setString('userRole', user.role == UserRole.driver ? 'driver' : 'customer');
 
+    // Set login flag for auto-login feature
+    await StorageService.setBool('isLoggedIn', true);
+    await StorageService.setString('loginTimestamp', DateTime.now().toIso8601String());
+
     notifyListeners();
   }
 
@@ -52,8 +57,8 @@ class AuthProvider extends ChangeNotifier {
     _currentUser = null;
     _isAuthenticated = false;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    // Clear all user data from storage
+    await StorageService.clear();
 
     notifyListeners();
   }

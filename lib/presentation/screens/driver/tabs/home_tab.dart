@@ -14,6 +14,36 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   bool _isOnline = false;
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                authProvider.logout();
+                context.go('/login');
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -52,10 +82,7 @@ class _HomeTabState extends State<HomeTab> {
               ),
               IconButton(
                 icon: const Icon(Icons.logout),
-                onPressed: () {
-                  authProvider.logout();
-                  context.go('/login');
-                },
+                onPressed: () => _showLogoutDialog(context),
                 tooltip: 'Logout',
               ),
             ],

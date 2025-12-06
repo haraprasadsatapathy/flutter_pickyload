@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,7 +34,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 description: 'I need to transport goods',
                 icon: Icons.local_shipping_outlined,
                 onTap: () {
-                  print('Customer role selected, navigating to dashboard...');
+                  developer.log('Customer role selected, navigating to dashboard...');
                   context.go('/customer-dashboard');
                 },
               ),
@@ -43,7 +44,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 description: 'I want to offer load carrying services',
                 icon: Icons.person_pin_outlined,
                 onTap: () {
-                  print('Driver role selected, navigating to document upload...');
+                  developer.log('Driver role selected, navigating to document upload...');
                   context.go('/document-upload');
                 },
               ),

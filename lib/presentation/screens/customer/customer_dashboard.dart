@@ -3,6 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/theme_provider.dart';
+import 'widgets/my_trips_tab.dart';
+import 'widgets/notifications_tab.dart';
+import 'widgets/profile_tab.dart';
+import 'widgets/quick_action_button.dart';
 
 class CustomerDashboard extends StatefulWidget {
   const CustomerDashboard({super.key});
@@ -16,9 +20,9 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
 
   final List<Widget> _screens = [
     const _HomeTab(),
-    const _MyTripsTab(),
-    const _NotificationsTab(),
-    const _ProfileTab(),
+    const MyTripsTab(),
+    const NotificationsTab(),
+    const ProfileTab(),
   ];
 
   @override
@@ -71,6 +75,36 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
 class _HomeTab extends StatelessWidget {
   const _HomeTab();
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                authProvider.logout();
+                context.go('/login');
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -106,10 +140,7 @@ class _HomeTab extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.logout),
-                onPressed: () {
-                  authProvider.logout();
-                  context.go('/login');
-                },
+                onPressed: () => _showLogoutDialog(context),
                 tooltip: 'Logout',
               ),
             ],
@@ -155,17 +186,17 @@ class _HomeTab extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _QuickActionButton(
+                QuickActionButton(
                   icon: Icons.local_shipping_outlined,
                   label: 'Book Load',
                   onTap: () => context.push('/trip-request'),
                 ),
-                _QuickActionButton(
+                QuickActionButton(
                   icon: Icons.history,
                   label: 'History',
                   onTap: () => context.push('/transaction-history'),
                 ),
-                _QuickActionButton(
+                QuickActionButton(
                   icon: Icons.security_outlined,
                   label: 'Insurance',
                   onTap: () => context.push('/insurance'),
@@ -199,242 +230,6 @@ class _HomeTab extends StatelessWidget {
             Text(rating),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _MyTripsTab extends StatelessWidget {
-  const _MyTripsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          const SliverAppBar(
-            floating: true,
-            title: Text('My Trips'),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16.0),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildTripCard(context, 'In Progress', 'Mumbai to Delhi', '₹15,000', Colors.orange),
-                _buildTripCard(context, 'Completed', 'Pune to Bangalore', '₹12,500', Colors.green),
-                _buildTripCard(context, 'Cancelled', 'Chennai to Hyderabad', '₹8,000', Colors.red),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTripCard(BuildContext context, String status, String route, String price, Color statusColor) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    status,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                Text(
-                  price,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.location_on_outlined, size: 20),
-                const SizedBox(width: 8),
-                Text(route),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NotificationsTab extends StatelessWidget {
-  const _NotificationsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          const SliverAppBar(
-            floating: true,
-            title: Text('Notifications'),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16.0),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildNotificationCard(context, 'Trip Completed', 'Your trip from Mumbai to Delhi has been completed successfully', Icons.check_circle, Colors.green),
-                _buildNotificationCard(context, 'Payment Received', 'Payment of ₹15,000 has been processed', Icons.payment, Colors.blue),
-                _buildNotificationCard(context, 'New Offer', 'Special discount on insurance for your next trip', Icons.local_offer, Colors.orange),
-              ]),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationCard(BuildContext context, String title, String message, IconData icon, Color color) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.1),
-          child: Icon(icon, color: color),
-        ),
-        title: Text(title),
-        subtitle: Text(message),
-        isThreeLine: true,
-      ),
-    );
-  }
-}
-
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Text(
-                authProvider.currentUser?.name[0] ?? 'U',
-                style: const TextStyle(fontSize: 36, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              authProvider.currentUser?.name ?? 'User',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              authProvider.currentUser?.email ?? '',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const SizedBox(height: 30),
-            _buildProfileOption(context, Icons.person_outlined, 'Edit Profile', () => context.push('/customer-profile')),
-            _buildProfileOption(context, Icons.history, 'Trip History', () => context.push('/transaction-history')),
-            _buildProfileOption(context, Icons.payment, 'Payments', () => context.push('/transaction-history')),
-            _buildProfileOption(context, Icons.security, 'Insurance', () => context.push('/insurance')),
-            _buildProfileOption(context, Icons.settings, 'Settings', () {}),
-            _buildProfileOption(context, Icons.help_outline, 'Help & Support', () {}),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  authProvider.logout();
-                  context.go('/login');
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileOption(BuildContext context, IconData icon, String title, VoidCallback onTap) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: Theme.of(context).colorScheme.primary,
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12),
-          ),
-        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import '../../../services/local/storage_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,10 +35,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        // context.go('/language');
-        context.go('/login');
+        _checkLoginStatus();
       }
     });
+  }
+
+  Future<void> _checkLoginStatus() async {
+    // Check if user is already logged in
+    final isLoggedIn = StorageService.getBool('isLoggedIn') ?? false;
+
+    if (isLoggedIn) {
+      // User is logged in, redirect to role selection screen
+      context.go('/role-selection');
+    } else {
+      // User is not logged in, redirect to login screen
+      context.go('/login');
+    }
   }
 
   @override

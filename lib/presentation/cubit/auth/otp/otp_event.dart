@@ -1,4 +1,4 @@
-import 'package:picky_load3/presentation/cubit/base/baseEventState.dart';
+import 'package:picky_load3/presentation/cubit/base/base_event_state.dart';
 
 // Base event class for OTP verification feature
 abstract class OtpEvent extends BaseEventState {}

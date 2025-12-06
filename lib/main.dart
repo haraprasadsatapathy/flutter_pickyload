@@ -8,6 +8,7 @@ import 'config/routes.dart';
 import 'services/local/storage_service.dart';
 import 'config/dependency_injection.dart';
 import 'domain/repository/user_repository.dart';
+import 'domain/repository/trip_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         Provider<UserRepository>(create: (_) => getIt<UserRepository>()),
+        Provider<TripRepository>(create: (_) => getIt<TripRepository>()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'otp_event.dart';
 import 'otp_state.dart';
 import '../../../../domain/repository/user_repository.dart';
+import '../../../../services/local/storage_service.dart';
 
 class OtpBloc extends Bloc<OtpEvent, OtpStates> {
   // Dependencies
@@ -66,6 +67,12 @@ class OtpBloc extends Bloc<OtpEvent, OtpStates> {
           // OTP verified successfully
           // Cancel the timer as we're navigating away
           _resendTimer?.cancel();
+
+          // Save login state to shared preferences
+          await StorageService.setBool('isLoggedIn', true);
+          await StorageService.setString('phoneNumber', event.phoneNumber);
+          await StorageService.setString('loginTimestamp', DateTime.now().toIso8601String());
+
           emit(OnOtpVerificationSuccess(
             result.message ?? 'OTP verified successfully',
           ));

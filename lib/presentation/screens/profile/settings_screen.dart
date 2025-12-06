@@ -375,7 +375,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return RadioListTile<String>(
               title: Text(language),
               value: language,
+              // ignore: deprecated_member_use
               groupValue: _selectedLanguage,
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 setState(() {
                   _selectedLanguage = value!;
@@ -409,7 +411,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return RadioListTile<String>(
               title: Text(currency),
               value: currency,
+              // ignore: deprecated_member_use
               groupValue: _selectedCurrency,
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 setState(() {
                   _selectedCurrency = value!;
@@ -443,7 +447,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return RadioListTile<String>(
               title: Text(size),
               value: size,
+              // ignore: deprecated_member_use
               groupValue: 'Medium',
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 context.pop();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -474,7 +480,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return RadioListTile<String>(
               title: Text(view),
               value: view,
+              // ignore: deprecated_member_use
               groupValue: 'Standard',
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 context.pop();
                 ScaffoldMessenger.of(context).showSnackBar(

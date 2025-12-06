@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:picky_load3/services/local/saved_service.dart';
 import '../data/data_source/api_client.dart';
 import '../domain/repository/user_repository.dart';
+import '../domain/repository/trip_repository.dart';
 
 /// Dependency injection container
 final GetIt getIt = GetIt.instance;
@@ -16,8 +17,8 @@ Future<void> setupDependencyInjection() async {
     () => UserRepository(getIt<ApiClient>(), getIt<SavedService>()),
   );
 
-  // Add more repositories here as needed
-  // getIt.registerLazySingleton<TripRepository>(
-  //   () => TripRepository(getIt<ApiClient>()),
-  // );
+  // Register Trip Repository
+  getIt.registerLazySingleton<TripRepository>(
+    () => TripRepository(getIt<ApiClient>()),
+  );
 }
