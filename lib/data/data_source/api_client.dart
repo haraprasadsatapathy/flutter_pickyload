@@ -132,6 +132,33 @@ class ApiClient {
     }
   }
 
+  /// POST request with multipart/form-data (for file uploads)
+  Future<ApiResponse<T>> postMultipart<T>(
+    String path, {
+    required FormData formData,
+    Map<String, dynamic>? queryParameters,
+    T Function(dynamic)? fromJsonT,
+    void Function(int, int)? onSendProgress,
+  }) async {
+    try {
+      final response = await _dio.post(
+        path,
+        data: formData,
+        queryParameters: queryParameters,
+        onSendProgress: onSendProgress,
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+      return ApiResponse<T>.fromJson(
+        response.data as Map<String, dynamic>,
+        fromJsonT,
+      );
+    } on DioException catch (e) {
+      return _handleError<T>(e);
+    }
+  }
+
   /// Handle Dio errors
   ApiResponse<T> _handleError<T>(DioException error) {
     String errorMessage;

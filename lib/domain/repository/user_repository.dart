@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:picky_load3/services/local/saved_service.dart';
 
 import '../../models/user_model.dart';
@@ -6,6 +8,7 @@ import '../models/api_response.dart';
 import '../models/otp_response.dart';
 import '../models/verify_otp_response.dart';
 import '../models/register_response.dart';
+import '../models/profile_response.dart';
 
 /// Repository for user-related operations
 class UserRepository {
@@ -316,6 +319,39 @@ class UserRepository {
     }
   }
 
+  /// Fetch user profile (new API endpoint)
+  Future<ApiResponse<ProfileData>> fetchUserProfile(String userId) async {
+    try {
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        '/User/fetch-profile?userId=$userId',
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      if (response.data != null) {
+        // Parse the profile data from response.data
+        final profileData = ProfileData.fromJson(response.data!);
+
+        return ApiResponse(
+          status: true,
+          message: response.message ?? 'Profile fetched successfully',
+          data: profileData,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: response.message ?? 'Failed to fetch profile',
+        data: null,
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
   /// Send OTP to phone number for login
   Future<ApiResponse<OtpResponse>> loginUser(String phoneNumber) async {
     try {
@@ -359,6 +395,110 @@ class UserRepository {
       return ApiResponse(
         status: false,
         message: response.message ?? 'Failed to send OTP',
+        data: null,
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Update user profile with image (multipart/form-data)
+  Future<ApiResponse<Map<String, dynamic>>> updateProfileWithImage({
+    required String userId,
+    required String userName,
+    required String userPhone,
+    required String userEmail,
+    String? profileImagePath,
+  }) async {
+    try {
+      final formData = FormData();
+
+      // Add required fields
+      formData.fields.add(MapEntry('UserId', userId));
+      formData.fields.add(MapEntry('UserName', userName));
+      formData.fields.add(MapEntry('UserPhone', userPhone));
+      formData.fields.add(MapEntry('UserEmail', userEmail));
+
+      // Add profile image - always include the field (required by API)
+      if (profileImagePath != null && profileImagePath.isNotEmpty) {
+        final fileName = profileImagePath.split('/').last;
+        formData.files.add(
+          MapEntry(
+            'UProfileImage',
+            await MultipartFile.fromFile(
+              profileImagePath,
+              filename: fileName,
+            ),
+          ),
+        );
+      } else {
+        // Send minimal 1x1 transparent PNG when no image is provided
+        // This is required because the API validates that UProfileImage field must be present
+        // PNG signature + IHDR chunk for 1x1 transparent image
+        final transparentPng = [
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+          0x00, 0x00, 0x00, 0x0D, // IHDR chunk length
+          0x49, 0x48, 0x44, 0x52, // IHDR
+          0x00, 0x00, 0x00, 0x01, // Width: 1
+          0x00, 0x00, 0x00, 0x01, // Height: 1
+          0x08, 0x06, 0x00, 0x00, 0x00, // Bit depth, color type, compression, filter, interlace
+          0x1F, 0x15, 0xC4, 0x89, // CRC
+          0x00, 0x00, 0x00, 0x0A, // IDAT chunk length
+          0x49, 0x44, 0x41, 0x54, // IDAT
+          0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00, 0x05, 0x00, 0x01, // Compressed data
+          0x0D, 0x0A, 0x2D, 0xB4, // CRC
+          0x00, 0x00, 0x00, 0x00, // IEND chunk length
+          0x49, 0x45, 0x4E, 0x44, // IEND
+          0xAE, 0x42, 0x60, 0x82, // CRC
+        ];
+
+        formData.files.add(
+          MapEntry(
+            'UProfileImage',
+            MultipartFile.fromBytes(
+              transparentPng,
+              filename: 'placeholder.png',
+              contentType: MediaType('image', 'png'),
+            ),
+          ),
+        );
+      }
+
+      final response = await _apiClient.postMultipart<Map<String, dynamic>>(
+        '/User/update-profile',
+        formData: formData,
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      if (response.status == true) {
+        // Update local user details
+        final currentUser = await getUserDetailsSp();
+        if (currentUser != null) {
+          final updatedUser = User(
+            id: currentUser.id,
+            name: userName,
+            email: userEmail,
+            phone: userPhone,
+            role: currentUser.role,
+            isVerified: currentUser.isVerified,
+          );
+          await saveUserDetailsSp(updatedUser);
+        }
+
+        return ApiResponse(
+          status: true,
+          message: response.message ?? 'Profile updated successfully',
+          data: response.data,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: response.message ?? 'Failed to update profile',
         data: null,
       );
     } catch (e) {

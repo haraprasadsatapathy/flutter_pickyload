@@ -90,7 +90,6 @@ picky_load3/
 │   │   ├── profile/
 │   │   │   ├── customer_profile_screen.dart # ⏳ To be migrated
 │   │   │   ├── driver_profile_screen.dart  # ⏳ To be migrated
-│   │   │   ├── change_password_screen.dart
 │   │   │   ├── rating_review_screen.dart
 │   │   │   ├── saved_addresses_screen.dart
 │   │   │   ├── add_address_screen.dart

@@ -1,5 +1,7 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:picky_load3/presentation/screens/auth/login_screen.dart';
+import 'package:provider/provider.dart';
 import '../presentation/screens/splash/splash_screen.dart';
 import '../presentation/screens/common/language_selection_screen.dart';
 // Old login screen
@@ -18,13 +20,14 @@ import '../presentation/screens/payment/payment_screen.dart';
 import '../presentation/screens/payment/transaction_history_screen.dart';
 import '../presentation/screens/insurance/insurance_screen.dart';
 import '../presentation/screens/profile/customer_profile_screen.dart';
-import '../presentation/screens/profile/driver_profile_screen.dart';
-import '../presentation/screens/profile/change_password_screen.dart';
+import '../presentation/screens/profile/user_profile_screen.dart';
 import '../presentation/screens/profile/rating_review_screen.dart';
 import '../presentation/screens/profile/saved_addresses_screen.dart';
 import '../presentation/screens/profile/add_address_screen.dart';
 import '../presentation/screens/profile/settings_screen.dart';
 import '../presentation/screens/notifications/notifications_screen.dart';
+import '../domain/repository/user_repository.dart';
+import '../presentation/cubit/user_profile/edit_profile/edit_profile_bloc.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -94,15 +97,16 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/customer-profile',
-      builder: (context, state) => const CustomerProfileScreen(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => EditProfileBloc(
+          userRepository: Provider.of<UserRepository>(context, listen: false),
+        ),
+        child: const CustomerProfileScreen(),
+      ),
     ),
     GoRoute(
-      path: '/driver-profile',
-      builder: (context, state) => const DriverProfileScreen(),
-    ),
-    GoRoute(
-      path: '/change-password',
-      builder: (context, state) => const ChangePasswordScreen(),
+      path: '/user-profile',
+      builder: (context, state) => const UserProfileScreen(),
     ),
     GoRoute(
       path: '/rating-review',

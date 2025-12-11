@@ -21,6 +21,8 @@ class AuthProvider extends ChangeNotifier {
     final userEmail = prefs.getString('userEmail');
     final userPhone = prefs.getString('userPhone');
     final userRole = prefs.getString('userRole');
+    final userProfileImage = prefs.getString('userProfileImage');
+    final isVerified = prefs.getBool('isVerified') ?? false;
 
     if (userId != null && userName != null && userEmail != null) {
       _currentUser = User(
@@ -29,6 +31,8 @@ class AuthProvider extends ChangeNotifier {
         email: userEmail,
         phone: userPhone ?? '',
         role: userRole == 'driver' ? UserRole.driver : UserRole.customer,
+        profileImage: userProfileImage,
+        isVerified: isVerified,
       );
       _isAuthenticated = true;
       notifyListeners();
@@ -70,7 +74,16 @@ class AuthProvider extends ChangeNotifier {
     await prefs.setString('userName', user.name);
     await prefs.setString('userEmail', user.email);
     await prefs.setString('userPhone', user.phone);
+    if (user.profileImage != null) {
+      await prefs.setString('userProfileImage', user.profileImage!);
+    }
+    await prefs.setBool('isVerified', user.isVerified);
 
     notifyListeners();
+  }
+
+  /// Public method to reload user data from SharedPreferences
+  Future<void> loadUser() async {
+    await _loadUserData();
   }
 }

@@ -5,7 +5,7 @@ class VerifyOtpUser {
   final String userMobile;
   final String userEmail;
   final String roleName;
-  final int status;
+  final String status;
 
   VerifyOtpUser({
     required this.userID,
@@ -23,7 +23,7 @@ class VerifyOtpUser {
       userMobile: json['userMobile'] as String? ?? '',
       userEmail: json['userEmail'] as String? ?? '',
       roleName: json['roleName'] as String? ?? '',
-      status: json['status'] as int? ?? 0,
+      status: json['status'] as String? ?? '',
     );
   }
 

@@ -5,14 +5,14 @@ import 'package:image_picker/image_picker.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../models/user_model.dart';
 
-class DriverProfileScreen extends StatefulWidget {
-  const DriverProfileScreen({super.key});
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({super.key});
 
   @override
-  State<DriverProfileScreen> createState() => _DriverProfileScreenState();
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _DriverProfileScreenState extends State<DriverProfileScreen> {
+class _UserProfileScreenState extends State<UserProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -281,13 +281,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           subtitle: const Text('4.8 (125 reviews)'),
                           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () => context.push('/rating-review'),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.security),
-                          title: const Text('Change Password'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () => context.push('/change-password'),
                         ),
                       ],
                     ),

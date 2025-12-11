@@ -5,7 +5,9 @@
       "Bash(flutter pub get:*)",
       "Bash(tree:*)",
       "Bash(mkdir:*)",
-      "Bash(flutter clean:*)"
+      "Bash(flutter clean:*)",
+      "Bash(dir \"E:\\Flutter\\Ramesh\\picky_load3\\picky_load3\\lib\\presentation\\cubit\")",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
