@@ -80,32 +80,27 @@ class ProfileTab extends StatelessWidget {
                     context,
                     Icons.directions_car_outlined,
                     'Vehicle Details',
-                    () {},
+                    () => context.push('/show-vehicles'),
                   ),
                   _buildProfileOption(
                     context,
                     Icons.description_outlined,
-                    'Documents',
+                    'Upload Documents',
                     () => context.push('/document-upload'),
                   ),
                   _buildProfileOption(
                     context,
-                    Icons.account_balance_wallet_outlined,
-                    'Wallet',
-                    () {},
+                    Icons.folder_outlined,
+                    'Show Documents',
+                    () => context.push('/show-documents'),
                   ),
                   _buildProfileOption(
                     context,
-                    Icons.settings,
-                    'Settings',
-                    () {},
+                    Icons.add_box_outlined,
+                    'Add Vehicle',
+                    () => context.push('/add-vehicle'),
                   ),
-                  _buildProfileOption(
-                    context,
-                    Icons.help_outline,
-                    'Help & Support',
-                    () {},
-                  ),
+
                   const SizedBox(height: 20),
                   // Logout Button
                   SizedBox(

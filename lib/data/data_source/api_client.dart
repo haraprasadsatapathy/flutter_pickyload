@@ -68,6 +68,33 @@ class ApiClient {
     }
   }
 
+  /// GET request for non-standard responses (returns raw response data)
+  /// Use this when the API doesn't return the standard {status, message, data} format
+  Future<ApiResponse<T>> getRaw<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    required T Function(Map<String, dynamic>) fromJson,
+  }) async {
+    try {
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+      );
+
+      // Parse the entire response body directly
+      final responseData = response.data as Map<String, dynamic>;
+      final parsedData = fromJson(responseData);
+
+      return ApiResponse<T>(
+        status: true,
+        message: responseData['message'] as String? ?? 'Success',
+        data: parsedData,
+      );
+    } on DioException catch (e) {
+      return _handleError<T>(e);
+    }
+  }
+
   /// POST request
   Future<ApiResponse<T>> post<T>(
     String path, {

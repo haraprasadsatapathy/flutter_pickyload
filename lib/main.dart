@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
@@ -9,9 +10,26 @@ import 'services/local/storage_service.dart';
 import 'config/dependency_injection.dart';
 import 'domain/repository/user_repository.dart';
 import 'domain/repository/trip_repository.dart';
+import 'domain/repository/driver_repository.dart';
+
+/// Custom HTTP client that bypasses SSL certificate verification for pickyload.in
+class CustomHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) {
+        // Allow certificates for pickyload.in domain
+        return host == 'pickyload.in';
+      };
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Configure global HTTP client to bypass SSL for pickyload.in
+  // This fixes image loading issues with NetworkImage
+  HttpOverrides.global = CustomHttpOverrides();
 
   // Set preferred orientations
   SystemChrome.setPreferredOrientations([
@@ -39,6 +57,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         Provider<UserRepository>(create: (_) => getIt<UserRepository>()),
         Provider<TripRepository>(create: (_) => getIt<TripRepository>()),
+        Provider<DriverRepository>(create: (_) => getIt<DriverRepository>()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../domain/repository/user_repository.dart';
+import '../../../domain/repository/driver_repository.dart';
+import '../../cubit/driver/upload_documents/upload_documents_bloc.dart';
+import '../../cubit/driver/upload_documents/upload_documents_event.dart';
+import '../../cubit/driver/upload_documents/upload_documents_state.dart';
 
 class DocumentUploadScreen extends StatefulWidget {
   const DocumentUploadScreen({super.key});
@@ -12,215 +17,539 @@ class DocumentUploadScreen extends StatefulWidget {
 }
 
 class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
-  final ImagePicker _picker = ImagePicker();
+  final _documentNumberController = TextEditingController();
 
-  String? _dlFrontPath;
-  String? _dlBackPath;
-  String? _rcFrontPath;
-  String? _rcBackPath;
-  String? _aadharFrontPath;
-  String? _aadharBackPath;
+  String? _userId;
+  bool _isLoading = true;
 
-  final _dlController = TextEditingController();
-  final _rcController = TextEditingController();
-  final _aadharController = TextEditingController();
+  // Document type options
+  String? _selectedDocumentType;
+  final List<String> _documentTypes = [
+    'Driving License (DL)',
+    'Registration Certificate (RC)',
+    'Aadhaar Card',
+    'Passport',
+    'PAN Card',
+    'Voter ID',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
+    final user = await userRepository.getUserDetailsSp();
+    setState(() {
+      _userId = user?.id;
+      _isLoading = false;
+    });
+  }
 
   @override
   void dispose() {
-    _dlController.dispose();
-    _rcController.dispose();
-    _aadharController.dispose();
+    _documentNumberController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage(Function(String) onImagePicked) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-    if (image != null) {
-      onImagePicked(image.path);
+  bool _canSubmit() {
+    // Check if document type is selected
+    if (_selectedDocumentType == null) {
+      return false;
     }
+
+    // Check if document number is provided
+    if (_documentNumberController.text.trim().isEmpty) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void _submitDocument(BuildContext context) {
+    // Dispatch the event to submit the document
+    context.read<UploadDocumentsBloc>().add(
+          SubmitSingleDocument(
+            documentType: _selectedDocumentType!,
+            documentNumber: _documentNumberController.text.trim(),
+          ),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final driverRepository = Provider.of<DriverRepository>(context, listen: false);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Document Verification'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              authProvider.logout();
-              context.go('/login');
-            },
-            tooltip: 'Logout',
+    // Show loading screen while fetching user ID
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            'Document Upload',
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ],
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Show error if user ID is not available
+    if (_userId == null) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            'Document Upload',
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'User not found. Please login again.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  authProvider.logout();
+                  context.go('/login');
+                },
+                child: const Text('Go to Login'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return BlocProvider(
+      create: (context) => UploadDocumentsBloc(
+        context: context,
+        driverRepository: driverRepository,
+        userId: _userId!,
+      ),
+      child: BlocConsumer<UploadDocumentsBloc, UploadDocumentsState>(
+        listener: (context, state) {
+          if (state is DocumentsSubmittedSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Redirect to driver dashboard after successful upload
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (context.mounted) {
+                context.go('/driver-dashboard');
+              }
+            });
+          } else if (state is DocumentsSubmissionError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is UploadDocumentsLoading;
+
+          return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: colorScheme.surface,
+        title: Text(
+          'Document Upload',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        iconTheme: IconThemeData(color: colorScheme.onSurface),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Upload Documents',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Please upload the following documents for verification',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).textTheme.bodySmall?.color,
-                ),
-              ),
-              const SizedBox(height: 30),
-              _buildDocumentSection(
-                'Driving License (DL)',
-                _dlController,
-                _dlFrontPath,
-                _dlBackPath,
-                (path) => setState(() => _dlFrontPath = path),
-                (path) => setState(() => _dlBackPath = path),
-              ),
-              const SizedBox(height: 30),
-              _buildDocumentSection(
-                'Registration Certificate (RC)',
-                _rcController,
-                _rcFrontPath,
-                _rcBackPath,
-                (path) => setState(() => _rcFrontPath = path),
-                (path) => setState(() => _rcBackPath = path),
-              ),
-              const SizedBox(height: 30),
-              _buildDocumentSection(
-                'Aadhar Card',
-                _aadharController,
-                _aadharFrontPath,
-                _aadharBackPath,
-                (path) => setState(() => _aadharFrontPath = path),
-                (path) => setState(() => _aadharBackPath = path),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
+              // Header Section
+              Container(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.go('/driver-dashboard');
-                  },
-                  // onPressed: _canSubmit()
-                  //     ? () {
-                  //   ScaffoldMessenger.of(context).showSnackBar(
-                  //     const SnackBar(
-                  //       content: Text('Documents submitted for verification'),
-                  //     ),
-                  //   );
-                  //   context.go('/driver-dashboard');
-                  // }
-                  //     : null,
-                  child: const Text('Submit for Verification'),
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.cloud_upload_outlined,
+                        size: 32,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Upload Your Document',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please provide your document type and number to verify your identity.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Form Section
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    // Document Type Dropdown
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: isDark
+                            ? Border.all(
+                                color: colorScheme.outline.withValues(alpha: 0.2),
+                                width: 1,
+                              )
+                            : null,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.description_outlined,
+                                    size: 20,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Document Type',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      ' *',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: colorScheme.outline.withValues(alpha: 0.5),
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedDocumentType,
+                                  isExpanded: true,
+                                  hint: Text(
+                                    'Select document type *',
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                  ),
+                                  dropdownColor: colorScheme.surface,
+                                  items: _documentTypes.map((String type) {
+                                    return DropdownMenuItem<String>(
+                                      value: type,
+                                      child: Text(
+                                        type,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedDocumentType = newValue;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Document Number Field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: isDark
+                            ? Border.all(
+                                color: colorScheme.outline.withValues(alpha: 0.2),
+                                width: 1,
+                              )
+                            : null,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.badge_outlined,
+                                    size: 20,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Document Number',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      ' *',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _documentNumberController,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: colorScheme.onSurface,
+                              ),
+                              onChanged: (value) {
+                                // Trigger rebuild to update submit button state
+                                setState(() {});
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Enter document number *',
+                                hintStyle: TextStyle(
+                                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                ),
+                                filled: true,
+                                fillColor: isDark
+                                    ? colorScheme.surfaceContainerHighest
+                                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: colorScheme.outline.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: colorScheme.outline.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Submit Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: (isLoading || !_canSubmit()) ? null : () => _submitDocument(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Submit Document',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Skip Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                context.go('/driver-dashboard');
+                              },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Skip for Now',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildDocumentSection(
-    String title,
-    TextEditingController controller,
-    String? frontPath,
-    String? backPath,
-    Function(String) onFrontPicked,
-    Function(String) onBackPicked,
-  ) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Document Number',
-                prefixIcon: Icon(Icons.badge_outlined),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildImageUploadButton(
-                    'Front Side',
-                    frontPath,
-                    () => _pickImage(onFrontPicked),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildImageUploadButton(
-                    'Back Side',
-                    backPath,
-                    () => _pickImage(onBackPicked),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        );
+        },
       ),
     );
   }
 
-  Widget _buildImageUploadButton(
-    String label,
-    String? imagePath,
-    VoidCallback onTap,
-  ) {
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        side: BorderSide(
-          color: imagePath != null
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).dividerColor,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            imagePath != null ? Icons.check_circle : Icons.camera_alt_outlined,
-            color: imagePath != null
-                ? Theme.of(context).colorScheme.primary
-                : null,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: imagePath != null
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

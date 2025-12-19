@@ -7,7 +7,10 @@
       "Bash(mkdir:*)",
       "Bash(flutter clean:*)",
       "Bash(dir \"E:\\Flutter\\Ramesh\\picky_load3\\picky_load3\\lib\\presentation\\cubit\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "WebSearch",
+      "Bash(del \"E:\\Flutter\\Ramesh\\picky_load3\\picky_load3\\lib\\domain\\repository\\document_repository.dart\")"
     ],
     "deny": [],
     "ask": []

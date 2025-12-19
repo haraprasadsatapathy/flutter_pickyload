@@ -14,6 +14,9 @@ import '../presentation/screens/auth/role_selection_screen.dart';
 import '../presentation/screens/customer/customer_dashboard.dart';
 import '../presentation/screens/driver/driver_dashboard.dart';
 import '../presentation/screens/driver/document_upload_screen.dart';
+import '../presentation/screens/driver/add_vehicle_screen.dart';
+import '../presentation/screens/driver/show_vehicle_screen.dart';
+import '../presentation/screens/driver/show_documents_screen.dart';
 import '../presentation/screens/trip/trip_request_screen.dart';
 import '../presentation/screens/trip/trip_tracking_screen.dart';
 import '../presentation/screens/payment/payment_screen.dart';
@@ -71,6 +74,18 @@ final router = GoRouter(
     GoRoute(
       path: '/document-upload',
       builder: (context, state) => const DocumentUploadScreen(),
+    ),
+    GoRoute(
+      path: '/add-vehicle',
+      builder: (context, state) => const AddVehicleScreen(),
+    ),
+    GoRoute(
+      path: '/show-vehicles',
+      builder: (context, state) => const ShowVehicleScreen(),
+    ),
+    GoRoute(
+      path: '/show-documents',
+      builder: (context, state) => const ShowDocumentsScreen(),
     ),
     GoRoute(
       path: '/trip-request',
