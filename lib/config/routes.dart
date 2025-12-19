@@ -30,7 +30,9 @@ import '../presentation/screens/profile/add_address_screen.dart';
 import '../presentation/screens/profile/settings_screen.dart';
 import '../presentation/screens/notifications/notifications_screen.dart';
 import '../domain/repository/user_repository.dart';
+import '../domain/repository/driver_repository.dart';
 import '../presentation/cubit/user_profile/edit_profile/edit_profile_bloc.dart';
+import '../presentation/cubit/driver/home/home_tab_bloc.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -69,7 +71,13 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/driver-dashboard',
-      builder: (context, state) => const DriverDashboard(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => HomeTabBloc(
+          context,
+          Provider.of<DriverRepository>(context, listen: false),
+        ),
+        child: const DriverDashboard(),
+      ),
     ),
     GoRoute(
       path: '/document-upload',

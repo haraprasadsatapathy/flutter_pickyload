@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/theme_provider.dart';
+import '../../../cubit/driver/home/home_tab_bloc.dart';
+import '../../../cubit/driver/home/home_tab_event.dart';
+import '../../../cubit/driver/home/home_tab_state.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -12,7 +16,16 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  bool _isOnline = false;
+  @override
+  void initState() {
+    super.initState();
+    // Fetch initial data when the tab loads
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final driverId = authProvider.currentUser?.id ?? '';
+
+    context.read<HomeTabBloc>().add(FetchTodayStats(driverId: driverId));
+    context.read<HomeTabBloc>().add(FetchLoadRequests(driverId: driverId));
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -49,86 +62,118 @@ class _HomeTabState extends State<HomeTab> {
     final authProvider = Provider.of<AuthProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            floating: true,
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Welcome Driver',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-                ),
-                Text(
-                  authProvider.currentUser?.name ?? 'Driver',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+    return BlocListener<HomeTabBloc, HomeTabState>(
+      listener: (context, state) {
+        // Show snackbar for success or error messages
+        if (state is OnlineStatusUpdated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        } else if (state is LoadRequestAccepted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is LoadRequestDeclined) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        } else if (state is HomeTabError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<HomeTabBloc, HomeTabState>(
+        builder: (context, state) {
+          return SafeArea(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                final driverId = authProvider.currentUser?.id ?? '';
+                context.read<HomeTabBloc>().add(RefreshHomeTab(driverId: driverId));
+              },
+              child: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Welcome Driver',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+                        ),
+                        Text(
+                          authProvider.currentUser?.name ?? 'Driver',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: Icon(
+                          themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                        ),
+                        onPressed: () {
+                          themeProvider.toggleTheme();
+                        },
+                        tooltip: 'Toggle Theme',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        onPressed: () => _showLogoutDialog(context),
+                        tooltip: 'Logout',
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                ),
-                onPressed: () {
-                  themeProvider.toggleTheme();
-                },
-                tooltip: 'Toggle Theme',
+                  SliverPadding(
+                    padding: const EdgeInsets.all(16.0),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _buildOnlineStatusCard(context, state),
+                        const SizedBox(height: 20),
+                        _buildStatsCard(context, state),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Available Load Requests',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        if (state is HomeTabLoading && state.loadRequests.isEmpty)
+                          const Center(child: CircularProgressIndicator())
+                        else if (state.loadRequests.isEmpty)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: Text('No load requests available'),
+                            ),
+                          )
+                        else
+                          ...state.loadRequests.map((loadRequest) =>
+                              _buildLoadRequestCard(context, loadRequest)),
+                      ]),
+                    ),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () => _showLogoutDialog(context),
-                tooltip: 'Logout',
-              ),
-            ],
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16.0),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildOnlineStatusCard(context),
-                const SizedBox(height: 20),
-                _buildStatsCard(context),
-                const SizedBox(height: 20),
-                Text(
-                  'Available Load Requests',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                _buildLoadRequestCard(
-                  context,
-                  'Mumbai to Delhi',
-                  '10 Ton',
-                  '₹15,000',
-                ),
-                _buildLoadRequestCard(
-                  context,
-                  'Pune to Bangalore',
-                  '5 Ton',
-                  '₹12,500',
-                ),
-                _buildLoadRequestCard(
-                  context,
-                  'Chennai to Hyderabad',
-                  '8 Ton',
-                  '₹10,000',
-                ),
-              ]),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildOnlineStatusCard(BuildContext context) {
+  Widget _buildOnlineStatusCard(BuildContext context, HomeTabState state) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -141,13 +186,13 @@ class _HomeTabState extends State<HomeTab> {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: _isOnline ? Colors.green : Colors.grey,
+                    color: state.isOnline ? Colors.green : Colors.grey,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  _isOnline ? 'You are Online' : 'You are Offline',
+                  state.isOnline ? 'You are Online' : 'You are Offline',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -155,11 +200,11 @@ class _HomeTabState extends State<HomeTab> {
               ],
             ),
             Switch(
-              value: _isOnline,
+              value: state.isOnline,
               onChanged: (value) {
-                setState(() {
-                  _isOnline = value;
-                });
+                context.read<HomeTabBloc>().add(
+                      ToggleOnlineStatus(isOnline: value),
+                    );
               },
             ),
           ],
@@ -168,7 +213,7 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildStatsCard(BuildContext context) {
+  Widget _buildStatsCard(BuildContext context, HomeTabState state) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -185,9 +230,21 @@ class _HomeTabState extends State<HomeTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(context, '3', 'Completed'),
-                _buildStatItem(context, '₹35,000', 'Earned'),
-                _buildStatItem(context, '250 km', 'Traveled'),
+                _buildStatItem(
+                  context,
+                  state.todayStats.completedTrips.toString(),
+                  'Completed',
+                ),
+                _buildStatItem(
+                  context,
+                  '₹${state.todayStats.earnedAmount.toStringAsFixed(0)}',
+                  'Earned',
+                ),
+                _buildStatItem(
+                  context,
+                  '${state.todayStats.traveledDistance.toStringAsFixed(0)} km',
+                  'Traveled',
+                ),
               ],
             ),
           ],
@@ -214,9 +271,7 @@ class _HomeTabState extends State<HomeTab> {
 
   Widget _buildLoadRequestCard(
     BuildContext context,
-    String route,
-    String capacity,
-    String price,
+    LoadRequestModel loadRequest,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -229,13 +284,13 @@ class _HomeTabState extends State<HomeTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  route,
+                  loadRequest.route,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  price,
+                  '₹${loadRequest.price.toStringAsFixed(0)}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
@@ -244,13 +299,19 @@ class _HomeTabState extends State<HomeTab> {
               ],
             ),
             const SizedBox(height: 8),
-            Text('Capacity: $capacity'),
+            Text('Capacity: ${loadRequest.capacity}'),
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      context.read<HomeTabBloc>().add(
+                            DeclineLoadRequest(
+                              loadRequestId: loadRequest.loadRequestId,
+                            ),
+                          );
+                    },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -264,7 +325,12 @@ class _HomeTabState extends State<HomeTab> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      context.push('/trip-tracking', extra: '1');
+                      context.read<HomeTabBloc>().add(
+                            AcceptLoadRequest(
+                              loadRequestId: loadRequest.loadRequestId,
+                            ),
+                          );
+                      context.push('/trip-tracking', extra: loadRequest.loadRequestId);
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
