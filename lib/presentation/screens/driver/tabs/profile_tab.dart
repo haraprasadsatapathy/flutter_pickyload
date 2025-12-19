@@ -100,6 +100,12 @@ class ProfileTab extends StatelessWidget {
                     'Add Vehicle',
                     () => context.push('/add-vehicle'),
                   ),
+                  _buildProfileOption(
+                    context,
+                    Icons.local_shipping_outlined,
+                    'My Offered Loads',
+                    () => context.push('/offer-loads-list'),
+                  ),
 
                   const SizedBox(height: 20),
                   // Logout Button

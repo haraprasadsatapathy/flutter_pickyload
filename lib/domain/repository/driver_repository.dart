@@ -7,6 +7,9 @@ import '../models/document_list_response.dart';
 import '../models/vehicle_upsert_request.dart';
 import '../models/vehicle_upsert_response.dart';
 import '../models/vehicle_list_response.dart';
+import '../models/offer_loads_response.dart';
+import '../models/offer_loads_list_response.dart';
+import '../models/update_offer_price_response.dart';
 
 /// Repository for driver-related operations
 class DriverRepository {
@@ -348,6 +351,143 @@ class DriverRepository {
   // ============================================
   // TRIP/BOOKING OPERATIONS
   // ============================================
+
+  /// Offer loads - Driver posts availability for loads
+  ///
+  /// Parameters:
+  /// - offerId: Unique offer ID (UUID)
+  /// - driverId: Driver ID (UUID)
+  /// - vehicleId: Vehicle ID (UUID)
+  /// - origin: Starting location
+  /// - destination: Destination location
+  /// - availableTimeStart: Start of availability window
+  /// - availableTimeEnd: End of availability window
+  /// - status: Offer status (default: 'DriverOffered')
+  Future<ApiResponse<OfferLoadsResponse>> offerLoadsUpsert({
+    required String offerId,
+    required String driverId,
+    required String vehicleId,
+    required String origin,
+    required String destination,
+    required DateTime availableTimeStart,
+    required DateTime availableTimeEnd,
+    String status = 'DriverOffered',
+  }) async {
+    try {
+      final requestData = {
+        'offerId': offerId,
+        'driverId': driverId,
+        'vehicleId': vehicleId,
+        'origin': origin,
+        'destination': destination,
+        'availableTimeStart': availableTimeStart.toUtc().toIso8601String(),
+        'availableTimeEnd': availableTimeEnd.toUtc().toIso8601String(),
+        'status': status,
+      };
+
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/Driver/OfferLoads-Upsert',
+        data: requestData,
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      if (response.status == true && response.data != null) {
+        final offerLoadsResponse = OfferLoadsResponse.fromJson(response.data!);
+
+        return ApiResponse(
+          status: true,
+          message: offerLoadsResponse.message,
+          data: offerLoadsResponse,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: response.message ?? 'Failed to submit load offer',
+        data: null,
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while submitting load offer: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Get all offered loads for a driver
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  Future<ApiResponse<OfferLoadsListResponse>> getAllOfferLoads({
+    required String driverId,
+  }) async {
+    try {
+      final response = await _apiClient.getRaw<OfferLoadsListResponse>(
+        '/Driver/GetAll-OfferLoads',
+        queryParameters: {'DriverId': driverId},
+        fromJson: (json) => OfferLoadsListResponse.fromJson(json),
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while fetching offered loads: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Update offer price
+  ///
+  /// Parameters:
+  /// - offerId: Offer ID (UUID)
+  /// - driverId: Driver ID (UUID)
+  /// - vehicleId: Vehicle ID (UUID)
+  /// - price: New price for the offer
+  Future<ApiResponse<UpdateOfferPriceResponse>> updateOfferPrice({
+    required String offerId,
+    required String driverId,
+    required String vehicleId,
+    required double price,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/Driver/Update-OfferPrice',
+        queryParameters: {
+          'OfferId': offerId,
+          'DriverId': driverId,
+          'VehicleId': vehicleId,
+          'Price': price.toString(),
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      if (response.status == true && response.data != null) {
+        final updateOfferPriceResponse =
+            UpdateOfferPriceResponse.fromJson(response.data!);
+
+        return ApiResponse(
+          status: true,
+          message: updateOfferPriceResponse.message,
+          data: updateOfferPriceResponse,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: response.message ?? 'Failed to update offer price',
+        data: null,
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while updating offer price: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
 
   /// Get available trips for driver
   /// TODO: Implement when API endpoint is available

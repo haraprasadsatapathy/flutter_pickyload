@@ -17,6 +17,9 @@ import '../presentation/screens/driver/document_upload_screen.dart';
 import '../presentation/screens/driver/add_vehicle_screen.dart';
 import '../presentation/screens/driver/show_vehicle_screen.dart';
 import '../presentation/screens/driver/show_documents_screen.dart';
+import '../presentation/screens/driver/add_load_screen.dart';
+import '../presentation/screens/driver/offer_loads_list_screen.dart';
+import '../presentation/screens/driver/edit_offer_price_screen.dart';
 import '../presentation/screens/trip/trip_request_screen.dart';
 import '../presentation/screens/trip/trip_tracking_screen.dart';
 import '../presentation/screens/payment/payment_screen.dart';
@@ -33,6 +36,10 @@ import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
 import '../presentation/cubit/user_profile/edit_profile/edit_profile_bloc.dart';
 import '../presentation/cubit/driver/home/home_tab_bloc.dart';
+import '../presentation/cubit/driver/add_load/add_load_bloc.dart';
+import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_bloc.dart';
+import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_state.dart';
+import '../presentation/cubit/driver/update_offer_price/update_offer_price_bloc.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -94,6 +101,39 @@ final router = GoRouter(
     GoRoute(
       path: '/show-documents',
       builder: (context, state) => const ShowDocumentsScreen(),
+    ),
+    GoRoute(
+      path: '/add-load',
+      builder: (context, state) => BlocProvider(
+        create: (context) => AddLoadBloc(
+          context,
+          Provider.of<DriverRepository>(context, listen: false),
+        ),
+        child: const AddLoadScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/offer-loads-list',
+      builder: (context, state) => BlocProvider(
+        create: (context) => OfferLoadsListBloc(
+          context,
+          Provider.of<DriverRepository>(context, listen: false),
+        ),
+        child: const OfferLoadsListScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/edit-offer-price',
+      builder: (context, state) {
+        final offerLoad = state.extra as OfferLoadModel;
+        return BlocProvider(
+          create: (context) => UpdateOfferPriceBloc(
+            context,
+            Provider.of<DriverRepository>(context, listen: false),
+          ),
+          child: EditOfferPriceScreen(offerLoad: offerLoad),
+        );
+      },
     ),
     GoRoute(
       path: '/trip-request',
