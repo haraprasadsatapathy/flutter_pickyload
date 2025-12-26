@@ -11,7 +11,10 @@
       "Bash(findstr:*)",
       "WebSearch",
       "Bash(del \"E:\\Flutter\\Ramesh\\picky_load3\\picky_load3\\lib\\domain\\repository\\document_repository.dart\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)"
     ],
     "deny": [],
     "ask": []
