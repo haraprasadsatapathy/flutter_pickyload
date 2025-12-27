@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../cubit/driver/add_load/add_load_bloc.dart';
 import '../../cubit/driver/add_load/add_load_event.dart';
 import '../../cubit/driver/add_load/add_load_state.dart';
+import 'map_location_picker_screen.dart';
+import 'route_map_screen.dart';
 
 class AddLoadScreen extends StatefulWidget {
   const AddLoadScreen({super.key});
@@ -22,6 +25,11 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   String? _selectedVehicleId;
   DateTime? _availableTimeStart;
   DateTime? _availableTimeEnd;
+
+  double? _originLatitude;
+  double? _originLongitude;
+  double? _destinationLatitude;
+  double? _destinationLongitude;
 
   @override
   void initState() {
@@ -70,6 +78,51 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
           }
         });
       }
+    }
+  }
+
+  Future<void> _selectOriginLocation() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapLocationPickerScreen(
+          title: 'Select Origin Location',
+          initialLocation: _originLatitude != null && _originLongitude != null
+              ? LatLng(_originLatitude!, _originLongitude!)
+              : null,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _originController.text = result['address'] as String;
+        _originLatitude = result['latitude'] as double;
+        _originLongitude = result['longitude'] as double;
+      });
+    }
+  }
+
+  Future<void> _selectDestinationLocation() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapLocationPickerScreen(
+          title: 'Select Destination Location',
+          initialLocation:
+              _destinationLatitude != null && _destinationLongitude != null
+                  ? LatLng(_destinationLatitude!, _destinationLongitude!)
+                  : null,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _destinationController.text = result['address'] as String;
+        _destinationLatitude = result['latitude'] as double;
+        _destinationLongitude = result['longitude'] as double;
+      });
     }
   }
 
@@ -212,15 +265,18 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: TextFormField(
                           controller: _originController,
+                          readOnly: true,
+                          onTap: _selectOriginLocation,
                           decoration: const InputDecoration(
                             labelText: 'Origin',
-                            hintText: 'Enter pickup location',
+                            hintText: 'Tap to select pickup location',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.location_on),
+                            suffixIcon: Icon(Icons.map),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter origin location';
+                              return 'Please select origin location';
                             }
                             return null;
                           },
@@ -235,15 +291,18 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: TextFormField(
                           controller: _destinationController,
+                          readOnly: true,
+                          onTap: _selectDestinationLocation,
                           decoration: const InputDecoration(
                             labelText: 'Destination',
-                            hintText: 'Enter drop-off location',
+                            hintText: 'Tap to select drop-off location',
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.flag),
+                            suffixIcon: Icon(Icons.map),
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter destination location';
+                              return 'Please select destination location';
                             }
                             return null;
                           },
@@ -251,6 +310,65 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
+
+                    // Check Distance Button
+                    if (_originLatitude != null &&
+                        _originLongitude != null &&
+                        _destinationLatitude != null &&
+                        _destinationLongitude != null)
+                      Card(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RouteMapScreen(
+                                  originLat: _originLatitude!,
+                                  originLng: _originLongitude!,
+                                  destinationLat: _destinationLatitude!,
+                                  destinationLng: _destinationLongitude!,
+                                  originAddress: _originController.text,
+                                  destinationAddress: _destinationController.text,
+                                ),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.route,
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  size: 28,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  'Check Distance & Route',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                      ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (_originLatitude != null &&
+                        _originLongitude != null &&
+                        _destinationLatitude != null &&
+                        _destinationLongitude != null)
+                      const SizedBox(height: 16),
 
                     // Available Time Start
                     Card(

@@ -2,19 +2,17 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import '../../domain/models/api_response.dart';
+import '../../utils/constant/AppConstants.dart';
 import 'pretty_dio_logger.dart';
 
 /// API client for network requests
 class ApiClient {
   late Dio _dio;
 
-  // Base URL - Update this with your actual API base URL
-  static const String baseUrl = 'https://pickyload.in/api';
-
   ApiClient() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl,
+        baseUrl: AppConstants.baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         headers: {

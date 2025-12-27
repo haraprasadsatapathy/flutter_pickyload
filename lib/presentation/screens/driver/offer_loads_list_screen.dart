@@ -115,21 +115,59 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
           children: [
             // Route header
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.location_on,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 20,
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.location_on,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    '${offerLoad.origin} → ${offerLoad.destination}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              offerLoad.origin,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.arrow_downward,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              offerLoad.destination,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 _buildStatusChip(offerLoad.status),
                 const SizedBox(width: 8),
                 IconButton(
@@ -179,16 +217,7 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
               icon: Icons.calendar_today,
               label: 'Available Until',
               value: offerLoad.formattedEndTime,
-            ),
-            const SizedBox(height: 16),
-
-            // Offer ID (small text)
-            Text(
-              'Offer ID: ${offerLoad.offerId}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-            ),
+            )
           ],
         ),
       ),
@@ -201,24 +230,37 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
     required String value,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Colors.grey[600],
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            icon,
+            size: 16,
+            color: Colors.grey[600],
+          ),
         ),
         const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-        ),
         Expanded(
-          child: Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium,
+          child: RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.bodyMedium,
+              children: [
+                TextSpan(
+                  text: '$label: ',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                TextSpan(
+                  text: value,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
           ),
         ),
       ],

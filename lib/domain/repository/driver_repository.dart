@@ -31,6 +31,7 @@ class DriverRepository {
   /// - documentImagePath: Path to the document image file (optional for now)
   /// - validTill: Document validity date (optional)
   /// - verifiedOn: Document verification date (optional)
+  /// - dateOfBirth: Date of birth (optional)
   Future<ApiResponse<DocumentUploadResponse>> uploadDocument({
     required String userId,
     required String documentType,
@@ -38,6 +39,7 @@ class DriverRepository {
     String? documentImagePath,
     DateTime? validTill,
     DateTime? verifiedOn,
+    DateTime? dateOfBirth,
   }) async {
     try {
       final formData = FormData();
@@ -62,6 +64,11 @@ class DriverRepository {
       if (verifiedOn != null) {
         formData.fields.add(
           MapEntry('VerifiedOn', verifiedOn.toUtc().toIso8601String()),
+        );
+      }
+      if (dateOfBirth != null) {
+        formData.fields.add(
+          MapEntry('DateOfBirth', dateOfBirth.toUtc().toIso8601String()),
         );
       }
 
@@ -149,16 +156,14 @@ class DriverRepository {
   }
 
   /// Get all documents for a user
-  /// Note: This endpoint returns a non-standard response format: {message, documents, count}
-  /// instead of the typical {status, message, data} format
+  /// Note: This endpoint returns response format: {message, data: {documents, count}}
   Future<ApiResponse<DocumentListResponse>> getAllDocuments({
     required String userId,
   }) async {
     try {
-      // Use getRaw since this endpoint has a non-standard response format
+      // Use getRaw since this endpoint has a specific response format
       final response = await _apiClient.getRaw<DocumentListResponse>(
-        '/Driver/GetAll-Doc',
-        queryParameters: {'UserId': userId},
+        '/Driver/GetAllDocsByUserId/$userId',
         fromJson: (json) => DocumentListResponse.fromJson(json),
       );
 

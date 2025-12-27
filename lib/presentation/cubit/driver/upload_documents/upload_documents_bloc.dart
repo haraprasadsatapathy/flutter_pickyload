@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../domain/repository/driver_repository.dart';
 import 'upload_documents_event.dart';
 import 'upload_documents_state.dart';
@@ -9,18 +10,50 @@ class UploadDocumentsBloc
   // Dependencies
   final BuildContext context;
   final DriverRepository driverRepository;
-  final String userId;
 
   // Constructor
   UploadDocumentsBloc({
     required this.context,
     required this.driverRepository,
-    required this.userId,
   }) : super(UploadDocumentsInitial()) {
     _registerEventHandlers();
   }
 
   void _registerEventHandlers() {
+    // Load user data from shared preferences
+    on<LoadUserData>((event, emit) async {
+      try {
+        emit(UploadDocumentsLoading(
+          dlFrontPath: state.dlFrontPath,
+          dlBackPath: state.dlBackPath,
+          rcFrontPath: state.rcFrontPath,
+          rcBackPath: state.rcBackPath,
+          dlNumber: state.dlNumber,
+          rcNumber: state.rcNumber,
+          userId: state.userId,
+        ));
+
+        final prefs = await SharedPreferences.getInstance();
+        final userId = prefs.getString('userId');
+
+        if (userId != null && userId.isNotEmpty) {
+          emit(UserDataLoaded(
+            userId: userId,
+            dlFrontPath: state.dlFrontPath,
+            dlBackPath: state.dlBackPath,
+            rcFrontPath: state.rcFrontPath,
+            rcBackPath: state.rcBackPath,
+            dlNumber: state.dlNumber,
+            rcNumber: state.rcNumber,
+          ));
+        } else {
+          emit(UserDataLoadError(error: 'User not found. Please login again.'));
+        }
+      } catch (e) {
+        emit(UserDataLoadError(error: 'Failed to load user data: ${e.toString()}'));
+      }
+    });
+
     // Upload DL Front
     on<UploadDlFront>((event, emit) async {
       emit(DocumentUploaded(
@@ -31,6 +64,7 @@ class UploadDocumentsBloc
         rcBackPath: state.rcBackPath,
         dlNumber: state.dlNumber,
         rcNumber: state.rcNumber,
+        userId: state.userId,
       ));
     });
 
@@ -44,6 +78,7 @@ class UploadDocumentsBloc
         rcBackPath: state.rcBackPath,
         dlNumber: state.dlNumber,
         rcNumber: state.rcNumber,
+        userId: state.userId,
       ));
     });
 
@@ -57,6 +92,7 @@ class UploadDocumentsBloc
         rcBackPath: state.rcBackPath,
         dlNumber: state.dlNumber,
         rcNumber: state.rcNumber,
+        userId: state.userId,
       ));
     });
 
@@ -70,6 +106,7 @@ class UploadDocumentsBloc
         rcBackPath: event.imagePath,
         dlNumber: state.dlNumber,
         rcNumber: state.rcNumber,
+        userId: state.userId,
       ));
     });
 
@@ -92,7 +129,23 @@ class UploadDocumentsBloc
         rcBackPath: state.rcBackPath,
         dlNumber: state.dlNumber,
         rcNumber: state.rcNumber,
+        userId: state.userId,
       ));
+
+      // Check if userId is available
+      if (state.userId == null) {
+        emit(DocumentsSubmissionError(
+          error: 'User not found. Please login again.',
+          dlFrontPath: state.dlFrontPath,
+          dlBackPath: state.dlBackPath,
+          rcFrontPath: state.rcFrontPath,
+          rcBackPath: state.rcBackPath,
+          dlNumber: state.dlNumber,
+          rcNumber: state.rcNumber,
+          userId: state.userId,
+        ));
+        return;
+      }
 
       try {
         // Map UI document types to API document types
@@ -104,18 +157,6 @@ class UploadDocumentsBloc
           case 'Registration Certificate (RC)':
             apiDocumentType = 'RegistrationCertificate';
             break;
-          case 'Aadhaar Card':
-            apiDocumentType = 'AadhaarCard';
-            break;
-          case 'Passport':
-            apiDocumentType = 'Passport';
-            break;
-          case 'PAN Card':
-            apiDocumentType = 'PANCard';
-            break;
-          case 'Voter ID':
-            apiDocumentType = 'VoterID';
-            break;
           default:
             // This should never happen due to UI validation
             apiDocumentType = 'DrivingLicense';
@@ -123,12 +164,13 @@ class UploadDocumentsBloc
 
         // Call the generic uploadDocument API without image
         final response = await driverRepository.uploadDocument(
-          userId: userId,
+          userId: state.userId!,
           documentType: apiDocumentType,
           documentNumber: event.documentNumber,
           documentImagePath: null, // No image upload
           validTill: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years validity
           verifiedOn: DateTime.now(),
+          dateOfBirth: event.dateOfBirth,
         );
 
         if (response.status == true) {
@@ -140,6 +182,7 @@ class UploadDocumentsBloc
             rcBackPath: state.rcBackPath,
             dlNumber: state.dlNumber,
             rcNumber: state.rcNumber,
+            userId: state.userId,
           ));
         } else {
           emit(DocumentsSubmissionError(
@@ -150,6 +193,7 @@ class UploadDocumentsBloc
             rcBackPath: state.rcBackPath,
             dlNumber: state.dlNumber,
             rcNumber: state.rcNumber,
+            userId: state.userId,
           ));
         }
       } catch (e) {
@@ -161,6 +205,7 @@ class UploadDocumentsBloc
           rcBackPath: state.rcBackPath,
           dlNumber: state.dlNumber,
           rcNumber: state.rcNumber,
+          userId: state.userId,
         ));
       }
     });
@@ -174,6 +219,7 @@ class UploadDocumentsBloc
         rcBackPath: state.rcBackPath,
         dlNumber: state.dlNumber,
         rcNumber: state.rcNumber,
+        userId: state.userId,
       ));
 
       // ============================================
@@ -193,6 +239,7 @@ class UploadDocumentsBloc
           rcBackPath: state.rcBackPath,
           dlNumber: state.dlNumber,
           rcNumber: state.rcNumber,
+          userId: state.userId,
         ));
         return;
       }
@@ -210,6 +257,7 @@ class UploadDocumentsBloc
           rcBackPath: state.rcBackPath,
           dlNumber: state.dlNumber,
           rcNumber: state.rcNumber,
+          userId: state.userId,
         ));
         return;
       }
@@ -221,7 +269,7 @@ class UploadDocumentsBloc
       try {
         // Upload Driving License
         final dlResponse = await driverRepository.uploadDrivingLicense(
-          userId: userId,
+          userId: state.userId!,
           dlNumber: state.dlNumber!,
           dlImagePath: state.dlFrontPath, // Using front image for DL
           validTill: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years validity
@@ -236,13 +284,14 @@ class UploadDocumentsBloc
             rcBackPath: state.rcBackPath,
             dlNumber: state.dlNumber,
             rcNumber: state.rcNumber,
+            userId: state.userId,
           ));
           return;
         }
 
         // Upload Registration Certificate
         final rcResponse = await driverRepository.uploadRegistrationCertificate(
-          userId: userId,
+          userId: state.userId!,
           rcNumber: state.rcNumber!,
           rcImagePath: state.rcFrontPath, // Using front image for RC
           validTill: DateTime.now().add(const Duration(days: 365 * 10)), // 10 years validity
@@ -257,6 +306,7 @@ class UploadDocumentsBloc
             rcBackPath: state.rcBackPath,
             dlNumber: state.dlNumber,
             rcNumber: state.rcNumber,
+            userId: state.userId,
           ));
           return;
         }
@@ -270,6 +320,7 @@ class UploadDocumentsBloc
           rcBackPath: state.rcBackPath,
           dlNumber: state.dlNumber,
           rcNumber: state.rcNumber,
+          userId: state.userId,
         ));
       } catch (e) {
         emit(DocumentsSubmissionError(
@@ -280,6 +331,7 @@ class UploadDocumentsBloc
           rcBackPath: state.rcBackPath,
           dlNumber: state.dlNumber,
           rcNumber: state.rcNumber,
+          userId: state.userId,
         ));
       }
     });

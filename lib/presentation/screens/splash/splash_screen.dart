@@ -205,8 +205,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           width: 200,
                           height: 200,
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
+                            shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.15),
@@ -216,18 +215,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               ),
                             ],
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(30),
+                          child: ClipOval(
                             child: Stack(
                               children: [
                                 // Logo image
                                 Positioned.fill(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Image.asset(
-                                      'assets/images/logo.png',
-                                      fit: BoxFit.contain,
-                                    ),
+                                  child: Image.asset(
+                                    'assets/images/app_icon.png',
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                                 // Shimmer overlay effect

@@ -271,19 +271,6 @@ class ShowDocumentsScreen extends StatelessWidget {
 
   Widget _buildDocumentCard(BuildContext context, DocumentInfo document) {
     final dateFormat = DateFormat('MMM dd, yyyy');
-    Color statusColor = Theme.of(context).colorScheme.primary;
-    String statusText = 'Valid';
-    IconData statusIcon = Icons.check_circle;
-
-    if (document.isExpired) {
-      statusColor = Colors.red;
-      statusText = 'Expired';
-      statusIcon = Icons.error;
-    } else if (document.isExpiringSoon) {
-      statusColor = Colors.orange;
-      statusText = 'Expiring Soon';
-      statusIcon = Icons.warning;
-    }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -321,32 +308,26 @@ class ShowDocumentsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(statusIcon, size: 16, color: statusColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusText,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Implement deactivate functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Deactivate functionality coming soon'),
                       ),
-                    ],
+                    );
+                  },
+                  icon: const Icon(Icons.block, size: 16),
+                  label: const Text('Deactivate'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ],
@@ -371,13 +352,6 @@ class ShowDocumentsScreen extends StatelessWidget {
               document.verifiedOn != null
                   ? dateFormat.format(document.verifiedOn!)
                   : 'Not verified',
-            ),
-            const SizedBox(height: 8),
-            _buildDetailRow(
-              context,
-              Icons.fingerprint,
-              'Document ID',
-              '${document.documentId.substring(0, 8)}...',
             ),
           ],
         ),

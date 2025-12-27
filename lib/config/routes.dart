@@ -11,6 +11,7 @@ import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/auth/otp_verification_screen.dart';
 import '../presentation/screens/auth/password_recovery_screen.dart';
 import '../presentation/screens/auth/role_selection_screen.dart';
+import '../presentation/screens/auth/rating_screen.dart';
 import '../presentation/screens/customer/customer_dashboard.dart';
 import '../presentation/screens/driver/driver_dashboard.dart';
 import '../presentation/screens/driver/document_upload_screen.dart';
@@ -71,6 +72,10 @@ final router = GoRouter(
     GoRoute(
       path: '/role-selection',
       builder: (context, state) => const RoleSelectionScreen(),
+    ),
+    GoRoute(
+      path: '/rating',
+      builder: (context, state) => const RatingScreen(),
     ),
     GoRoute(
       path: '/customer-dashboard',

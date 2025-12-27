@@ -101,6 +101,27 @@ class _HomeTabState extends State<HomeTab> {
                 slivers: [
                   SliverAppBar(
                     floating: true,
+                    leading: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/images/app_icon.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

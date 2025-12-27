@@ -8,6 +8,7 @@ class UploadDocumentsState extends BaseEventState {
   final String? rcBackPath;
   final String? dlNumber;
   final String? rcNumber;
+  final String? userId;
 
   UploadDocumentsState({
     this.dlFrontPath,
@@ -16,6 +17,7 @@ class UploadDocumentsState extends BaseEventState {
     this.rcBackPath,
     this.dlNumber,
     this.rcNumber,
+    this.userId,
   });
 
   UploadDocumentsState copyWith({
@@ -25,6 +27,7 @@ class UploadDocumentsState extends BaseEventState {
     String? rcBackPath,
     String? dlNumber,
     String? rcNumber,
+    String? userId,
   }) {
     return UploadDocumentsState(
       dlFrontPath: dlFrontPath ?? this.dlFrontPath,
@@ -33,6 +36,7 @@ class UploadDocumentsState extends BaseEventState {
       rcBackPath: rcBackPath ?? this.rcBackPath,
       dlNumber: dlNumber ?? this.dlNumber,
       rcNumber: rcNumber ?? this.rcNumber,
+      userId: userId ?? this.userId,
     );
   }
 
@@ -44,6 +48,7 @@ class UploadDocumentsState extends BaseEventState {
         rcBackPath,
         dlNumber,
         rcNumber,
+        userId,
       ];
 }
 
@@ -59,6 +64,7 @@ class UploadDocumentsLoading extends UploadDocumentsState {
     super.rcBackPath,
     super.dlNumber,
     super.rcNumber,
+    super.userId,
   });
 }
 
@@ -74,6 +80,7 @@ class DocumentUploaded extends UploadDocumentsState {
     super.rcBackPath,
     super.dlNumber,
     super.rcNumber,
+    super.userId,
   });
 
   @override
@@ -85,6 +92,7 @@ class DocumentUploaded extends UploadDocumentsState {
         rcBackPath,
         dlNumber,
         rcNumber,
+        userId,
       ];
 }
 
@@ -100,6 +108,7 @@ class DocumentUploadError extends UploadDocumentsState {
     super.rcBackPath,
     super.dlNumber,
     super.rcNumber,
+    super.userId,
   });
 
   @override
@@ -111,6 +120,7 @@ class DocumentUploadError extends UploadDocumentsState {
         rcBackPath,
         dlNumber,
         rcNumber,
+        userId,
       ];
 }
 
@@ -126,6 +136,7 @@ class DocumentsSubmittedSuccess extends UploadDocumentsState {
     super.rcBackPath,
     super.dlNumber,
     super.rcNumber,
+    super.userId,
   });
 
   @override
@@ -137,6 +148,7 @@ class DocumentsSubmittedSuccess extends UploadDocumentsState {
         rcBackPath,
         dlNumber,
         rcNumber,
+        userId,
       ];
 }
 
@@ -152,6 +164,7 @@ class DocumentsSubmissionError extends UploadDocumentsState {
     super.rcBackPath,
     super.dlNumber,
     super.rcNumber,
+    super.userId,
   });
 
   @override
@@ -163,5 +176,40 @@ class DocumentsSubmissionError extends UploadDocumentsState {
         rcBackPath,
         dlNumber,
         rcNumber,
+        userId,
       ];
+}
+
+// User data loaded successfully
+class UserDataLoaded extends UploadDocumentsState {
+  UserDataLoaded({
+    required String userId,
+    super.dlFrontPath,
+    super.dlBackPath,
+    super.rcFrontPath,
+    super.rcBackPath,
+    super.dlNumber,
+    super.rcNumber,
+  }) : super(userId: userId);
+
+  @override
+  List<Object?> get props => [
+        userId,
+        dlFrontPath,
+        dlBackPath,
+        rcFrontPath,
+        rcBackPath,
+        dlNumber,
+        rcNumber,
+      ];
+}
+
+// User data load failed
+class UserDataLoadError extends UploadDocumentsState {
+  final String error;
+
+  UserDataLoadError({required this.error});
+
+  @override
+  List<Object?> get props => [error];
 }

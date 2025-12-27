@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../domain/repository/user_repository.dart';
 import '../../../domain/repository/driver_repository.dart';
 import '../../cubit/driver/upload_documents/upload_documents_bloc.dart';
 import '../../cubit/driver/upload_documents/upload_documents_event.dart';
@@ -19,34 +18,14 @@ class DocumentUploadScreen extends StatefulWidget {
 class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   final _documentNumberController = TextEditingController();
 
-  String? _userId;
-  bool _isLoading = true;
+  DateTime? _selectedDateOfBirth;
 
   // Document type options
   String? _selectedDocumentType;
   final List<String> _documentTypes = [
     'Driving License (DL)',
-    'Registration Certificate (RC)',
-    'Aadhaar Card',
-    'Passport',
-    'PAN Card',
-    'Voter ID',
+    'Registration Certificate (RC)'
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserId();
-  }
-
-  Future<void> _loadUserId() async {
-    final userRepository = Provider.of<UserRepository>(context, listen: false);
-    final user = await userRepository.getUserDetailsSp();
-    setState(() {
-      _userId = user?.id;
-      _isLoading = false;
-    });
-  }
 
   @override
   void dispose() {
@@ -65,6 +44,11 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       return false;
     }
 
+    // Check if date of birth is selected
+    if (_selectedDateOfBirth == null) {
+      return false;
+    }
+
     return true;
   }
 
@@ -74,8 +58,24 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
           SubmitSingleDocument(
             documentType: _selectedDocumentType!,
             documentNumber: _documentNumberController.text.trim(),
+            dateOfBirth: _selectedDateOfBirth,
           ),
         );
+  }
+
+  Future<void> _selectDateOfBirth(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(1990),
+      firstDate: DateTime(1940),
+      lastDate: DateTime.now(),
+      helpText: 'Select Date of Birth',
+    );
+    if (picked != null && picked != _selectedDateOfBirth) {
+      setState(() {
+        _selectedDateOfBirth = picked;
+      });
+    }
   }
 
   @override
@@ -86,82 +86,33 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    // Show loading screen while fetching user ID
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: colorScheme.surface,
-          title: Text(
-            'Document Upload',
-            style: TextStyle(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    // Show error if user ID is not available
-    if (_userId == null) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: colorScheme.surface,
-          title: Text(
-            'Document Upload',
-            style: TextStyle(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: colorScheme.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'User not found. Please login again.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  authProvider.logout();
-                  context.go('/login');
-                },
-                child: const Text('Go to Login'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return BlocProvider(
-      create: (context) => UploadDocumentsBloc(
-        context: context,
-        driverRepository: driverRepository,
-        userId: _userId!,
-      ),
+      create: (context) {
+        final bloc = UploadDocumentsBloc(
+          context: context,
+          driverRepository: driverRepository,
+        );
+        // Load user data when BLoC is created
+        bloc.add(LoadUserData());
+        return bloc;
+      },
       child: BlocConsumer<UploadDocumentsBloc, UploadDocumentsState>(
         listener: (context, state) {
-          if (state is DocumentsSubmittedSuccess) {
+          if (state is UserDataLoadError) {
+            // Show error and redirect to login
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red,
+              ),
+            );
+            Future.delayed(const Duration(milliseconds: 1500), () {
+              if (context.mounted) {
+                authProvider.logout();
+                context.go('/login');
+              }
+            });
+          } else if (state is DocumentsSubmittedSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -186,6 +137,76 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         },
         builder: (context, state) {
           final isLoading = state is UploadDocumentsLoading;
+          final isLoadingUserData = state is UploadDocumentsLoading && state.userId == null;
+          final isUserDataError = state is UserDataLoadError;
+
+          // Show loading screen while loading user data
+          if (state is UploadDocumentsInitial || isLoadingUserData) {
+            return Scaffold(
+              backgroundColor: theme.scaffoldBackgroundColor,
+              appBar: AppBar(
+                elevation: 0,
+                backgroundColor: colorScheme.surface,
+                title: Text(
+                  'Document Upload',
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          // Show error screen if user data couldn't be loaded
+          if (isUserDataError) {
+            return Scaffold(
+              backgroundColor: theme.scaffoldBackgroundColor,
+              appBar: AppBar(
+                elevation: 0,
+                backgroundColor: colorScheme.surface,
+                title: Text(
+                  'Document Upload',
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      state.error,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        authProvider.logout();
+                        context.go('/login');
+                      },
+                      child: const Text('Go to Login'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
 
           return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -470,6 +491,114 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Date of Birth Field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.3)
+                                : Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                        border: isDark
+                            ? Border.all(
+                                color: colorScheme.outline.withValues(alpha: 0.2),
+                                width: 1,
+                              )
+                            : null,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.cake_outlined,
+                                    size: 20,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Date of Birth',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      ' *',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            InkWell(
+                              onTap: () => _selectDateOfBirth(context),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? colorScheme.surfaceContainerHighest
+                                      : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                  border: Border.all(
+                                    color: colorScheme.outline.withValues(alpha: 0.5),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _selectedDateOfBirth == null
+                                          ? 'Select date of birth *'
+                                          : '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: _selectedDateOfBirth == null
+                                            ? colorScheme.onSurface.withValues(alpha: 0.4)
+                                            : colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 20,
+                                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

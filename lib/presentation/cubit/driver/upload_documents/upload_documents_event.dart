@@ -3,6 +3,12 @@ import 'package:picky_load3/presentation/cubit/base/base_event_state.dart';
 // Base event class for Upload Documents feature
 class UploadDocumentsEvent extends BaseEventState {}
 
+// Load user data from shared preferences
+class LoadUserData extends UploadDocumentsEvent {
+  @override
+  List<Object?> get props => [];
+}
+
 // Document upload events
 class UploadDlFront extends UploadDocumentsEvent {
   final String imagePath;
@@ -69,12 +75,14 @@ class SubmitDocuments extends UploadDocumentsEvent {
 class SubmitSingleDocument extends UploadDocumentsEvent {
   final String documentType;
   final String documentNumber;
+  final DateTime? dateOfBirth;
 
   SubmitSingleDocument({
     required this.documentType,
     required this.documentNumber,
+    this.dateOfBirth,
   });
 
   @override
-  List<Object?> get props => [documentType, documentNumber];
+  List<Object?> get props => [documentType, documentNumber, dateOfBirth];
 }

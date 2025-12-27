@@ -66,18 +66,12 @@ class RoleSelectionBloc
           userId: user.id!,
         );
 
-        if (documentsResponse.status == false) {
-          emit(RoleSelectionError(
-            documentsResponse.message ?? 'Failed to fetch documents',
-          ));
-          return;
-        }
-
         // Step 3: Determine navigation based on document count
+        // If API fails OR no documents exist, redirect to document upload screen
         final documentCount = documentsResponse.data?.count ?? 0;
 
-        if (documentCount == 0) {
-          // No documents - navigate to document upload screen
+        if (documentsResponse.status == false || documentCount == 0) {
+          // API failed OR no documents - navigate to document upload screen
           emit(DriverRoleSelectedWithoutDocuments(
             message: 'Please upload your documents to continue',
           ));
@@ -89,7 +83,11 @@ class RoleSelectionBloc
           ));
         }
       } catch (e) {
-        emit(RoleSelectionError('Failed to select driver role: ${e.toString()}'));
+        // If any exception occurs, redirect to document upload screen
+        // This ensures users can always proceed even if there's a network/parsing error
+        emit(DriverRoleSelectedWithoutDocuments(
+          message: 'Please upload your documents to continue',
+        ));
       }
     });
   }
