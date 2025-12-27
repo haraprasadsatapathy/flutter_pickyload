@@ -11,18 +11,33 @@ class DocumentListResponse {
   });
 
   factory DocumentListResponse.fromJson(Map<String, dynamic> json) {
-    // New API response format: {message, data: {documents, count}}
-    final data = json['data'] as Map<String, dynamic>?;
+    // API can return two formats:
+    // Format 1: {message, data: {documents, count}}
+    // Format 2: {message, data: [...]} (array of documents directly)
+
+    final data = json['data'];
+    List<DocumentInfo> documentsList = [];
+    int documentCount = 0;
+
+    if (data is List) {
+      // Format 2: data is an array of documents
+      documentsList = data
+          .map((doc) => DocumentInfo.fromJson(doc as Map<String, dynamic>))
+          .toList();
+      documentCount = documentsList.length;
+    } else if (data is Map<String, dynamic>) {
+      // Format 1: data is an object with documents and count fields
+      documentsList = (data['documents'] as List<dynamic>?)
+              ?.map((doc) => DocumentInfo.fromJson(doc as Map<String, dynamic>))
+              .toList() ??
+          [];
+      documentCount = data['count'] as int? ?? documentsList.length;
+    }
 
     return DocumentListResponse(
       message: json['message'] as String? ?? '',
-      documents: data != null
-          ? (data['documents'] as List<dynamic>?)
-                  ?.map((doc) => DocumentInfo.fromJson(doc as Map<String, dynamic>))
-                  .toList() ??
-              []
-          : [],
-      count: data != null ? (data['count'] as int? ?? 0) : 0,
+      documents: documentsList,
+      count: documentCount,
     );
   }
 

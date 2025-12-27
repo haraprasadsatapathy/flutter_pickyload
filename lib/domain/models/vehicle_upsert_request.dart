@@ -1,40 +1,40 @@
 class VehicleUpsertRequest {
-  final String? vehicleId;
   final String driverId;
-  final bool isVehicleBodyCovered;
+  final String vehicleNumberPlate;
+  final String rcNumber;
+  final String chassisNumber;
+  final String bodyCoverType; // "Open", "Covered", etc.
   final String capacity;
   final double length;
   final double width;
   final double height;
-  final String vehicleNumber;
-  final String rcNumber;
-  final String makeModel;
+  final int numberOfWheels;
 
   VehicleUpsertRequest({
-    this.vehicleId,
     required this.driverId,
-    required this.isVehicleBodyCovered,
+    required this.vehicleNumberPlate,
+    required this.rcNumber,
+    required this.chassisNumber,
+    required this.bodyCoverType,
     required this.capacity,
     required this.length,
     required this.width,
     required this.height,
-    required this.vehicleNumber,
-    required this.rcNumber,
-    required this.makeModel,
+    required this.numberOfWheels,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'vehicleId': vehicleId ?? '00000000-0000-0000-0000-000000000000',
       'driverId': driverId,
-      'isVehicleBodyCovered': isVehicleBodyCovered,
+      'vehicleNumberPlate': vehicleNumberPlate,
+      'rcNumber': rcNumber,
+      'chassisNumber': chassisNumber,
+      'bodyCoverType': bodyCoverType,
       'capacity': capacity,
       'length': length,
       'width': width,
       'height': height,
-      'vehicleNumber': vehicleNumber,
-      'rcNumber': rcNumber,
-      'makeModel': makeModel,
+      'numberOfWheels': numberOfWheels,
     };
   }
 }

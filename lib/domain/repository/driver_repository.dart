@@ -28,75 +28,41 @@ class DriverRepository {
   /// - userId: User ID (UUID)
   /// - documentType: Type of document (e.g., 'DrivingLicense', 'RegistrationCertificate')
   /// - documentNumber: Document number
-  /// - documentImagePath: Path to the document image file (optional for now)
-  /// - validTill: Document validity date (optional)
-  /// - verifiedOn: Document verification date (optional)
-  /// - dateOfBirth: Date of birth (optional)
+  /// - dateOfBirth: Date of birth (required for verification)
+  /// - documentImagePath: Path to the document image file (optional, not used in current API)
+  /// - validTill: Document validity date (optional, not used in current API)
+  /// - verifiedOn: Document verification date (optional, not used in current API)
   Future<ApiResponse<DocumentUploadResponse>> uploadDocument({
     required String userId,
     required String documentType,
     required String documentNumber,
+    required DateTime dateOfBirth,
     String? documentImagePath,
     DateTime? validTill,
     DateTime? verifiedOn,
-    DateTime? dateOfBirth,
   }) async {
     try {
-      final formData = FormData();
+      // Prepare request body for DocumentVerify API
+      final requestBody = {
+        'userId': userId,
+        'documentType': documentType,
+        'documentNumber': documentNumber,
+        'dob': dateOfBirth.toUtc().toIso8601String(),
+      };
 
-      // Generate a new document ID (UUID format)
-      // In a real app, you might want to use the uuid package
-      final documentId = _generateUuid();
-
-      // Add required fields
-      formData.fields.add(MapEntry('DocumentId', documentId));
-      formData.fields.add(MapEntry('UserId', userId));
-      formData.fields.add(MapEntry('DocumentType', documentType));
-      formData.fields.add(MapEntry('DocumentNumber', documentNumber));
-
-      // Add optional date fields if provided
-      // Convert to UTC to ensure PostgreSQL compatibility (timestamp with time zone)
-      if (validTill != null) {
-        formData.fields.add(
-          MapEntry('ValidTill', validTill.toUtc().toIso8601String()),
-        );
-      }
-      if (verifiedOn != null) {
-        formData.fields.add(
-          MapEntry('VerifiedOn', verifiedOn.toUtc().toIso8601String()),
-        );
-      }
-      if (dateOfBirth != null) {
-        formData.fields.add(
-          MapEntry('DateOfBirth', dateOfBirth.toUtc().toIso8601String()),
-        );
-      }
-
-      // Add document image if provided
-      // Note: The API might expect a specific field name for the image
-      // You may need to update this based on actual API requirements
-      if (documentImagePath != null && documentImagePath.isNotEmpty) {
-        final fileName = documentImagePath.split('/').last;
-        formData.files.add(
-          MapEntry(
-            'DocumentImage', // Update this field name if API expects something different
-            await MultipartFile.fromFile(documentImagePath, filename: fileName),
-          ),
-        );
-      }
-
-      final response = await _apiClient.postMultipart<Map<String, dynamic>>(
-        '/Driver/Upload-Doc',
-        formData: formData,
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/Driver/DocumentVerify',
+        queryParameters: {'isDryRun': 'true'},
+        data: requestBody,
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      if (response.status == true || response.message != null) {
-        // Parse the document upload response
+      if (response.status == true && response.data != null) {
+        // Parse the document verification response
         final documentUploadResponse = DocumentUploadResponse(
-          message: response.message ?? 'Document uploaded successfully',
-          data: response.data != null
-              ? DocumentUploadData.fromJson(response.data!)
+          message: response.data!['message'] as String? ?? 'Document verified successfully',
+          data: response.data!['data'] != null
+              ? DocumentUploadData.fromJson(response.data!['data'] as Map<String, dynamic>)
               : null,
         );
 
@@ -109,13 +75,37 @@ class DriverRepository {
 
       return ApiResponse(
         status: false,
-        message: response.message ?? 'Failed to upload document',
+        message: response.message ?? 'Failed to verify document',
         data: null,
       );
     } catch (e) {
+      // Handle validation errors from API
+      String errorMessage = 'An error occurred while verifying document: ${e.toString()}';
+
+      // Try to parse validation errors if present
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['errors'] != null) {
+          final errors = responseData['errors'] as Map<String, dynamic>;
+          final errorMessages = <String>[];
+
+          errors.forEach((key, value) {
+            if (value is List) {
+              errorMessages.addAll(value.map((e) => e.toString()));
+            }
+          });
+
+          if (errorMessages.isNotEmpty) {
+            errorMessage = errorMessages.join(', ');
+          }
+        } else if (responseData is Map<String, dynamic> && responseData['title'] != null) {
+          errorMessage = responseData['title'] as String;
+        }
+      }
+
       return ApiResponse(
         status: false,
-        message: 'An error occurred while uploading document: ${e.toString()}',
+        message: errorMessage,
         data: null,
       );
     }
@@ -125,6 +115,7 @@ class DriverRepository {
   Future<ApiResponse<DocumentUploadResponse>> uploadDrivingLicense({
     required String userId,
     required String dlNumber,
+    required DateTime dateOfBirth,
     String? dlImagePath,
     DateTime? validTill,
   }) async {
@@ -132,6 +123,7 @@ class DriverRepository {
       userId: userId,
       documentType: 'DrivingLicense',
       documentNumber: dlNumber,
+      dateOfBirth: dateOfBirth,
       documentImagePath: dlImagePath,
       validTill: validTill,
       verifiedOn: DateTime.now(),
@@ -142,6 +134,7 @@ class DriverRepository {
   Future<ApiResponse<DocumentUploadResponse>> uploadRegistrationCertificate({
     required String userId,
     required String rcNumber,
+    required DateTime dateOfBirth,
     String? rcImagePath,
     DateTime? validTill,
   }) async {
@@ -149,6 +142,7 @@ class DriverRepository {
       userId: userId,
       documentType: 'RegistrationCertificate',
       documentNumber: rcNumber,
+      dateOfBirth: dateOfBirth,
       documentImagePath: rcImagePath,
       validTill: validTill,
       verifiedOn: DateTime.now(),
@@ -184,40 +178,40 @@ class DriverRepository {
   /// Upsert vehicle (add or update) for driver
   ///
   /// Parameters:
-  /// - vehicleId: Optional vehicle ID (UUID) for update, null for new vehicle
   /// - driverId: Driver ID (UUID)
-  /// - isVehicleBodyCovered: Whether vehicle body is covered
+  /// - vehicleNumberPlate: Vehicle number plate/registration number
+  /// - rcNumber: RC (Registration Certificate) number
+  /// - chassisNumber: Chassis number of the vehicle
+  /// - bodyCoverType: Type of body cover (e.g., 'Open', 'Covered')
   /// - capacity: Vehicle capacity (e.g., 'upto_half_tonne', 'half_to_one_tonne', etc.)
   /// - length: Vehicle length in cm
   /// - width: Vehicle width in cm
   /// - height: Vehicle height in cm
-  /// - vehicleNumber: Vehicle registration number
-  /// - rcNumber: RC (Registration Certificate) number
-  /// - makeModel: Vehicle make and model
+  /// - numberOfWheels: Number of wheels
   Future<ApiResponse<VehicleUpsertResponse>> upsertVehicle({
-    String? vehicleId,
     required String driverId,
-    required bool isVehicleBodyCovered,
+    required String vehicleNumberPlate,
+    required String rcNumber,
+    required String chassisNumber,
+    required String bodyCoverType,
     required String capacity,
     required double length,
     required double width,
     required double height,
-    required String vehicleNumber,
-    required String rcNumber,
-    required String makeModel,
+    required int numberOfWheels,
   }) async {
     try {
       final request = VehicleUpsertRequest(
-        vehicleId: vehicleId,
         driverId: driverId,
-        isVehicleBodyCovered: isVehicleBodyCovered,
+        vehicleNumberPlate: vehicleNumberPlate,
+        rcNumber: rcNumber,
+        chassisNumber: chassisNumber,
+        bodyCoverType: bodyCoverType,
         capacity: capacity,
         length: length,
         width: width,
         height: height,
-        vehicleNumber: vehicleNumber,
-        rcNumber: rcNumber,
-        makeModel: makeModel,
+        numberOfWheels: numberOfWheels,
       );
 
       final response = await _apiClient.post<Map<String, dynamic>>(
@@ -244,10 +238,20 @@ class DriverRepository {
         data: null,
       );
     } catch (e) {
+      // Handle specific error responses from API
+      String errorMessage = 'An error occurred while adding/updating vehicle: ${e.toString()}';
+
+      // Check for RC not verified error
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
       return ApiResponse(
         status: false,
-        message:
-            'An error occurred while adding/updating vehicle: ${e.toString()}',
+        message: errorMessage,
         data: null,
       );
     }
@@ -262,8 +266,7 @@ class DriverRepository {
   }) async {
     try {
       final response = await _apiClient.getRaw<VehicleListResponse>(
-        '/Driver/GetAll-VehiclesForDriver',
-        queryParameters: {'DriverId': driverId},
+        '/Driver/GetAllVehiclesByDriverId/$driverId',
         fromJson: (json) => VehicleListResponse.fromJson(json),
       );
 

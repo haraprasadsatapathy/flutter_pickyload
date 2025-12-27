@@ -1,59 +1,75 @@
 import 'package:picky_load3/presentation/cubit/base/base_event_state.dart';
+import '../../../../domain/models/document_list_response.dart';
 
 // Base state class for Add Vehicle feature
 class AddVehicleState extends BaseEventState {
-  final String? vehicleNumber;
+  final String? vehicleNumberPlate;
   final String? rcNumber;
-  final String? makeModel;
-  final bool isVehicleBodyCovered;
+  final String? chassisNumber;
+  final String bodyCoverType; // "Open", "Closed", "SemiClosed"
   final String? capacity;
   final String? length;
   final String? width;
   final String? height;
+  final String? numberOfWheels;
+  final List<DocumentInfo>? rcDocuments; // List of RC documents from API
+  final bool isLoadingDocuments;
 
   AddVehicleState({
-    this.vehicleNumber,
+    this.vehicleNumberPlate,
     this.rcNumber,
-    this.makeModel,
-    this.isVehicleBodyCovered = false,
+    this.chassisNumber,
+    this.bodyCoverType = 'Open',
     this.capacity,
     this.length,
     this.width,
     this.height,
+    this.numberOfWheels,
+    this.rcDocuments,
+    this.isLoadingDocuments = false,
   });
 
   AddVehicleState copyWith({
-    String? vehicleNumber,
+    String? vehicleNumberPlate,
     String? rcNumber,
-    String? makeModel,
-    bool? isVehicleBodyCovered,
+    String? chassisNumber,
+    String? bodyCoverType,
     String? capacity,
     String? length,
     String? width,
     String? height,
+    String? numberOfWheels,
+    List<DocumentInfo>? rcDocuments,
+    bool? isLoadingDocuments,
   }) {
     return AddVehicleState(
-      vehicleNumber: vehicleNumber ?? this.vehicleNumber,
+      vehicleNumberPlate: vehicleNumberPlate ?? this.vehicleNumberPlate,
       rcNumber: rcNumber ?? this.rcNumber,
-      makeModel: makeModel ?? this.makeModel,
-      isVehicleBodyCovered: isVehicleBodyCovered ?? this.isVehicleBodyCovered,
+      chassisNumber: chassisNumber ?? this.chassisNumber,
+      bodyCoverType: bodyCoverType ?? this.bodyCoverType,
       capacity: capacity ?? this.capacity,
       length: length ?? this.length,
       width: width ?? this.width,
       height: height ?? this.height,
+      numberOfWheels: numberOfWheels ?? this.numberOfWheels,
+      rcDocuments: rcDocuments ?? this.rcDocuments,
+      isLoadingDocuments: isLoadingDocuments ?? this.isLoadingDocuments,
     );
   }
 
   @override
   List<Object?> get props => [
-        vehicleNumber,
+        vehicleNumberPlate,
         rcNumber,
-        makeModel,
-        isVehicleBodyCovered,
+        chassisNumber,
+        bodyCoverType,
         capacity,
         length,
         width,
         height,
+        numberOfWheels,
+        rcDocuments,
+        isLoadingDocuments,
       ];
 }
 
@@ -63,14 +79,17 @@ class AddVehicleInitial extends AddVehicleState {}
 // Loading state
 class AddVehicleLoading extends AddVehicleState {
   AddVehicleLoading({
-    super.vehicleNumber,
+    super.vehicleNumberPlate,
     super.rcNumber,
-    super.makeModel,
-    super.isVehicleBodyCovered,
+    super.chassisNumber,
+    super.bodyCoverType,
     super.capacity,
     super.length,
     super.width,
     super.height,
+    super.numberOfWheels,
+    super.rcDocuments,
+    super.isLoadingDocuments,
   });
 }
 
@@ -80,27 +99,33 @@ class VehicleAddedSuccess extends AddVehicleState {
 
   VehicleAddedSuccess({
     required this.message,
-    super.vehicleNumber,
+    super.vehicleNumberPlate,
     super.rcNumber,
-    super.makeModel,
-    super.isVehicleBodyCovered,
+    super.chassisNumber,
+    super.bodyCoverType,
     super.capacity,
     super.length,
     super.width,
     super.height,
+    super.numberOfWheels,
+    super.rcDocuments,
+    super.isLoadingDocuments,
   });
 
   @override
   List<Object?> get props => [
         message,
-        vehicleNumber,
+        vehicleNumberPlate,
         rcNumber,
-        makeModel,
-        isVehicleBodyCovered,
+        chassisNumber,
+        bodyCoverType,
         capacity,
         length,
         width,
         height,
+        numberOfWheels,
+        rcDocuments,
+        isLoadingDocuments,
       ];
 }
 
@@ -110,26 +135,32 @@ class VehicleAdditionError extends AddVehicleState {
 
   VehicleAdditionError({
     required this.error,
-    super.vehicleNumber,
+    super.vehicleNumberPlate,
     super.rcNumber,
-    super.makeModel,
-    super.isVehicleBodyCovered,
+    super.chassisNumber,
+    super.bodyCoverType,
     super.capacity,
     super.length,
     super.width,
     super.height,
+    super.numberOfWheels,
+    super.rcDocuments,
+    super.isLoadingDocuments,
   });
 
   @override
   List<Object?> get props => [
         error,
-        vehicleNumber,
+        vehicleNumberPlate,
         rcNumber,
-        makeModel,
-        isVehicleBodyCovered,
+        chassisNumber,
+        bodyCoverType,
         capacity,
         length,
         width,
         height,
+        numberOfWheels,
+        rcDocuments,
+        isLoadingDocuments,
       ];
 }

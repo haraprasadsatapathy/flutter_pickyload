@@ -16,9 +16,45 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
   }
 
   void _registerEventHandlers() {
-    // Update Vehicle Number
-    on<UpdateVehicleNumber>((event, emit) async {
-      emit(state.copyWith(vehicleNumber: event.vehicleNumber));
+    // Load Documents (to get RC numbers)
+    on<LoadDocuments>((event, emit) async {
+      emit(state.copyWith(isLoadingDocuments: true));
+
+      try {
+        // Get logged-in user ID from SharedPreferences
+        final userId = StorageService.getString('userId');
+
+        if (userId == null || userId.isEmpty) {
+          emit(state.copyWith(isLoadingDocuments: false));
+          return;
+        }
+
+        // Call API to fetch all documents
+        final result = await driverRepository.getAllDocuments(
+          userId: userId,
+        );
+
+        if (result.status == true && result.data != null) {
+          // Filter only RC documents (RegistrationCertificate)
+          final rcDocuments = result.data!.documents
+              .where((doc) => doc.documentType == 'RegistrationCertificate')
+              .toList();
+
+          emit(state.copyWith(
+            rcDocuments: rcDocuments,
+            isLoadingDocuments: false,
+          ));
+        } else {
+          emit(state.copyWith(isLoadingDocuments: false));
+        }
+      } catch (e) {
+        emit(state.copyWith(isLoadingDocuments: false));
+      }
+    });
+
+    // Update Vehicle Number Plate
+    on<UpdateVehicleNumberPlate>((event, emit) async {
+      emit(state.copyWith(vehicleNumberPlate: event.vehicleNumberPlate));
     });
 
     // Update RC Number
@@ -26,14 +62,14 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       emit(state.copyWith(rcNumber: event.rcNumber));
     });
 
-    // Update Make/Model
-    on<UpdateMakeModel>((event, emit) async {
-      emit(state.copyWith(makeModel: event.makeModel));
+    // Update Chassis Number
+    on<UpdateChassisNumber>((event, emit) async {
+      emit(state.copyWith(chassisNumber: event.chassisNumber));
     });
 
-    // Update Vehicle Body Covered
-    on<UpdateVehicleBodyCovered>((event, emit) async {
-      emit(state.copyWith(isVehicleBodyCovered: event.isVehicleBodyCovered));
+    // Update Body Cover Type
+    on<UpdateBodyCoverType>((event, emit) async {
+      emit(state.copyWith(bodyCoverType: event.bodyCoverType));
     });
 
     // Update Capacity
@@ -56,35 +92,46 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       emit(state.copyWith(height: event.height));
     });
 
+    // Update Number of Wheels
+    on<UpdateNumberOfWheels>((event, emit) async {
+      emit(state.copyWith(numberOfWheels: event.numberOfWheels));
+    });
+
     // Submit Vehicle
     on<SubmitVehicle>((event, emit) async {
       emit(AddVehicleLoading(
-        vehicleNumber: state.vehicleNumber,
+        vehicleNumberPlate: state.vehicleNumberPlate,
         rcNumber: state.rcNumber,
-        makeModel: state.makeModel,
-        isVehicleBodyCovered: state.isVehicleBodyCovered,
+        chassisNumber: state.chassisNumber,
+        bodyCoverType: state.bodyCoverType,
         capacity: state.capacity,
         length: state.length,
         width: state.width,
         height: state.height,
+        numberOfWheels: state.numberOfWheels,
+        rcDocuments: state.rcDocuments,
+        isLoadingDocuments: state.isLoadingDocuments,
       ));
 
       // ============================================
       // BUSINESS LOGIC: Vehicle Form Validation
       // ============================================
 
-      // Validation Rule 1: Check if vehicle number is provided
-      if (state.vehicleNumber == null || state.vehicleNumber!.isEmpty) {
+      // Validation Rule 1: Check if vehicle number plate is provided
+      if (state.vehicleNumberPlate == null || state.vehicleNumberPlate!.isEmpty) {
         emit(VehicleAdditionError(
-          error: 'Please enter vehicle number',
-          vehicleNumber: state.vehicleNumber,
+          error: 'Please enter vehicle number plate',
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
@@ -92,31 +139,37 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       // Validation Rule 2: Check if RC number is provided
       if (state.rcNumber == null || state.rcNumber!.isEmpty) {
         emit(VehicleAdditionError(
-          error: 'Please enter RC number',
-          vehicleNumber: state.vehicleNumber,
+          error: 'Please select RC number',
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
 
-      // Validation Rule 3: Check if make/model is provided
-      if (state.makeModel == null || state.makeModel!.isEmpty) {
+      // Validation Rule 3: Check if chassis number is provided
+      if (state.chassisNumber == null || state.chassisNumber!.isEmpty) {
         emit(VehicleAdditionError(
-          error: 'Please enter vehicle make/model',
-          vehicleNumber: state.vehicleNumber,
+          error: 'Please enter chassis number',
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
@@ -125,14 +178,17 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       if (state.capacity == null || state.capacity!.isEmpty) {
         emit(VehicleAdditionError(
           error: 'Please select vehicle capacity',
-          vehicleNumber: state.vehicleNumber,
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
@@ -141,14 +197,17 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       if (state.length == null || state.length!.isEmpty) {
         emit(VehicleAdditionError(
           error: 'Please enter vehicle length',
-          vehicleNumber: state.vehicleNumber,
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
@@ -156,14 +215,17 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       if (state.width == null || state.width!.isEmpty) {
         emit(VehicleAdditionError(
           error: 'Please enter vehicle width',
-          vehicleNumber: state.vehicleNumber,
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
@@ -171,49 +233,96 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       if (state.height == null || state.height!.isEmpty) {
         emit(VehicleAdditionError(
           error: 'Please enter vehicle height',
-          vehicleNumber: state.vehicleNumber,
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
 
-      // Validation Rule 6: Validate numeric dimensions
+      // Validation Rule 6: Check if number of wheels is provided
+      if (state.numberOfWheels == null || state.numberOfWheels!.isEmpty) {
+        emit(VehicleAdditionError(
+          error: 'Please enter number of wheels',
+          vehicleNumberPlate: state.vehicleNumberPlate,
+          rcNumber: state.rcNumber,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
+          capacity: state.capacity,
+          length: state.length,
+          width: state.width,
+          height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
+        ));
+        return;
+      }
+
+      // Validation Rule 7: Validate numeric dimensions and wheels
       try {
         final length = double.parse(state.length!);
         final width = double.parse(state.width!);
         final height = double.parse(state.height!);
+        final numberOfWheels = int.parse(state.numberOfWheels!);
 
         if (length <= 0 || width <= 0 || height <= 0) {
           emit(VehicleAdditionError(
             error: 'Vehicle dimensions must be greater than zero',
-            vehicleNumber: state.vehicleNumber,
+            vehicleNumberPlate: state.vehicleNumberPlate,
             rcNumber: state.rcNumber,
-            makeModel: state.makeModel,
-            isVehicleBodyCovered: state.isVehicleBodyCovered,
+            chassisNumber: state.chassisNumber,
+            bodyCoverType: state.bodyCoverType,
             capacity: state.capacity,
             length: state.length,
             width: state.width,
             height: state.height,
+            numberOfWheels: state.numberOfWheels,
+            rcDocuments: state.rcDocuments,
+            isLoadingDocuments: state.isLoadingDocuments,
+          ));
+          return;
+        }
+
+        if (numberOfWheels <= 0) {
+          emit(VehicleAdditionError(
+            error: 'Number of wheels must be greater than zero',
+            vehicleNumberPlate: state.vehicleNumberPlate,
+            rcNumber: state.rcNumber,
+            chassisNumber: state.chassisNumber,
+            bodyCoverType: state.bodyCoverType,
+            capacity: state.capacity,
+            length: state.length,
+            width: state.width,
+            height: state.height,
+            numberOfWheels: state.numberOfWheels,
+            rcDocuments: state.rcDocuments,
+            isLoadingDocuments: state.isLoadingDocuments,
           ));
           return;
         }
       } catch (e) {
         emit(VehicleAdditionError(
-          error: 'Please enter valid numeric values for dimensions',
-          vehicleNumber: state.vehicleNumber,
+          error: 'Please enter valid numeric values for dimensions and wheels',
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
         return;
       }
@@ -229,14 +338,17 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
         if (userId == null || userId.isEmpty) {
           emit(VehicleAdditionError(
             error: 'User not logged in. Please login again.',
-            vehicleNumber: state.vehicleNumber,
+            vehicleNumberPlate: state.vehicleNumberPlate,
             rcNumber: state.rcNumber,
-            makeModel: state.makeModel,
-            isVehicleBodyCovered: state.isVehicleBodyCovered,
+            chassisNumber: state.chassisNumber,
+            bodyCoverType: state.bodyCoverType,
             capacity: state.capacity,
             length: state.length,
             width: state.width,
             height: state.height,
+            numberOfWheels: state.numberOfWheels,
+            rcDocuments: state.rcDocuments,
+            isLoadingDocuments: state.isLoadingDocuments,
           ));
           return;
         }
@@ -244,52 +356,62 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
         // Call API to upsert vehicle
         final result = await driverRepository.upsertVehicle(
           driverId: userId,
-          vehicleNumber: state.vehicleNumber!,
+          vehicleNumberPlate: state.vehicleNumberPlate!,
           rcNumber: state.rcNumber!,
-          makeModel: state.makeModel!,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber!,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity!,
           length: double.parse(state.length!),
           width: double.parse(state.width!),
           height: double.parse(state.height!),
+          numberOfWheels: int.parse(state.numberOfWheels!),
         );
 
         if (result.status == true && result.data != null) {
           emit(VehicleAddedSuccess(
             message: result.data!.message,
-            vehicleNumber: state.vehicleNumber,
+            vehicleNumberPlate: state.vehicleNumberPlate,
             rcNumber: state.rcNumber,
-            makeModel: state.makeModel,
-            isVehicleBodyCovered: state.isVehicleBodyCovered,
+            chassisNumber: state.chassisNumber,
+            bodyCoverType: state.bodyCoverType,
             capacity: state.capacity,
             length: state.length,
             width: state.width,
             height: state.height,
+            numberOfWheels: state.numberOfWheels,
+            rcDocuments: state.rcDocuments,
+            isLoadingDocuments: state.isLoadingDocuments,
           ));
         } else {
           emit(VehicleAdditionError(
             error: result.message ?? 'Failed to add vehicle. Please try again.',
-            vehicleNumber: state.vehicleNumber,
+            vehicleNumberPlate: state.vehicleNumberPlate,
             rcNumber: state.rcNumber,
-            makeModel: state.makeModel,
-            isVehicleBodyCovered: state.isVehicleBodyCovered,
+            chassisNumber: state.chassisNumber,
+            bodyCoverType: state.bodyCoverType,
             capacity: state.capacity,
             length: state.length,
             width: state.width,
             height: state.height,
+            numberOfWheels: state.numberOfWheels,
+            rcDocuments: state.rcDocuments,
+            isLoadingDocuments: state.isLoadingDocuments,
           ));
         }
       } catch (e) {
         emit(VehicleAdditionError(
           error: 'Failed to add vehicle: ${e.toString()}',
-          vehicleNumber: state.vehicleNumber,
+          vehicleNumberPlate: state.vehicleNumberPlate,
           rcNumber: state.rcNumber,
-          makeModel: state.makeModel,
-          isVehicleBodyCovered: state.isVehicleBodyCovered,
+          chassisNumber: state.chassisNumber,
+          bodyCoverType: state.bodyCoverType,
           capacity: state.capacity,
           length: state.length,
           width: state.width,
           height: state.height,
+          numberOfWheels: state.numberOfWheels,
+          rcDocuments: state.rcDocuments,
+          isLoadingDocuments: state.isLoadingDocuments,
         ));
       }
     });

@@ -17,37 +17,52 @@ class AddVehicleScreen extends StatefulWidget {
 
 class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _vehicleNumberController = TextEditingController();
-  final _rcNumberController = TextEditingController();
-  final _makeModelController = TextEditingController();
+  final _vehicleNumberPlateController = TextEditingController();
+  final _chassisNumberController = TextEditingController();
   final _lengthController = TextEditingController();
   final _widthController = TextEditingController();
   final _heightController = TextEditingController();
+  final _numberOfWheelsController = TextEditingController();
 
   // Capacity options
   final List<Map<String, String>> _capacityOptions = [
-    {'value': 'upto_half_tonne', 'label': 'Up to Half Tonne'},
-    {'value': 'half_to_one_tonne', 'label': 'Half to One Tonne'},
-    {'value': 'one_to_two_tonne', 'label': 'One to Two Tonne'},
-    {'value': 'two_to_three_tonne', 'label': 'Two to Three Tonne'},
-    {'value': 'above_three_tonne', 'label': 'Above Three Tonne'},
+    {'value': 'upto_half_tonne', 'label': 'Up to 0.5 Tonne'},
+    {'value': 'upto_01_tonne', 'label': 'Up to 1 Tonne'},
+    {'value': 'upto_05_tonne', 'label': 'Up to 5 Tonne'},
+    {'value': 'upto_15_tonne', 'label': 'Up to 15 Tonne'},
+    {'value': 'upto_25_tonne', 'label': 'Up to 25 Tonne'},
+    {'value': 'upto_35_tonne', 'label': 'Up to 35 Tonne'},
+    {'value': 'upto_45_tonne', 'label': 'Up to 45 Tonne'},
+    {'value': 'upto_55_tonne', 'label': 'Up to 55 Tonne'},
+  ];
+
+  // Body cover type options
+  final List<Map<String, String>> _bodyCoverTypeOptions = [
+    {'value': 'Open', 'label': 'Open'},
+    {'value': 'Closed', 'label': 'Closed'},
+    {'value': 'SemiClosed', 'label': 'Semi-Closed'},
   ];
 
   @override
   void dispose() {
-    _vehicleNumberController.dispose();
-    _rcNumberController.dispose();
-    _makeModelController.dispose();
+    _vehicleNumberPlateController.dispose();
+    _chassisNumberController.dispose();
     _lengthController.dispose();
     _widthController.dispose();
     _heightController.dispose();
+    _numberOfWheelsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AddVehicleBloc(context, getIt<DriverRepository>()),
+      create: (context) {
+        final bloc = AddVehicleBloc(context, getIt<DriverRepository>());
+        // Load documents when screen initializes
+        bloc.add(LoadDocuments());
+        return bloc;
+      },
       child: BlocConsumer<AddVehicleBloc, AddVehicleState>(
         listener: (context, state) {
           if (state is VehicleAddedSuccess) {
@@ -97,45 +112,98 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       ),
                       const SizedBox(height: 30),
 
-                      // Vehicle Number
+                      // Vehicle Number Plate
                       TextFormField(
-                        controller: _vehicleNumberController,
+                        controller: _vehicleNumberPlateController,
                         decoration: const InputDecoration(
-                          labelText: 'Vehicle Number',
+                          labelText: 'Vehicle Number Plate',
                           hintText: 'e.g., KA01AB1234',
                           prefixIcon: Icon(Icons.local_shipping_outlined),
                         ),
                         textCapitalization: TextCapitalization.characters,
                         onChanged: (value) {
-                          context.read<AddVehicleBloc>().add(UpdateVehicleNumber(value));
+                          context.read<AddVehicleBloc>().add(UpdateVehicleNumberPlate(value));
                         },
                       ),
                       const SizedBox(height: 20),
 
-                      // RC Number
+                      // RC Number Dropdown
+                      state.isLoadingDocuments
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : (state.rcDocuments == null || state.rcDocuments!.isEmpty)
+                              ? Card(
+                                  color: Colors.orange.shade50,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.info_outline, color: Colors.orange.shade700),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'No RC documents found. Please upload your RC document first.',
+                                            style: TextStyle(color: Colors.orange.shade700),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : DropdownButtonFormField<String>(
+                                  decoration: const InputDecoration(
+                                    labelText: 'RC Number',
+                                    hintText: 'Select Registration Certificate',
+                                    prefixIcon: Icon(Icons.description_outlined),
+                                  ),
+                                  value: state.rcNumber,
+                                  items: state.rcDocuments!.map((doc) {
+                                    return DropdownMenuItem<String>(
+                                      value: doc.documentNumber,
+                                      child: Text(doc.documentNumber),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      context.read<AddVehicleBloc>().add(UpdateRcNumber(value));
+                                    }
+                                  },
+                                ),
+                      const SizedBox(height: 20),
+
+                      // Chassis Number
                       TextFormField(
-                        controller: _rcNumberController,
+                        controller: _chassisNumberController,
                         decoration: const InputDecoration(
-                          labelText: 'RC Number',
-                          hintText: 'Registration Certificate Number',
-                          prefixIcon: Icon(Icons.description_outlined),
+                          labelText: 'Chassis Number',
+                          hintText: 'Vehicle Chassis Number',
+                          prefixIcon: Icon(Icons.pin_outlined),
                         ),
                         onChanged: (value) {
-                          context.read<AddVehicleBloc>().add(UpdateRcNumber(value));
+                          context.read<AddVehicleBloc>().add(UpdateChassisNumber(value));
                         },
                       ),
                       const SizedBox(height: 20),
 
-                      // Make/Model
-                      TextFormField(
-                        controller: _makeModelController,
+                      // Body Cover Type Dropdown
+                      DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
-                          labelText: 'Make/Model',
-                          hintText: 'e.g., Tata Ace, Mahindra Bolero',
-                          prefixIcon: Icon(Icons.directions_car_outlined),
+                          labelText: 'Body Cover Type',
+                          prefixIcon: Icon(Icons.category_outlined),
                         ),
+                        value: state.bodyCoverType,
+                        items: _bodyCoverTypeOptions.map((option) {
+                          return DropdownMenuItem<String>(
+                            value: option['value'],
+                            child: Text(option['label']!),
+                          );
+                        }).toList(),
                         onChanged: (value) {
-                          context.read<AddVehicleBloc>().add(UpdateMakeModel(value));
+                          if (value != null) {
+                            context.read<AddVehicleBloc>().add(UpdateBodyCoverType(value));
+                          }
                         },
                       ),
                       const SizedBox(height: 20),
@@ -146,7 +214,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                           labelText: 'Vehicle Capacity',
                           prefixIcon: Icon(Icons.scale_outlined),
                         ),
-                        initialValue: state.capacity,
+                        value: state.capacity,
                         items: _capacityOptions.map((option) {
                           return DropdownMenuItem<String>(
                             value: option['value'],
@@ -158,19 +226,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                             context.read<AddVehicleBloc>().add(UpdateCapacity(value));
                           }
                         },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Vehicle Body Covered Switch
-                      Card(
-                        child: SwitchListTile(
-                          title: const Text('Vehicle Body Covered'),
-                          subtitle: const Text('Does your vehicle have a covered body?'),
-                          value: state.isVehicleBodyCovered,
-                          onChanged: (value) {
-                            context.read<AddVehicleBloc>().add(UpdateVehicleBodyCovered(value));
-                          },
-                        ),
                       ),
                       const SizedBox(height: 30),
 
@@ -233,6 +288,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         ],
                         onChanged: (value) {
                           context.read<AddVehicleBloc>().add(UpdateHeight(value));
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Number of Wheels
+                      TextFormField(
+                        controller: _numberOfWheelsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Number of Wheels',
+                          hintText: 'e.g., 4',
+                          prefixIcon: Icon(Icons.settings_outlined),
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (value) {
+                          context.read<AddVehicleBloc>().add(UpdateNumberOfWheels(value));
                         },
                       ),
                       const SizedBox(height: 40),

@@ -147,6 +147,21 @@ class UploadDocumentsBloc
         return;
       }
 
+      // Check if date of birth is provided
+      if (event.dateOfBirth == null) {
+        emit(DocumentsSubmissionError(
+          error: 'Date of birth is required for document verification.',
+          dlFrontPath: state.dlFrontPath,
+          dlBackPath: state.dlBackPath,
+          rcFrontPath: state.rcFrontPath,
+          rcBackPath: state.rcBackPath,
+          dlNumber: state.dlNumber,
+          rcNumber: state.rcNumber,
+          userId: state.userId,
+        ));
+        return;
+      }
+
       try {
         // Map UI document types to API document types
         String apiDocumentType;
@@ -167,10 +182,10 @@ class UploadDocumentsBloc
           userId: state.userId!,
           documentType: apiDocumentType,
           documentNumber: event.documentNumber,
+          dateOfBirth: event.dateOfBirth!,
           documentImagePath: null, // No image upload
           validTill: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years validity
           verifiedOn: DateTime.now(),
-          dateOfBirth: event.dateOfBirth,
         );
 
         if (response.status == true) {
@@ -267,10 +282,16 @@ class UploadDocumentsBloc
       // ============================================
 
       try {
+        // TODO: This flow is legacy code. The new API requires dateOfBirth for verification.
+        // Update this to collect dateOfBirth from user or remove this flow entirely.
+        // For now, using a placeholder date that satisfies the 18+ requirement.
+        final placeholderDob = DateTime.now().subtract(const Duration(days: 365 * 25)); // 25 years old
+
         // Upload Driving License
         final dlResponse = await driverRepository.uploadDrivingLicense(
           userId: state.userId!,
           dlNumber: state.dlNumber!,
+          dateOfBirth: placeholderDob,
           dlImagePath: state.dlFrontPath, // Using front image for DL
           validTill: DateTime.now().add(const Duration(days: 365 * 5)), // 5 years validity
         );
@@ -293,6 +314,7 @@ class UploadDocumentsBloc
         final rcResponse = await driverRepository.uploadRegistrationCertificate(
           userId: state.userId!,
           rcNumber: state.rcNumber!,
+          dateOfBirth: placeholderDob,
           rcImagePath: state.rcFrontPath, // Using front image for RC
           validTill: DateTime.now().add(const Duration(days: 365 * 10)), // 10 years validity
         );

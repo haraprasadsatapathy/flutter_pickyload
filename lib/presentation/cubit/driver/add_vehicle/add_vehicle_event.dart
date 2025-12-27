@@ -3,14 +3,20 @@ import 'package:picky_load3/presentation/cubit/base/base_event_state.dart';
 // Base event class for Add Vehicle feature
 class AddVehicleEvent extends BaseEventState {}
 
-// Update vehicle fields
-class UpdateVehicleNumber extends AddVehicleEvent {
-  final String vehicleNumber;
+// Load user documents (to get RC numbers)
+class LoadDocuments extends AddVehicleEvent {
+  @override
+  List<Object?> get props => [];
+}
 
-  UpdateVehicleNumber(this.vehicleNumber);
+// Update vehicle fields
+class UpdateVehicleNumberPlate extends AddVehicleEvent {
+  final String vehicleNumberPlate;
+
+  UpdateVehicleNumberPlate(this.vehicleNumberPlate);
 
   @override
-  List<Object?> get props => [vehicleNumber];
+  List<Object?> get props => [vehicleNumberPlate];
 }
 
 class UpdateRcNumber extends AddVehicleEvent {
@@ -22,22 +28,22 @@ class UpdateRcNumber extends AddVehicleEvent {
   List<Object?> get props => [rcNumber];
 }
 
-class UpdateMakeModel extends AddVehicleEvent {
-  final String makeModel;
+class UpdateChassisNumber extends AddVehicleEvent {
+  final String chassisNumber;
 
-  UpdateMakeModel(this.makeModel);
+  UpdateChassisNumber(this.chassisNumber);
 
   @override
-  List<Object?> get props => [makeModel];
+  List<Object?> get props => [chassisNumber];
 }
 
-class UpdateVehicleBodyCovered extends AddVehicleEvent {
-  final bool isVehicleBodyCovered;
+class UpdateBodyCoverType extends AddVehicleEvent {
+  final String bodyCoverType;
 
-  UpdateVehicleBodyCovered(this.isVehicleBodyCovered);
+  UpdateBodyCoverType(this.bodyCoverType);
 
   @override
-  List<Object?> get props => [isVehicleBodyCovered];
+  List<Object?> get props => [bodyCoverType];
 }
 
 class UpdateCapacity extends AddVehicleEvent {
@@ -74,6 +80,15 @@ class UpdateHeight extends AddVehicleEvent {
 
   @override
   List<Object?> get props => [height];
+}
+
+class UpdateNumberOfWheels extends AddVehicleEvent {
+  final String numberOfWheels;
+
+  UpdateNumberOfWheels(this.numberOfWheels);
+
+  @override
+  List<Object?> get props => [numberOfWheels];
 }
 
 // Submit vehicle

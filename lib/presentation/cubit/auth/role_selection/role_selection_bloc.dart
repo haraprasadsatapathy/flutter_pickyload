@@ -68,15 +68,19 @@ class RoleSelectionBloc
 
         // Step 3: Determine navigation based on document count
         // If API fails OR no documents exist, redirect to document upload screen
-        final documentCount = documentsResponse.data?.count ?? 0;
+        final hasDocuments = documentsResponse.status == true &&
+            documentsResponse.data != null &&
+            documentsResponse.data!.count > 0 &&
+            documentsResponse.data!.documents.isNotEmpty;
 
-        if (documentsResponse.status == false || documentCount == 0) {
+        if (!hasDocuments) {
           // API failed OR no documents - navigate to document upload screen
           emit(DriverRoleSelectedWithoutDocuments(
             message: 'Please upload your documents to continue',
           ));
         } else {
           // Documents exist - navigate to driver dashboard
+          final documentCount = documentsResponse.data!.count;
           emit(DriverRoleSelectedWithDocuments(
             documentCount: documentCount,
             message: 'Welcome back! You have $documentCount document(s) on file.',
