@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:picky_load3/presentation/cubit/user_profile/profile/profile_state.dart';
+import 'package:picky_load/presentation/cubit/user_profile/profile/profile_state.dart';
 import 'profile_event.dart';
 import '../../../../domain/repository/user_repository.dart';
 import '../../../../models/user_model.dart';

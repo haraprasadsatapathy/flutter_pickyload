@@ -1,4 +1,4 @@
-import 'package:picky_load3/presentation/cubit/base/base_event_state.dart';
+import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 
 // Base event class for Login feature
 class LoginEvent extends BaseEventState {}

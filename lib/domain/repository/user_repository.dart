@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:picky_load3/services/local/saved_service.dart';
+import 'package:picky_load/services/local/saved_service.dart';
 
 import '../../models/user_model.dart';
 import '../../data/data_source/api_client.dart';

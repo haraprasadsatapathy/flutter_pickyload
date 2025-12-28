@@ -1,0 +1,7 @@
+// iOS Configuration Keys Template
+// Copy this file to Keys.xcconfig and fill in your actual values
+// DO NOT commit Keys.xcconfig to version control
+
+// Google Maps API Key
+// Get your API key from: https://console.cloud.google.com/google/maps-apis
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here

@@ -1,4 +1,4 @@
-import 'package:picky_load3/presentation/cubit/base/base_event_state.dart';
+import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 import '../../../domain/models/booking_history_response.dart';
 
 // Base state class for MyTrips feature

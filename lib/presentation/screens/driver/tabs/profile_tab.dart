@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:picky_load3/presentation/cubit/user_profile/profile/profile_bloc.dart';
-import 'package:picky_load3/presentation/cubit/user_profile/profile/profile_event.dart';
-import 'package:picky_load3/presentation/cubit/user_profile/profile/profile_state.dart';
+import 'package:picky_load/presentation/cubit/user_profile/profile/profile_bloc.dart';
+import 'package:picky_load/presentation/cubit/user_profile/profile/profile_event.dart';
+import 'package:picky_load/presentation/cubit/user_profile/profile/profile_state.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../domain/repository/user_repository.dart';

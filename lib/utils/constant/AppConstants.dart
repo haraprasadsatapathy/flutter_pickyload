@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Application-wide constants
 class AppConstants {
   // Private constructor to prevent instantiation
@@ -7,5 +9,10 @@ class AppConstants {
   static const String baseUrl = 'https://pickyload.in/api';
 
   /// Google Maps API Key
-  static const String googleApiKey = 'AIzaSyA0h_d1HmaYLpR5g89jIqtDd1Q90kiR0Qo';
+  /// IMPORTANT: API key is now loaded from environment variables for security
+  /// Load from .env file using flutter_dotenv package
+  /// For native platforms (Android/iOS), keys are configured in:
+  /// - Android: android/local.properties -> AndroidManifest.xml
+  /// - iOS: ios/Flutter/Keys.xcconfig -> Info.plist
+  static String get googleApiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 }
