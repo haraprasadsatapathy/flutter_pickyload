@@ -1,13 +1,11 @@
 class OfferLoadsResponseData {
   final String offerId;
   final String driverId;
-  final String vehicleId;
   final String status;
 
   OfferLoadsResponseData({
     required this.offerId,
     required this.driverId,
-    required this.vehicleId,
     required this.status,
   });
 
@@ -15,7 +13,6 @@ class OfferLoadsResponseData {
     return OfferLoadsResponseData(
       offerId: json['offerId'] ?? '',
       driverId: json['driverId'] ?? '',
-      vehicleId: json['vehicleId'] ?? '',
       status: json['status'] ?? '',
     );
   }
@@ -24,7 +21,6 @@ class OfferLoadsResponseData {
     return {
       'offerId': offerId,
       'driverId': driverId,
-      'vehicleId': vehicleId,
       'status': status,
     };
   }

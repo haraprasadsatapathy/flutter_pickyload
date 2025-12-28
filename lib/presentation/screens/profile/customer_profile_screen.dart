@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../cubit/user_profile/edit_profile/edit_profile_bloc.dart';
@@ -40,6 +41,42 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     _nameController.text = state.name;
     _emailController.text = state.email;
     _phoneController.text = state.phone;
+  }
+
+  void _showImageSourceDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Choose Image Source'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  context.read<EditProfileBloc>().add(
+                        const PickImageEvent(ImageSource.camera),
+                      );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  context.read<EditProfileBloc>().add(
+                        const PickImageEvent(ImageSource.gallery),
+                      );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -97,9 +134,89 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           final isEditing = state is EditProfileLoaded && state.isEditing;
           final isSaving = state is EditProfileSaving;
           String? profileImagePath;
+          String? profileImageUrl;
 
           if (state is EditProfileLoaded) {
             profileImagePath = state.profileImagePath;
+            profileImageUrl = state.profileImageUrl;
+          }
+
+          // Build profile image with fallback to first letter
+          Widget buildProfileImage() {
+            // If user picked a new local image, use FileImage
+            if (profileImagePath != null && profileImagePath.isNotEmpty) {
+              return CircleAvatar(
+                radius: 60,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                backgroundImage: FileImage(File(profileImagePath)),
+              );
+            }
+
+            // If network image URL exists, use NetworkImage with error handling
+            if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+              return CircleAvatar(
+                radius: 60,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: ClipOval(
+                  child: Image.network(
+                    profileImageUrl,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Show first letter if network image fails
+                      return Container(
+                        width: 120,
+                        height: 120,
+                        color: Theme.of(context).colorScheme.primary,
+                        child: Center(
+                          child: Text(
+                            user?.name.isNotEmpty == true
+                                ? user!.name[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              fontSize: 48,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        width: 120,
+                        height: 120,
+                        color: Theme.of(context).colorScheme.primary,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+
+            // Fallback: Show first letter of name
+            return CircleAvatar(
+              radius: 60,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Text(
+                user?.name.isNotEmpty == true
+                    ? user!.name[0].toUpperCase()
+                    : 'U',
+                style: const TextStyle(
+                  fontSize: 48,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
           }
 
           return SafeArea(
@@ -111,23 +228,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   children: [
                     Stack(
                       children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          backgroundImage: profileImagePath != null
-                              ? FileImage(File(profileImagePath))
-                              : null,
-                          child: profileImagePath == null
-                              ? Text(
-                                  user?.name[0] ?? 'U',
-                                  style: const TextStyle(
-                                    fontSize: 48,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : null,
-                        ),
+                        buildProfileImage(),
                         if (isEditing)
                           Positioned(
                             bottom: 0,
@@ -139,9 +240,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                 icon: const Icon(Icons.camera_alt,
                                     color: Colors.white),
                                 onPressed: () {
-                                  context
-                                      .read<EditProfileBloc>()
-                                      .add(const PickImageEvent());
+                                  _showImageSourceDialog(context);
                                 },
                               ),
                             ),
@@ -203,7 +302,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton(
+                            child: ElevatedButton(
                               onPressed: isSaving
                                   ? null
                                   : () {
@@ -211,6 +310,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                           .read<EditProfileBloc>()
                                           .add(const CancelEditEvent());
                                     },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[300],
+                                foregroundColor: Colors.black87,
+                              ),
                               child: const Text('Cancel'),
                             ),
                           ),
@@ -245,44 +348,6 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             ),
                           ),
                         ],
-                      ),
-                    ] else ...[
-                      Card(
-                        child: Column(
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.history),
-                              title: const Text('Trip History'),
-                              trailing: const Icon(Icons.arrow_forward_ios,
-                                  size: 16),
-                              onTap: () {},
-                            ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.location_on_outlined),
-                              title: const Text('Saved Addresses'),
-                              trailing: const Icon(Icons.arrow_forward_ios,
-                                  size: 16),
-                              onTap: () => context.push('/saved-addresses'),
-                            ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.star),
-                              title: const Text('Ratings & Reviews'),
-                              trailing: const Icon(Icons.arrow_forward_ios,
-                                  size: 16),
-                              onTap: () => context.push('/rating-review'),
-                            ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.settings),
-                              title: const Text('Settings'),
-                              trailing: const Icon(Icons.arrow_forward_ios,
-                                  size: 16),
-                              onTap: () => context.push('/settings'),
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ],

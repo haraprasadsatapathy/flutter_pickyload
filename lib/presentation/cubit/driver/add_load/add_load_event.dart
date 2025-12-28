@@ -17,28 +17,46 @@ class FetchDriverVehicles extends AddLoadEvent {
 class SubmitLoadOffer extends AddLoadEvent {
   final String driverId;
   final String vehicleId;
-  final String origin;
-  final String destination;
   final DateTime availableTimeStart;
   final DateTime availableTimeEnd;
+  final double pickupLat;
+  final double pickupLng;
+  final double dropLat;
+  final double dropLng;
+  final String pickupAddress;
+  final String dropAddress;
+  final double price;
+  final List<Map<String, double>>? routePolylinePoints;
 
   SubmitLoadOffer({
     required this.driverId,
     required this.vehicleId,
-    required this.origin,
-    required this.destination,
     required this.availableTimeStart,
     required this.availableTimeEnd,
+    required this.pickupLat,
+    required this.pickupLng,
+    required this.dropLat,
+    required this.dropLng,
+    required this.pickupAddress,
+    required this.dropAddress,
+    required this.price,
+    this.routePolylinePoints,
   });
 
   @override
   List<Object?> get props => [
         driverId,
         vehicleId,
-        origin,
-        destination,
         availableTimeStart,
         availableTimeEnd,
+        pickupLat,
+        pickupLng,
+        dropLat,
+        dropLng,
+        pickupAddress,
+        dropAddress,
+        price,
+        routePolylinePoints,
       ];
 }
 

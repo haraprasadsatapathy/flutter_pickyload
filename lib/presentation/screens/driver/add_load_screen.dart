@@ -21,6 +21,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   final _formKey = GlobalKey<FormState>();
   final _originController = TextEditingController();
   final _destinationController = TextEditingController();
+  final _priceController = TextEditingController();
 
   String? _selectedVehicleId;
   DateTime? _availableTimeStart;
@@ -30,6 +31,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   double? _originLongitude;
   double? _destinationLatitude;
   double? _destinationLongitude;
+  List<Map<String, double>>? _routePolylinePoints;
 
   @override
   void initState() {
@@ -44,6 +46,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   void dispose() {
     _originController.dispose();
     _destinationController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -135,6 +138,20 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
         return;
       }
 
+      if (_originLatitude == null || _originLongitude == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select origin location from map')),
+        );
+        return;
+      }
+
+      if (_destinationLatitude == null || _destinationLongitude == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select destination location from map')),
+        );
+        return;
+      }
+
       if (_availableTimeStart == null || _availableTimeEnd == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select availability times')),
@@ -158,10 +175,16 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
             SubmitLoadOffer(
               driverId: driverId,
               vehicleId: _selectedVehicleId!,
-              origin: _originController.text.trim(),
-              destination: _destinationController.text.trim(),
               availableTimeStart: _availableTimeStart!,
               availableTimeEnd: _availableTimeEnd!,
+              pickupLat: _originLatitude!,
+              pickupLng: _originLongitude!,
+              dropLat: _destinationLatitude!,
+              dropLng: _destinationLongitude!,
+              pickupAddress: _originController.text.trim(),
+              dropAddress: _destinationController.text.trim(),
+              price: double.parse(_priceController.text.trim()),
+              routePolylinePoints: _routePolylinePoints,
             ),
           );
     }
@@ -188,10 +211,8 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                 duration: const Duration(seconds: 2),
               ),
             );
-            // Navigate to home screen after successful submission
-            Future.delayed(const Duration(milliseconds: 500), () {
-              context.go('/driver-dashboard');
-            });
+            // Close the screen after successful submission
+            context.pop();
           } else if (state is AddLoadError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -311,6 +332,34 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                     ),
                     const SizedBox(height: 16),
 
+                    // Price
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: TextFormField(
+                          controller: _priceController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: const InputDecoration(
+                            labelText: 'Price (₹)',
+                            hintText: 'Enter your offer price',
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.currency_rupee),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Please enter price';
+                            }
+                            final price = double.tryParse(value);
+                            if (price == null || price <= 0) {
+                              return 'Please enter a valid price greater than 0';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Check Distance Button
                     if (_originLatitude != null &&
                         _originLongitude != null &&
@@ -319,8 +368,8 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                       Card(
                         color: Theme.of(context).colorScheme.primaryContainer,
                         child: InkWell(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            final result = await Navigator.push<Map<String, dynamic>>(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => RouteMapScreen(
@@ -333,6 +382,31 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                                 ),
                               ),
                             );
+
+                            // Store the polyline points from the selected route
+                            if (result != null && result['polyline_points'] != null) {
+                              setState(() {
+                                _routePolylinePoints = List<Map<String, double>>.from(
+                                  (result['polyline_points'] as List).map((point) => {
+                                    'latitude': (point['latitude'] as num).toDouble(),
+                                    'longitude': (point['longitude'] as num).toDouble(),
+                                  }),
+                                );
+                              });
+
+                              // Show confirmation to user
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Route selected: ${result['distance_text']} in ${result['duration_text']}',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            }
                           },
                           borderRadius: BorderRadius.circular(12),
                           child: Padding(

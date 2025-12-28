@@ -27,7 +27,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
 
         if (result.status == true && result.data != null) {
           // Convert Vehicle objects to VehicleModel objects
-          final vehicles = result.data!.data?.vehicles
+          final vehicles = result.data!.vehicles
                   .map((vehicle) => VehicleModel(
                         vehicleId: vehicle.vehicleId,
                         driverId: vehicle.driverId,
@@ -40,8 +40,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
                         width: vehicle.width,
                         height: vehicle.height,
                       ))
-                  .toList() ??
-              [];
+                  .toList();
 
           emit(VehicleListSuccess(
             message: result.data!.message,
@@ -71,7 +70,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
 
         if (result.status == true && result.data != null) {
           // Convert Vehicle objects to VehicleModel objects
-          final vehicles = result.data!.data?.vehicles
+          final vehicles = result.data!.vehicles
                   .map((vehicle) => VehicleModel(
                         vehicleId: vehicle.vehicleId,
                         driverId: vehicle.driverId,
@@ -84,8 +83,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
                         width: vehicle.width,
                         height: vehicle.height,
                       ))
-                  .toList() ??
-              [];
+                  .toList();
 
           emit(VehicleListSuccess(
             message: 'Vehicles refreshed',

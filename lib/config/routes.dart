@@ -27,11 +27,6 @@ import '../presentation/screens/payment/payment_screen.dart';
 import '../presentation/screens/payment/transaction_history_screen.dart';
 import '../presentation/screens/insurance/insurance_screen.dart';
 import '../presentation/screens/profile/customer_profile_screen.dart';
-import '../presentation/screens/profile/user_profile_screen.dart';
-import '../presentation/screens/profile/rating_review_screen.dart';
-import '../presentation/screens/profile/saved_addresses_screen.dart';
-import '../presentation/screens/profile/add_address_screen.dart';
-import '../presentation/screens/profile/settings_screen.dart';
 import '../presentation/screens/notifications/notifications_screen.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
@@ -174,25 +169,12 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/user-profile',
-      builder: (context, state) => const UserProfileScreen(),
-    ),
-    GoRoute(
-      path: '/rating-review',
-      builder: (context, state) => const RatingReviewScreen(),
-    ),
-    GoRoute(
-      path: '/saved-addresses',
-      builder: (context, state) => const SavedAddressesScreen(),
-    ),
-    GoRoute(
-      path: '/add-address',
-      builder: (context, state) => AddAddressScreen(
-        existingAddress: state.extra as Map<String, dynamic>?,
+      builder: (context, state) => BlocProvider(
+        create: (context) => EditProfileBloc(
+          userRepository: Provider.of<UserRepository>(context, listen: false),
+        ),
+        child: const CustomerProfileScreen(),
       ),
-    ),
-    GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
       path: '/notifications',

@@ -231,7 +231,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
                       // Vehicle Dimensions Section
                       Text(
-                        'Vehicle Dimensions (in cm)',
+                        'Vehicle Dimensions (in meters)',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -242,11 +242,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       TextFormField(
                         controller: _lengthController,
                         decoration: const InputDecoration(
-                          labelText: 'Length (cm)',
-                          hintText: 'e.g., 100',
+                          labelText: 'Length (meters)',
+                          hintText: 'Max 18.75m (e.g., 6.1)',
+                          helperText: 'Maximum: 18.75 meters',
                           prefixIcon: Icon(Icons.straighten_outlined),
                         ),
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                         ],
@@ -260,11 +261,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       TextFormField(
                         controller: _widthController,
                         decoration: const InputDecoration(
-                          labelText: 'Width (cm)',
-                          hintText: 'e.g., 100',
+                          labelText: 'Width (meters)',
+                          hintText: 'Max 2.6m (e.g., 2.5)',
+                          helperText: 'Maximum: 2.6 meters',
                           prefixIcon: Icon(Icons.width_normal_outlined),
                         ),
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                         ],
@@ -278,11 +280,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       TextFormField(
                         controller: _heightController,
                         decoration: const InputDecoration(
-                          labelText: 'Height (cm)',
-                          hintText: 'e.g., 100',
+                          labelText: 'Height (meters)',
+                          hintText: 'Max 4.75m (e.g., 4.0)',
+                          helperText: 'Maximum: 4.75 meters',
                           prefixIcon: Icon(Icons.height_outlined),
                         ),
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                         ],
@@ -297,7 +300,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         controller: _numberOfWheelsController,
                         decoration: const InputDecoration(
                           labelText: 'Number of Wheels',
-                          hintText: 'e.g., 4',
+                          hintText: 'e.g., 4, 6, 10, 12',
+                          helperText: 'Common: 4 (car), 6 (small truck), 10-12 (large truck)',
                           prefixIcon: Icon(Icons.settings_outlined),
                         ),
                         keyboardType: TextInputType.number,

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:image_picker/image_picker.dart';
 
 abstract class EditProfileEvent extends Equatable {
   const EditProfileEvent();
@@ -17,7 +18,12 @@ class ToggleEditModeEvent extends EditProfileEvent {
 }
 
 class PickImageEvent extends EditProfileEvent {
-  const PickImageEvent();
+  final ImageSource source;
+
+  const PickImageEvent(this.source);
+
+  @override
+  List<Object?> get props => [source];
 }
 
 class SaveProfileEvent extends EditProfileEvent {

@@ -182,12 +182,12 @@ class DriverRepository {
   /// - vehicleNumberPlate: Vehicle number plate/registration number
   /// - rcNumber: RC (Registration Certificate) number
   /// - chassisNumber: Chassis number of the vehicle
-  /// - bodyCoverType: Type of body cover (e.g., 'Open', 'Covered')
-  /// - capacity: Vehicle capacity (e.g., 'upto_half_tonne', 'half_to_one_tonne', etc.)
-  /// - length: Vehicle length in cm
-  /// - width: Vehicle width in cm
-  /// - height: Vehicle height in cm
-  /// - numberOfWheels: Number of wheels
+  /// - bodyCoverType: Type of body cover (e.g., 'Open', 'Closed', 'SemiClosed')
+  /// - capacity: Vehicle capacity (e.g., 'upto_half_tonne', 'upto_01_tonne', etc.)
+  /// - length: Vehicle length in meters (max 18.75m)
+  /// - width: Vehicle width in meters (max 2.6m)
+  /// - height: Vehicle height in meters (max 4.75m)
+  /// - numberOfWheels: Number of wheels (must be positive integer)
   Future<ApiResponse<VehicleUpsertResponse>> upsertVehicle({
     required String driverId,
     required String vehicleNumberPlate,
@@ -363,34 +363,46 @@ class DriverRepository {
   /// Offer loads - Driver posts availability for loads
   ///
   /// Parameters:
-  /// - offerId: Unique offer ID (UUID)
   /// - driverId: Driver ID (UUID)
   /// - vehicleId: Vehicle ID (UUID)
-  /// - origin: Starting location
-  /// - destination: Destination location
   /// - availableTimeStart: Start of availability window
   /// - availableTimeEnd: End of availability window
-  /// - status: Offer status (default: 'DriverOffered')
+  /// - pickupLat: Pickup location latitude
+  /// - pickupLng: Pickup location longitude
+  /// - dropLat: Drop-off location latitude
+  /// - dropLng: Drop-off location longitude
+  /// - pickupAddress: Pickup address (string)
+  /// - dropAddress: Drop-off address (string)
+  /// - fullRoutePoints: Array of route points with latitude/longitude
+  /// - price: Offer price
   Future<ApiResponse<OfferLoadsResponse>> offerLoadsUpsert({
-    required String offerId,
     required String driverId,
     required String vehicleId,
-    required String origin,
-    required String destination,
     required DateTime availableTimeStart,
     required DateTime availableTimeEnd,
-    String status = 'DriverOffered',
+    required double pickupLat,
+    required double pickupLng,
+    required double dropLat,
+    required double dropLng,
+    required String pickupAddress,
+    required String dropAddress,
+    required List<Map<String, double>> fullRoutePoints,
+    required double price,
   }) async {
     try {
       final requestData = {
-        'offerId': offerId,
         'driverId': driverId,
         'vehicleId': vehicleId,
-        'origin': origin,
-        'destination': destination,
         'availableTimeStart': availableTimeStart.toUtc().toIso8601String(),
         'availableTimeEnd': availableTimeEnd.toUtc().toIso8601String(),
-        'status': status,
+        'pickupLat': pickupLat,
+        'pickupLng': pickupLng,
+        'dropLat': dropLat,
+        'dropLng': dropLng,
+        'pickupAddress': pickupAddress,
+        'dropAddress': dropAddress,
+        'fullRoutePoints': fullRoutePoints,
+        'price': price,
       };
 
       final response = await _apiClient.post<Map<String, dynamic>>(
@@ -432,8 +444,7 @@ class DriverRepository {
   }) async {
     try {
       final response = await _apiClient.getRaw<OfferLoadsListResponse>(
-        '/Driver/GetAll-OfferLoads',
-        queryParameters: {'DriverId': driverId},
+        '/Driver/GetAllOfferLoadsByDriverId/$driverId',
         fromJson: (json) => OfferLoadsListResponse.fromJson(json),
       );
 

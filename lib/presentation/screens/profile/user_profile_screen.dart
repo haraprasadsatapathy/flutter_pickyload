@@ -67,6 +67,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           email: _emailController.text,
           phone: _phoneController.text,
           role: currentUser.role,
+          profileImage: currentUser.profileImage,
           isVerified: currentUser.isVerified,
         );
 
@@ -123,8 +124,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundImage: (user?.profileImage != null && user!.profileImage!.isNotEmpty)
+                            ? NetworkImage(user.profileImage!)
+                            : null,
+                        onBackgroundImageError: (user?.profileImage != null && user!.profileImage!.isNotEmpty)
+                            ? (exception, stackTrace) {
+                                // Image failed to load, will show child instead
+                              }
+                            : null,
                         child: Text(
-                          user?.name[0] ?? 'U',
+                          (user?.name.isNotEmpty ?? false)
+                              ? user!.name[0].toUpperCase()
+                              : 'U',
                           style: const TextStyle(
                             fontSize: 48,
                             color: Colors.white,
@@ -273,14 +284,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           title: const Text('Documents'),
                           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                           onTap: () => context.push('/document-upload'),
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(Icons.star),
-                          title: const Text('Ratings & Reviews'),
-                          subtitle: const Text('4.8 (125 reviews)'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () => context.push('/rating-review'),
                         ),
                       ],
                     ),

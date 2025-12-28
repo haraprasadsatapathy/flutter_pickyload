@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 import '../../../../domain/repository/driver_repository.dart';
 import 'add_load_event.dart';
 import 'add_load_state.dart';
@@ -31,15 +30,14 @@ class AddLoadBloc extends Bloc<AddLoadEvent, AddLoadState> {
 
         if (result.status == true && result.data != null) {
           // Convert Vehicle objects to VehicleOptionModel objects
-          final vehicles = result.data!.data?.vehicles
+          final vehicles = result.data!.vehicles
                   .map((vehicle) => VehicleOptionModel(
                         vehicleId: vehicle.vehicleId,
                         vehicleNumber: vehicle.vehicleNumber,
                         makeModel: vehicle.makeModel,
                         capacity: vehicle.capacity,
                       ))
-                  .toList() ??
-              [];
+                  .toList();
 
           emit(VehiclesFetched(
             message: 'Vehicles loaded successfully',
@@ -69,24 +67,38 @@ class AddLoadBloc extends Bloc<AddLoadEvent, AddLoadState> {
       ));
 
       try {
-        // Generate a unique offer ID
-        final offerId = const Uuid().v4();
+        // Use actual route polyline points if available, otherwise fallback to pickup and drop-off only
+        final fullRoutePoints = event.routePolylinePoints ?? [
+          {
+            'latitude': event.pickupLat,
+            'longitude': event.pickupLng,
+          },
+          {
+            'latitude': event.dropLat,
+            'longitude': event.dropLng,
+          },
+        ];
 
         // Call API to submit load offer
         final result = await driverRepository.offerLoadsUpsert(
-          offerId: offerId,
           driverId: event.driverId,
           vehicleId: event.vehicleId,
-          origin: event.origin,
-          destination: event.destination,
           availableTimeStart: event.availableTimeStart,
           availableTimeEnd: event.availableTimeEnd,
+          pickupLat: event.pickupLat,
+          pickupLng: event.pickupLng,
+          dropLat: event.dropLat,
+          dropLng: event.dropLng,
+          pickupAddress: event.pickupAddress,
+          dropAddress: event.dropAddress,
+          fullRoutePoints: fullRoutePoints,
+          price: event.price,
         );
 
         if (result.status == true && result.data != null) {
           emit(LoadOfferSubmitted(
             message: result.data!.message,
-            offerId: result.data!.data?.offerId ?? offerId,
+            offerId: result.data!.data?.offerId ?? '',
             vehicles: state.vehicles,
           ));
         } else {

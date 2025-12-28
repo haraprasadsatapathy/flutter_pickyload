@@ -26,16 +26,30 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
   ) async {
     emit(const EditProfileLoading());
     try {
-      // Load user profile from repository
+      // Load user profile from local storage first
       final user = await userRepository.getUserDetailsSp();
 
       if (user != null) {
-        emit(EditProfileLoaded(
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          isEditing: false,
-        ));
+        // Fetch profile from API to get the profile image URL
+        final profileResponse = await userRepository.fetchUserProfile(user.id);
+
+        if (profileResponse.status == true && profileResponse.data != null) {
+          emit(EditProfileLoaded(
+            name: profileResponse.data!.userName,
+            email: profileResponse.data!.userEmail,
+            phone: profileResponse.data!.userPhone,
+            profileImageUrl: profileResponse.data!.uProfileImageUrl,
+            isEditing: false,
+          ));
+        } else {
+          // Fallback to local user data if API fails
+          emit(EditProfileLoaded(
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            isEditing: false,
+          ));
+        }
       } else {
         emit(const EditProfileError('Failed to load user profile'));
       }
@@ -60,14 +74,21 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
   ) async {
     try {
       final XFile? image = await imagePicker.pickImage(
-        source: ImageSource.gallery,
+        source: event.source,
       );
 
       if (image != null) {
         if (state is EditProfileLoaded) {
           final currentState = state as EditProfileLoaded;
-          emit(currentState.copyWith(
+          // Create new state with local image path and clear network URL
+          emit(EditProfileLoaded(
+            name: currentState.name,
+            email: currentState.email,
+            phone: currentState.phone,
+            vehicleType: currentState.vehicleType,
+            vehicleNumber: currentState.vehicleNumber,
             profileImagePath: image.path,
+            profileImageUrl: null, // Clear network URL when new image is picked
             isEditing: true,
           ));
         } else {
@@ -105,13 +126,22 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
         );
 
         if (response.status == true) {
+          // Fetch updated profile from API to get new image URL
+          final profileResponse = await userRepository.fetchUserProfile(currentUser.id);
+          String? newProfileImageUrl;
+
+          if (profileResponse.status == true && profileResponse.data != null) {
+            newProfileImageUrl = profileResponse.data!.uProfileImageUrl;
+          }
+
           emit(EditProfileLoaded(
             name: event.name,
             email: event.email,
             phone: event.phone,
             vehicleType: event.vehicleType,
             vehicleNumber: event.vehicleNumber,
-            profileImagePath: profileImagePath,
+            profileImagePath: null, // Clear local path after successful upload
+            profileImageUrl: newProfileImageUrl, // Use new URL from server
             isEditing: false,
           ));
 

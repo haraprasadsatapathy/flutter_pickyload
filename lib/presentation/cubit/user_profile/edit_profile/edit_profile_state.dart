@@ -23,7 +23,8 @@ class EditProfileLoaded extends EditProfileState {
   final String phone;
   final String? vehicleType;
   final String? vehicleNumber;
-  final String? profileImagePath;
+  final String? profileImagePath; // Local file path for newly picked image
+  final String? profileImageUrl; // Network URL from API
 
   const EditProfileLoaded({
     required this.name,
@@ -32,6 +33,7 @@ class EditProfileLoaded extends EditProfileState {
     this.vehicleType,
     this.vehicleNumber,
     this.profileImagePath,
+    this.profileImageUrl,
     super.isEditing,
   });
 
@@ -42,6 +44,7 @@ class EditProfileLoaded extends EditProfileState {
     String? vehicleType,
     String? vehicleNumber,
     String? profileImagePath,
+    String? profileImageUrl,
     bool? isEditing,
   }) {
     return EditProfileLoaded(
@@ -51,6 +54,7 @@ class EditProfileLoaded extends EditProfileState {
       vehicleType: vehicleType ?? this.vehicleType,
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       profileImagePath: profileImagePath ?? this.profileImagePath,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       isEditing: isEditing ?? this.isEditing,
     );
   }
@@ -63,6 +67,7 @@ class EditProfileLoaded extends EditProfileState {
         vehicleType,
         vehicleNumber,
         profileImagePath,
+        profileImageUrl,
         isEditing,
       ];
 }

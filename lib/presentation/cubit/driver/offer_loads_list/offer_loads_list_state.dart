@@ -5,30 +5,51 @@ class OfferLoadModel {
   final String offerId;
   final String driverId;
   final String vehicleId;
-  final String origin;
-  final String destination;
+  final double price;
   final DateTime availableTimeStart;
   final DateTime availableTimeEnd;
   final String status;
+  final double pickupLat;
+  final double pickupLng;
+  final double dropLat;
+  final double dropLng;
+  final String pickupAddress;
+  final String dropAddress;
+  final List<Map<String, double>> fullRoutePoints;
 
   OfferLoadModel({
     required this.offerId,
     required this.driverId,
     required this.vehicleId,
-    required this.origin,
-    required this.destination,
+    required this.price,
     required this.availableTimeStart,
     required this.availableTimeEnd,
     required this.status,
+    required this.pickupLat,
+    required this.pickupLng,
+    required this.dropLat,
+    required this.dropLng,
+    required this.pickupAddress,
+    required this.dropAddress,
+    required this.fullRoutePoints,
   });
 
   factory OfferLoadModel.fromJson(Map<String, dynamic> json) {
+    List<Map<String, double>> routePoints = [];
+    if (json['fullRoutePoints'] != null) {
+      routePoints = (json['fullRoutePoints'] as List).map((point) {
+        return {
+          'latitude': (point['latitude'] as num).toDouble(),
+          'longitude': (point['longitude'] as num).toDouble(),
+        };
+      }).toList();
+    }
+
     return OfferLoadModel(
       offerId: json['offerId'] ?? '',
       driverId: json['driverId'] ?? '',
       vehicleId: json['vehicleId'] ?? '',
-      origin: json['origin'] ?? '',
-      destination: json['destination'] ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
       availableTimeStart: json['availableTimeStart'] != null
           ? DateTime.parse(json['availableTimeStart'])
           : DateTime.now(),
@@ -36,6 +57,13 @@ class OfferLoadModel {
           ? DateTime.parse(json['availableTimeEnd'])
           : DateTime.now(),
       status: json['status'] ?? '',
+      pickupLat: (json['pickupLat'] as num?)?.toDouble() ?? 0.0,
+      pickupLng: (json['pickupLng'] as num?)?.toDouble() ?? 0.0,
+      dropLat: (json['dropLat'] as num?)?.toDouble() ?? 0.0,
+      dropLng: (json['dropLng'] as num?)?.toDouble() ?? 0.0,
+      pickupAddress: json['pickupAddress'] ?? '',
+      dropAddress: json['dropAddress'] ?? '',
+      fullRoutePoints: routePoints,
     );
   }
 
@@ -44,13 +72,23 @@ class OfferLoadModel {
       'offerId': offerId,
       'driverId': driverId,
       'vehicleId': vehicleId,
-      'origin': origin,
-      'destination': destination,
+      'price': price,
       'availableTimeStart': availableTimeStart.toIso8601String(),
       'availableTimeEnd': availableTimeEnd.toIso8601String(),
       'status': status,
+      'pickupLat': pickupLat,
+      'pickupLng': pickupLng,
+      'dropLat': dropLat,
+      'dropLng': dropLng,
+      'pickupAddress': pickupAddress,
+      'dropAddress': dropAddress,
+      'fullRoutePoints': fullRoutePoints,
     };
   }
+
+  // Backward compatibility getters
+  String get origin => pickupAddress;
+  String get destination => dropAddress;
 
   String get formattedStartTime {
     return '${availableTimeStart.day}/${availableTimeStart.month}/${availableTimeStart.year} ${availableTimeStart.hour.toString().padLeft(2, '0')}:${availableTimeStart.minute.toString().padLeft(2, '0')}';
