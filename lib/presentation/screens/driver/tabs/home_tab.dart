@@ -80,6 +80,13 @@ class _HomeTabState extends State<HomeTab> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
+        } else if (state is QuoteSubmitted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+            ),
+          );
         } else if (state is HomeTabError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -159,9 +166,6 @@ class _HomeTabState extends State<HomeTab> {
                     padding: const EdgeInsets.all(16.0),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        _buildOnlineStatusCard(context, state),
-                        const SizedBox(height: 20),
-                        _buildStatsCard(context, state),
                         const SizedBox(height: 20),
                         _buildAddLoadButton(context),
                         const SizedBox(height: 20),
@@ -196,101 +200,8 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildOnlineStatusCard(BuildContext context, HomeTabState state) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: state.isOnline ? Colors.green : Colors.grey,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  state.isOnline ? 'You are Online' : 'You are Offline',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            Switch(
-              value: state.isOnline,
-              onChanged: (value) {
-                context.read<HomeTabBloc>().add(
-                      ToggleOnlineStatus(isOnline: value),
-                    );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildStatsCard(BuildContext context, HomeTabState state) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Today\'s Stats',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                  context,
-                  state.todayStats.completedTrips.toString(),
-                  'Completed',
-                ),
-                _buildStatItem(
-                  context,
-                  '₹${state.todayStats.earnedAmount.toStringAsFixed(0)}',
-                  'Earned',
-                ),
-                _buildStatItem(
-                  context,
-                  '${state.todayStats.traveledDistance.toStringAsFixed(0)} km',
-                  'Traveled',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildStatItem(BuildContext context, String value, String label) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-      ],
-    );
-  }
 
   Widget _buildLoadRequestCard(
     BuildContext context,
@@ -298,79 +209,232 @@ class _HomeTabState extends State<HomeTab> {
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Route header with price
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  loadRequest.route,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    loadRequest.route,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Text(
                   '₹${loadRequest.price.toStringAsFixed(0)}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+
+            // Origin
+            _buildInfoRow(
+              context: context,
+              icon: Icons.trip_origin,
+              label: 'Origin',
+              value: loadRequest.fromLocation,
+            ),
             const SizedBox(height: 8),
-            Text('Capacity: ${loadRequest.capacity}'),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      context.read<HomeTabBloc>().add(
-                            DeclineLoadRequest(
-                              loadRequestId: loadRequest.loadRequestId,
-                            ),
-                          );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Decline'),
+
+            // Destination
+            _buildInfoRow(
+              context: context,
+              icon: Icons.flag,
+              label: 'Destination',
+              value: loadRequest.toLocation,
+            ),
+            const SizedBox(height: 8),
+
+            // Capacity
+            _buildInfoRow(
+              context: context,
+              icon: Icons.inventory_2,
+              label: 'Capacity',
+              value: loadRequest.capacity,
+            ),
+            const SizedBox(height: 8),
+
+            // Available From
+            if (loadRequest.startDate != null)
+              _buildInfoRow(
+                context: context,
+                icon: Icons.calendar_today,
+                label: 'Available From',
+                value: loadRequest.formattedStartTime,
+              ),
+            if (loadRequest.startDate != null) const SizedBox(height: 8),
+
+            // Available Until
+            if (loadRequest.endDate != null)
+              _buildInfoRow(
+                context: context,
+                icon: Icons.calendar_today,
+                label: 'Available Until',
+                value: loadRequest.formattedEndTime,
+              ),
+            if (loadRequest.endDate != null) const SizedBox(height: 16),
+            if (loadRequest.startDate == null && loadRequest.endDate == null)
+              const SizedBox(height: 8),
+
+            // Quote button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  _showQuoteDialog(context, loadRequest);
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      context.read<HomeTabBloc>().add(
-                            AcceptLoadRequest(
-                              loadRequestId: loadRequest.loadRequestId,
-                            ),
-                          );
-                      context.push('/trip-tracking', extra: loadRequest.loadRequestId);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      foregroundColor: Colors.green,
-                      side: const BorderSide(color: Colors.green),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Accept'),
-                  ),
-                ),
-              ],
+                child: const Text('Quote'),
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showQuoteDialog(BuildContext context, LoadRequestModel loadRequest) {
+    final priceController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Submit Quote'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Route: ${loadRequest.route}',
+                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Estimated Price: ₹${loadRequest.price.toStringAsFixed(0)}',
+                  style: Theme.of(dialogContext).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Your Quote Price',
+                    hintText: 'Enter quote price',
+                    prefixIcon: const Icon(Icons.currency_rupee),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a price';
+                    }
+                    final price = double.tryParse(value);
+                    if (price == null) {
+                      return 'Please enter a valid number';
+                    }
+                    if (price <= 0) {
+                      return 'Price must be greater than 0';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) {
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final driverId = authProvider.currentUser?.id ?? '';
+                  final quotePrice = double.parse(priceController.text);
+
+                  context.read<HomeTabBloc>().add(
+                        SubmitQuote(
+                          loadRequestId: loadRequest.loadRequestId,
+                          driverId: driverId,
+                          quotePrice: quotePrice,
+                        ),
+                      );
+
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: const Text('Submit Quote'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            icon,
+            size: 16,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.bodyMedium,
+              children: [
+                TextSpan(
+                  text: '$label: ',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                TextSpan(
+                  text: value,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+          ),
+        ),
+      ],
     );
   }
 
@@ -412,9 +476,7 @@ class _HomeTabState extends State<HomeTab> {
                     const SizedBox(height: 4),
                     Text(
                       'Post your available vehicle for load requests',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
                 ),

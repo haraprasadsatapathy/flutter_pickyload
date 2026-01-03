@@ -5,42 +5,22 @@ import 'trip_request_state.dart';
 import '../../../domain/repository/trip_repository.dart';
 
 class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
-  // Dependencies
   final BuildContext context;
   final TripRepository tripRepository;
 
-  // State management fields
-  String selectedVehicleType = 'Mini Truck';
   DateTime? scheduledDate;
-  bool needsInsurance = false;
-  bool isLoading = false;
 
-  // Constructor
   TripRequestBloc(this.context, this.tripRepository)
       : super(TripRequestInitialState()) {
     _registerEventHandlers();
   }
 
   void _registerEventHandlers() {
-    // Select vehicle type event
-    on<SelectVehicleType>((event, emit) {
-      selectedVehicleType = event.vehicleType;
-      emit(OnVehicleTypeSelected(selectedVehicleType));
-    });
-
-    // Select scheduled date event
     on<SelectScheduledDate>((event, emit) {
       scheduledDate = event.scheduledDate;
       emit(OnScheduledDateSelected(scheduledDate!));
     });
 
-    // Toggle insurance event
-    on<ToggleInsurance>((event, emit) {
-      needsInsurance = event.needsInsurance;
-      emit(OnInsuranceToggled(needsInsurance));
-    });
-
-    // Submit trip request event
     on<SubmitTripRequest>((event, emit) async {
       emit(OnLoading());
 
@@ -48,34 +28,66 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
       // BUSINESS LOGIC: Input Validation
       // ============================================
 
-      // Validation Rule 1: Check if all required fields are filled
+      // Validation Rule 1: Check if pickup and drop locations are filled
       if (event.pickupLocation.isEmpty || event.dropLocation.isEmpty) {
-        emit(OnTripRequestError('Please fill all required fields'));
+        emit(OnTripRequestError('Please fill pickup and drop locations'));
         return;
       }
 
-      // Validation Rule 2: Validate load capacity
+      // Validation Rule 2: Validate load capacity is selected
       if (event.loadCapacity.isEmpty) {
-        emit(OnTripRequestError('Please enter load capacity'));
+        emit(OnTripRequestError('Please select load capacity'));
         return;
       }
 
-      // Validation Rule 3: Validate load capacity is a valid number
-      final loadCapacity = double.tryParse(event.loadCapacity);
-      if (loadCapacity == null || loadCapacity <= 0) {
-        emit(OnTripRequestError('Please enter a valid load capacity'));
+      // Validation Rule 3: Validate body cover type is selected
+      if (event.bodyCoverType.isEmpty) {
+        emit(OnTripRequestError('Please select body cover type'));
         return;
       }
 
-      // Validation Rule 4: Validate scheduled date
-      if (event.scheduledDate == null) {
-        emit(OnTripRequestError('Please select a scheduled date'));
+      // Validation Rule 4: Validate dimensions
+      if (event.length <= 0) {
+        emit(OnTripRequestError('Please enter a valid length'));
         return;
       }
 
-      // Validation Rule 5: Check if userId is provided
+      if (event.width <= 0) {
+        emit(OnTripRequestError('Please enter a valid width'));
+        return;
+      }
+
+      if (event.height <= 0) {
+        emit(OnTripRequestError('Please enter a valid height'));
+        return;
+      }
+
+      // Validation Rule 5: Validate pickup time
+      if (event.pickupTime == null) {
+        emit(OnTripRequestError('Please select pickup date and time'));
+        return;
+      }
+
+      // Validation Rule 6: Validate pickup time is in future
+      if (event.pickupTime!.isBefore(DateTime.now())) {
+        emit(OnTripRequestError('Pickup time must be in the future'));
+        return;
+      }
+
+      // Validation Rule 7: Check if userId is provided
       if (event.userId.isEmpty) {
         emit(OnTripRequestError('User ID is required'));
+        return;
+      }
+
+      // Validation Rule 8: Validate location coordinates
+      if (event.pickupLat == 0.0 || event.pickupLng == 0.0) {
+        emit(OnTripRequestError('Please select pickup location from map'));
+        return;
+      }
+
+      if (event.dropLat == 0.0 || event.dropLng == 0.0) {
+        emit(OnTripRequestError('Please select drop location from map'));
         return;
       }
 
@@ -84,32 +96,31 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
       // ============================================
 
       try {
-        // Call API to create booking
         final result = await tripRepository.createBooking(
           userId: event.userId,
-          pickupAddress: event.pickupLocation,
-          dropAddress: event.dropLocation,
-          vehicleType: event.vehicleType,
-          loadCapacity: loadCapacity,
-          bookingDate: event.scheduledDate!,
-          isInsured: true, // Always true as per requirement
+          vehicleBodyCoverType: event.bodyCoverType,
+          loadCapacity: event.loadCapacity,
+          length: event.length,
+          width: event.width,
+          height: event.height,
+          pickupTime: event.pickupTime!,
+          isInsured: true,
           pickupLat: event.pickupLat,
           pickupLng: event.pickupLng,
           dropLat: event.dropLat,
           dropLng: event.dropLng,
+          pickupAddress: event.pickupLocation,
+          dropAddress: event.dropLocation,
         );
 
         if (result.status == true && result.data != null) {
-          // Booking created successfully
           emit(
             OnTripRequestSuccess(
               tripId: result.data!.bookingId,
               message: result.data!.message,
-              needsInsurance: event.needsInsurance,
             ),
           );
         } else {
-          // Booking creation failed
           emit(OnTripRequestError(
             result.message ?? 'Failed to create booking',
           ));

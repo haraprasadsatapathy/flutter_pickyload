@@ -225,6 +225,61 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
       }
     });
 
+    // Submit Quote
+    on<SubmitQuote>((event, emit) async {
+      emit(HomeTabLoading(
+        isOnline: state.isOnline,
+        todayStats: state.todayStats,
+        loadRequests: state.loadRequests,
+      ));
+
+      try {
+        // TODO: Call API to submit quote
+        // final result = await driverRepository.submitQuote(
+        //   loadRequestId: event.loadRequestId,
+        //   driverId: event.driverId,
+        //   quotePrice: event.quotePrice,
+        // );
+
+        // For now, simulate API call
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Update the load request with the new quote price
+        final updatedLoadRequests = state.loadRequests.map((load) {
+          if (load.loadRequestId == event.loadRequestId) {
+            return LoadRequestModel(
+              loadRequestId: load.loadRequestId,
+              route: load.route,
+              fromLocation: load.fromLocation,
+              toLocation: load.toLocation,
+              capacity: load.capacity,
+              price: event.quotePrice,
+              description: load.description,
+              pickupDateTime: load.pickupDateTime,
+              startDate: load.startDate,
+              endDate: load.endDate,
+            );
+          }
+          return load;
+        }).toList();
+
+        emit(QuoteSubmitted(
+          message: 'Quote submitted successfully for ₹${event.quotePrice.toStringAsFixed(0)}',
+          loadRequestId: event.loadRequestId,
+          isOnline: state.isOnline,
+          todayStats: state.todayStats,
+          loadRequests: updatedLoadRequests,
+        ));
+      } catch (e) {
+        emit(HomeTabError(
+          error: 'Failed to submit quote: ${e.toString()}',
+          isOnline: state.isOnline,
+          todayStats: state.todayStats,
+          loadRequests: state.loadRequests,
+        ));
+      }
+    });
+
     // Refresh Home Tab (Fetch both stats and load requests)
     on<RefreshHomeTab>((event, emit) async {
       try {

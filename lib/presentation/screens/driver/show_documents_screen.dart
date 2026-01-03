@@ -155,9 +155,7 @@ class ShowDocumentsScreen extends StatelessWidget {
               Text(
                 'You haven\'t uploaded any documents yet.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -301,7 +299,6 @@ class ShowDocumentsScreen extends StatelessWidget {
                       Text(
                         document.documentNumber,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[700],
                               fontWeight: FontWeight.w500,
                             ),
                       ),
@@ -375,9 +372,8 @@ class ShowDocumentsScreen extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: TextStyle(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             fontSize: 14,
-            color: Colors.grey[600],
           ),
         ),
         Expanded(

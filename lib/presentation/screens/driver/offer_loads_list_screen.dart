@@ -78,9 +78,7 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
             const SizedBox(height: 16),
             Text(
               'No Offered Loads',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
@@ -248,8 +246,7 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
               children: [
                 TextSpan(
                   text: '$label: ',
-                  style: TextStyle(
-                    color: Colors.grey[700],
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),

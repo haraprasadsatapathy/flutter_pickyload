@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:picky_load/presentation/cubit/user_profile/profile/profile_bloc.dart';
 import 'package:picky_load/presentation/cubit/user_profile/profile/profile_event.dart';
 import 'package:picky_load/presentation/cubit/user_profile/profile/profile_state.dart';
@@ -139,18 +140,35 @@ class ProfileTab extends StatelessWidget {
       return const CircleAvatar(radius: 50, child: CircularProgressIndicator());
     }
 
-    if (state is ProfileFetchSuccess &&
-        state.profileData.uProfileImageUrl != null) {
-      return CircleAvatar(
-        radius: 50,
-        backgroundImage: NetworkImage(state.profileData.uProfileImageUrl!),
-      );
-    }
-
     // Default avatar with first letter
     final name = state is ProfileFetchSuccess
         ? state.profileData.userName
         : authProvider.currentUser?.name ?? 'User';
+
+    if (state is ProfileFetchSuccess &&
+        state.profileData.uProfileImageUrl != null &&
+        state.profileData.uProfileImageUrl!.isNotEmpty) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: state.profileData.uProfileImageUrl!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => const CircleAvatar(
+            radius: 50,
+            child: CircularProgressIndicator(),
+          ),
+          errorWidget: (context, url, error) => CircleAvatar(
+            radius: 50,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            child: Text(
+              name.isNotEmpty ? name[0].toUpperCase() : 'U',
+              style: const TextStyle(fontSize: 36, color: Colors.white),
+            ),
+          ),
+        ),
+      );
+    }
 
     return CircleAvatar(
       radius: 50,

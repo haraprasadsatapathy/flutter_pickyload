@@ -26,6 +26,6 @@ Future<void> setupDependencyInjection() async {
 
   // Register Driver Repository
   getIt.registerLazySingleton<DriverRepository>(
-    () => DriverRepository(getIt<ApiClient>()),
+    () => DriverRepository(getIt<ApiClient>(), getIt<SavedService>()),
   );
 }

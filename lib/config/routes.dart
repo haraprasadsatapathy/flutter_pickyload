@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:picky_load/presentation/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../presentation/screens/splash/splash_screen.dart';
-import '../presentation/screens/common/language_selection_screen.dart';
 // Old login screen
 // import '../presentation/screens/auth/login_screen.dart';
 // New BLoC-based login screen
@@ -11,7 +10,6 @@ import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/auth/otp_verification_screen.dart';
 import '../presentation/screens/auth/password_recovery_screen.dart';
 import '../presentation/screens/auth/role_selection_screen.dart';
-import '../presentation/screens/auth/rating_screen.dart';
 import '../presentation/screens/customer/customer_dashboard.dart';
 import '../presentation/screens/driver/driver_dashboard.dart';
 import '../presentation/screens/driver/document_upload_screen.dart';
@@ -21,13 +19,13 @@ import '../presentation/screens/driver/show_documents_screen.dart';
 import '../presentation/screens/driver/add_load_screen.dart';
 import '../presentation/screens/driver/offer_loads_list_screen.dart';
 import '../presentation/screens/driver/edit_offer_price_screen.dart';
-import '../presentation/screens/trip/trip_request_screen.dart';
-import '../presentation/screens/trip/trip_tracking_screen.dart';
-import '../presentation/screens/payment/payment_screen.dart';
-import '../presentation/screens/payment/transaction_history_screen.dart';
-import '../presentation/screens/insurance/insurance_screen.dart';
-import '../presentation/screens/profile/customer_profile_screen.dart';
-import '../presentation/screens/notifications/notifications_screen.dart';
+import '../presentation/screens/customer/trip_request_screen.dart';
+import '../presentation/screens/customer/trip_tracking_screen.dart';
+import '../presentation/screens/customer/payment_screen.dart';
+import '../presentation/screens/customer/transaction_history_screen.dart';
+import '../presentation/screens/customer/customer_profile_screen.dart';
+import '../presentation/screens/customer/notifications_screen.dart';
+import '../presentation/screens/customer/help_support_screen.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
 import '../presentation/cubit/user_profile/edit_profile/edit_profile_bloc.dart';
@@ -41,10 +39,6 @@ final router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-      path: '/language',
-      builder: (context, state) => const LanguageSelectionScreen(),
-    ),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/register',
@@ -67,10 +61,6 @@ final router = GoRouter(
     GoRoute(
       path: '/role-selection',
       builder: (context, state) => const RoleSelectionScreen(),
-    ),
-    GoRoute(
-      path: '/rating',
-      builder: (context, state) => const RatingScreen(),
     ),
     GoRoute(
       path: '/customer-dashboard',
@@ -154,11 +144,6 @@ final router = GoRouter(
       builder: (context, state) => const TransactionHistoryScreen(),
     ),
     GoRoute(
-      path: '/insurance',
-      builder: (context, state) =>
-          InsuranceScreen(tripId: state.extra as String? ?? ''),
-    ),
-    GoRoute(
       path: '/customer-profile',
       builder: (context, state) => BlocProvider(
         create: (context) => EditProfileBloc(
@@ -179,6 +164,10 @@ final router = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/help-support',
+      builder: (context, state) => const HelpSupportScreen(),
     ),
   ],
 );

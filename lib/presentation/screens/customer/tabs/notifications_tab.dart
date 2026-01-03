@@ -39,7 +39,6 @@ class NotificationsTab extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 _buildNotificationCard(context, 'Trip Completed', 'Your trip from Mumbai to Delhi has been completed successfully', Icons.check_circle, Colors.green),
                 _buildNotificationCard(context, 'Payment Received', 'Payment of ₹15,000 has been processed', Icons.payment, Colors.blue),
-                _buildNotificationCard(context, 'New Offer', 'Special discount on insurance for your next trip', Icons.local_offer, Colors.orange),
               ]),
             ),
           ),

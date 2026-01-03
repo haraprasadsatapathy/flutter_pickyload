@@ -12,38 +12,56 @@ class TripRepository {
   /// Create a new booking
   Future<ApiResponse<BookingResponse>> createBooking({
     required String userId,
-    required String pickupAddress,
-    required String dropAddress,
-    required String vehicleType,
-    required double loadCapacity,
-    required DateTime bookingDate,
+    required String vehicleBodyCoverType,
+    required String loadCapacity,
+    required double length,
+    required double width,
+    required double height,
+    required DateTime pickupTime,
     required bool isInsured,
     required double pickupLat,
     required double pickupLng,
     required double dropLat,
     required double dropLng,
+    required String pickupAddress,
+    required String dropAddress,
   }) async {
     try {
+      // Create fullRoutePoints array with pickup and drop coordinates
+      final fullRoutePoints = [
+        {
+          'latitude': pickupLat,
+          'longitude': pickupLng,
+        },
+        {
+          'latitude': dropLat,
+          'longitude': dropLng,
+        },
+      ];
+
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/User/create-booking',
         data: {
           'userId': userId,
-          'pickupAddress': pickupAddress,
-          'dropAddress': dropAddress,
-          'vehicleType': vehicleType,
+          'vehicleBodyCoverType': vehicleBodyCoverType,
           'loadCapacity': loadCapacity,
-          'bookingDate': bookingDate.toUtc().toIso8601String(),
+          'length': length,
+          'width': width,
+          'height': height,
+          'pickupTime': pickupTime.toUtc().toIso8601String(),
           'isInsured': isInsured,
           'pickupLat': pickupLat,
           'pickupLng': pickupLng,
           'dropLat': dropLat,
           'dropLng': dropLng,
+          'pickupAddress': pickupAddress,
+          'dropAddress': dropAddress,
+          'fullRoutePoints': fullRoutePoints,
         },
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
       if (response.data != null) {
-        // Parse the booking response
         final bookingResponse = BookingResponse.fromJson(response.data!);
 
         return ApiResponse(
@@ -72,8 +90,6 @@ class TripRepository {
     required String userId,
   }) async {
     try {
-      // We don't use fromJsonT here because the API returns a structure
-      // where 'data' is a List, not a Map
       final response = await _apiClient.get<dynamic>(
         '/User/booking-history',
         queryParameters: {
@@ -81,10 +97,7 @@ class TripRepository {
         },
       );
 
-      // The response.message contains the API message
-      // The response.data contains the list of bookings (json['data'])
       if (response.data != null) {
-        // Manually construct BookingHistoryResponse
         final bookingHistoryResponse = BookingHistoryResponse(
           message: response.message ?? 'Booking history fetched successfully',
           data: (response.data as List<dynamic>)

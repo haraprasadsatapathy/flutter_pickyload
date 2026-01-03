@@ -53,6 +53,22 @@ class DeclineLoadRequest extends HomeTabEvent {
   List<Object?> get props => [loadRequestId];
 }
 
+// Submit a quote for a load request
+class SubmitQuote extends HomeTabEvent {
+  final String loadRequestId;
+  final String driverId;
+  final double quotePrice;
+
+  SubmitQuote({
+    required this.loadRequestId,
+    required this.driverId,
+    required this.quotePrice,
+  });
+
+  @override
+  List<Object?> get props => [loadRequestId, driverId, quotePrice];
+}
+
 // Refresh home tab data (stats and load requests)
 class RefreshHomeTab extends HomeTabEvent {
   final String driverId;

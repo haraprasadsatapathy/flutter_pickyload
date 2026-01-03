@@ -705,7 +705,6 @@ class [Feature]Bloc extends Bloc<[Feature]Event, [Feature]States> {
 ### Repository Creation Needed:
 - TripRepository
 - PaymentRepository
-- InsuranceRepository
 - DocumentRepository
 - NotificationRepository
 

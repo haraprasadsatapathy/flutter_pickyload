@@ -1,17 +1,17 @@
 import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 
-// Base event class for TripRequest feature
 class TripRequestEvent extends BaseEventState {}
 
-// Submit trip request
 class SubmitTripRequest extends TripRequestEvent {
   final String userId;
   final String pickupLocation;
   final String dropLocation;
-  final String vehicleType;
   final String loadCapacity;
-  final DateTime? scheduledDate;
-  final bool needsInsurance;
+  final String bodyCoverType;
+  final double length;
+  final double width;
+  final double height;
+  final DateTime? pickupTime;
   final double pickupLat;
   final double pickupLng;
   final double dropLat;
@@ -21,10 +21,12 @@ class SubmitTripRequest extends TripRequestEvent {
     required this.userId,
     required this.pickupLocation,
     required this.dropLocation,
-    required this.vehicleType,
     required this.loadCapacity,
-    this.scheduledDate,
-    required this.needsInsurance,
+    required this.bodyCoverType,
+    required this.length,
+    required this.width,
+    required this.height,
+    this.pickupTime,
     this.pickupLat = 0.0,
     this.pickupLng = 0.0,
     this.dropLat = 0.0,
@@ -36,10 +38,12 @@ class SubmitTripRequest extends TripRequestEvent {
         userId,
         pickupLocation,
         dropLocation,
-        vehicleType,
         loadCapacity,
-        scheduledDate,
-        needsInsurance,
+        bodyCoverType,
+        length,
+        width,
+        height,
+        pickupTime,
         pickupLat,
         pickupLng,
         dropLat,
@@ -47,17 +51,6 @@ class SubmitTripRequest extends TripRequestEvent {
       ];
 }
 
-// Select vehicle type
-class SelectVehicleType extends TripRequestEvent {
-  final String vehicleType;
-
-  SelectVehicleType(this.vehicleType);
-
-  @override
-  List<Object?> get props => [vehicleType];
-}
-
-// Select scheduled date
 class SelectScheduledDate extends TripRequestEvent {
   final DateTime scheduledDate;
 
@@ -65,14 +58,4 @@ class SelectScheduledDate extends TripRequestEvent {
 
   @override
   List<Object?> get props => [scheduledDate];
-}
-
-// Toggle insurance option
-class ToggleInsurance extends TripRequestEvent {
-  final bool needsInsurance;
-
-  ToggleInsurance(this.needsInsurance);
-
-  @override
-  List<Object?> get props => [needsInsurance];
 }

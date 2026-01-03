@@ -53,7 +53,6 @@ picky_load3/
 │   │   ├── user_model.dart
 │   │   ├── trip_model.dart
 │   │   ├── payment_model.dart
-│   │   ├── insurance_model.dart
 │   │   └── document_model.dart
 │   │
 │   ├── 📁 screens/                         # Legacy screens (to be migrated)
@@ -74,32 +73,22 @@ picky_load3/
 │   │   │       └── profile_tab.dart
 │   │   │
 │   │   ├── customer/
-│   │   │   └── customer_dashboard.dart     # ⏳ To be migrated
-│   │   │
-│   │   ├── trip/
+│   │   │   ├── customer_dashboard.dart     # ⏳ To be migrated
+│   │   │   ├── customer_profile_screen.dart # ⏳ To be migrated
 │   │   │   ├── trip_request_screen.dart    # ⏳ To be migrated
-│   │   │   └── trip_tracking_screen.dart   # ⏳ To be migrated
-│   │   │
-│   │   ├── payment/
+│   │   │   ├── trip_tracking_screen.dart   # ⏳ To be migrated
 │   │   │   ├── payment_screen.dart         # ⏳ To be migrated
-│   │   │   └── transaction_history_screen.dart
-│   │   │
-│   │   ├── insurance/
-│   │   │   └── insurance_screen.dart       # ⏳ To be migrated
+│   │   │   ├── transaction_history_screen.dart
+│   │   │   ├── notifications_screen.dart   # ⏳ To be migrated
+│   │   │   ├── help_support_screen.dart    # ✨ New
+│   │   │   └── tabs/
+│   │   │       ├── my_trips_tab.dart
+│   │   │       ├── notifications_tab.dart
+│   │   │       ├── profile_tab.dart
+│   │   │       └── quick_action_button.dart
 │   │   │
 │   │   ├── profile/
-│   │   │   ├── customer_profile_screen.dart # ⏳ To be migrated
-│   │   │   ├── driver_profile_screen.dart  # ⏳ To be migrated
-│   │   │   ├── rating_review_screen.dart
-│   │   │   ├── saved_addresses_screen.dart
-│   │   │   ├── add_address_screen.dart
-│   │   │   └── settings_screen.dart
-│   │   │
-│   │   ├── notifications/
-│   │   │   └── notifications_screen.dart   # ⏳ To be migrated
-│   │   │
-│   │   ├── common/
-│   │   │   └── language_selection_screen.dart
+│   │   │   └── user_profile_screen.dart    # ⏳ Legacy (not in use)
 │   │   │
 │   │   └── splash/
 │   │       └── splash_screen.dart
@@ -262,10 +251,9 @@ feature_name/
 6. Trip Request
 7. Trip Tracking
 8. Payment
-9. Insurance
-10. Profile Management
-11. Notifications
-12. Settings
+9. Profile Management
+10. Notifications
+11. Settings
 
 ### 📊 Progress
 - **Infrastructure**: 100%

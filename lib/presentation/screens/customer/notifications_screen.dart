@@ -58,15 +58,6 @@ class NotificationsScreen extends StatelessWidget {
             ),
             _buildNotificationCard(
               context,
-              'Special Offer',
-              'Get 20% discount on insurance for your next trip. Use code: SAFE20',
-              DateTime.now().subtract(const Duration(days: 1)),
-              Icons.local_offer,
-              Colors.purple,
-              isRead: true,
-            ),
-            _buildNotificationCard(
-              context,
               'Document Verified',
               'Your driving license has been successfully verified.',
               DateTime.now().subtract(const Duration(days: 2)),

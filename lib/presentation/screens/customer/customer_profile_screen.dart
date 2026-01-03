@@ -8,6 +8,9 @@ import '../../../providers/auth_provider.dart';
 import '../../cubit/user_profile/edit_profile/edit_profile_bloc.dart';
 import '../../cubit/user_profile/edit_profile/edit_profile_event.dart';
 import '../../cubit/user_profile/edit_profile/edit_profile_state.dart';
+import '../../cubit/auth/rating/rating_bloc.dart';
+import '../../cubit/auth/rating/rating_event.dart';
+import '../../cubit/auth/rating/rating_state.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -77,6 +80,159 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         );
       },
     );
+  }
+
+  void _showRatingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return BlocProvider(
+          create: (context) => RatingBloc(),
+          child: BlocConsumer<RatingBloc, RatingState>(
+            listener: (context, state) {
+              if (state is RatingSubmitted) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(state.successMessage),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop();
+                  }
+                });
+              } else if (state is RatingError) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                    content: Text(state.errorMessage ?? 'An error occurred'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              return AlertDialog(
+                title: const Text('Rate Your Experience'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'How was your experience?',
+                        style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Your feedback helps us improve',
+                        style: Theme.of(dialogContext).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 20),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(5, (index) {
+                            final starValue = index + 1.0;
+                            final isFullStar = state.rating >= starValue;
+                            final isHalfStar = state.rating >= starValue - 0.5 && state.rating < starValue;
+
+                            return GestureDetector(
+                              onTap: () {
+                                context.read<RatingBloc>().add(UpdateRating(starValue));
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                child: Icon(
+                                  isFullStar
+                                      ? Icons.star
+                                      : isHalfStar
+                                          ? Icons.star_half
+                                          : Icons.star_border,
+                                  size: 40,
+                                  color: isFullStar || isHalfStar
+                                      ? Colors.amber
+                                      : Colors.grey.shade400,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (state.rating > 0)
+                        Center(
+                          child: Text(
+                            _getRatingText(state.rating),
+                            style: Theme.of(dialogContext).textTheme.bodyLarge?.copyWith(
+                              color: Theme.of(dialogContext).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Comment (Optional)',
+                        style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        maxLines: 3,
+                        onChanged: (value) {
+                          context.read<RatingBloc>().add(UpdateComment(value));
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Share your experience...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: state.isSubmitting
+                        ? null
+                        : () {
+                            context.read<RatingBloc>().add(SubmitRating());
+                          },
+                    child: state.isSubmitting
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('Submit'),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  String _getRatingText(double rating) {
+    if (rating <= 1) return 'Poor';
+    if (rating <= 2) return 'Below Average';
+    if (rating <= 3) return 'Average';
+    if (rating <= 4) return 'Good';
+    return 'Excellent';
   }
 
   @override
@@ -348,6 +504,60 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    if (!isEditing) ...[
+                      const SizedBox(height: 20),
+                      Card(
+                        elevation: 2,
+                        child: InkWell(
+                          onTap: () => _showRatingDialog(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Rate Your Experience',
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Share your feedback with us',
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.grey[400],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ],

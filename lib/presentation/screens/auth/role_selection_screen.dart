@@ -134,7 +134,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                                 title: 'Customer',
                                 description: 'I need to transport goods',
                                 icon: Icons.local_shipping_outlined,
-                                isLoading: isLoading,
+                                isLoading: false,
                                 onTap: () {
                                   context.read<RoleSelectionBloc>().add(SelectCustomerRole());
                                 },
@@ -148,24 +148,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                                 onTap: () {
                                   context.read<RoleSelectionBloc>().add(SelectDriverRole());
                                 },
-                              ),
-                              const Spacer(),
-                              // Rating Button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 50,
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    context.push('/rating');
-                                  },
-                                  icon: const Icon(Icons.star_border),
-                                  label: const Text('Rate Your Experience'),
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
                               ),
                               const SizedBox(height: 20),
                             ],

@@ -48,6 +48,8 @@ class LoadRequestModel {
   final double price;
   final String? description;
   final DateTime? pickupDateTime;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   LoadRequestModel({
     required this.loadRequestId,
@@ -58,6 +60,8 @@ class LoadRequestModel {
     required this.price,
     this.description,
     this.pickupDateTime,
+    this.startDate,
+    this.endDate,
   });
 
   factory LoadRequestModel.fromJson(Map<String, dynamic> json) {
@@ -72,6 +76,12 @@ class LoadRequestModel {
       pickupDateTime: json['pickupDateTime'] != null
           ? DateTime.parse(json['pickupDateTime'])
           : null,
+      startDate: json['startDate'] != null
+          ? DateTime.parse(json['startDate'])
+          : null,
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'])
+          : null,
     );
   }
 
@@ -85,7 +95,20 @@ class LoadRequestModel {
       'price': price,
       'description': description,
       'pickupDateTime': pickupDateTime?.toIso8601String(),
+      'startDate': startDate?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
     };
+  }
+
+  // Formatted time getters
+  String get formattedStartTime {
+    if (startDate == null) return 'N/A';
+    return '${startDate!.day}/${startDate!.month}/${startDate!.year} ${startDate!.hour.toString().padLeft(2, '0')}:${startDate!.minute.toString().padLeft(2, '0')}';
+  }
+
+  String get formattedEndTime {
+    if (endDate == null) return 'N/A';
+    return '${endDate!.day}/${endDate!.month}/${endDate!.year} ${endDate!.hour.toString().padLeft(2, '0')}:${endDate!.minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -206,6 +229,29 @@ class LoadRequestDeclined extends HomeTabState {
   final String loadRequestId;
 
   LoadRequestDeclined({
+    required this.message,
+    required this.loadRequestId,
+    super.isOnline,
+    super.todayStats,
+    required super.loadRequests,
+  });
+
+  @override
+  List<Object?> get props => [
+        message,
+        loadRequestId,
+        isOnline,
+        todayStats,
+        loadRequests,
+      ];
+}
+
+// Quote submitted
+class QuoteSubmitted extends HomeTabState {
+  final String message;
+  final String loadRequestId;
+
+  QuoteSubmitted({
     required this.message,
     required this.loadRequestId,
     super.isOnline,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../domain/repository/driver_repository.dart';
 import '../../cubit/driver/upload_documents/upload_documents_bloc.dart';
 import '../../cubit/driver/upload_documents/upload_documents_event.dart';
@@ -80,52 +80,33 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final driverRepository = Provider.of<DriverRepository>(context, listen: false);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     return BlocProvider(
-      create: (context) {
-        final bloc = UploadDocumentsBloc(
-          context: context,
-          driverRepository: driverRepository,
-        );
-        // Load user data when BLoC is created
-        bloc.add(LoadUserData());
-        return bloc;
-      },
+      create: (context) => UploadDocumentsBloc(
+        context: context,
+        driverRepository: driverRepository,
+      ),
       child: BlocConsumer<UploadDocumentsBloc, UploadDocumentsState>(
         listener: (context, state) {
-          if (state is UserDataLoadError) {
-            // Show error and redirect to login
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red,
-              ),
-            );
-            Future.delayed(const Duration(milliseconds: 1500), () {
-              if (context.mounted) {
-                authProvider.logout();
-                context.go('/login');
-              }
-            });
-          } else if (state is DocumentsSubmittedSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
+          if (state is DocumentsSubmittedSuccess) {
+            // Show toast message
+            Fluttertoast.showToast(
+              msg: state.message,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0,
             );
 
-            // Redirect to driver dashboard after successful upload
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (context.mounted) {
-                context.go('/driver-dashboard');
-              }
-            });
+            // Redirect to driver dashboard immediately
+            if (context.mounted) {
+              context.go('/driver-dashboard');
+            }
           } else if (state is DocumentsSubmissionError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -137,76 +118,6 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         },
         builder: (context, state) {
           final isLoading = state is UploadDocumentsLoading;
-          final isLoadingUserData = state is UploadDocumentsLoading && state.userId == null;
-          final isUserDataError = state is UserDataLoadError;
-
-          // Show loading screen while loading user data
-          if (state is UploadDocumentsInitial || isLoadingUserData) {
-            return Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              appBar: AppBar(
-                elevation: 0,
-                backgroundColor: colorScheme.surface,
-                title: Text(
-                  'Document Upload',
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              body: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-
-          // Show error screen if user data couldn't be loaded
-          if (isUserDataError) {
-            return Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              appBar: AppBar(
-                elevation: 0,
-                backgroundColor: colorScheme.surface,
-                title: Text(
-                  'Document Upload',
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.error,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        authProvider.logout();
-                        context.go('/login');
-                      },
-                      child: const Text('Go to Login'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
 
           return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

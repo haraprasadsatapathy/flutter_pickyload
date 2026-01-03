@@ -220,7 +220,6 @@ class _EditOfferPriceScreenState extends State<EditOfferPriceScreen> {
         Text(
           '$label: ',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[700],
                 fontWeight: FontWeight.w500,
               ),
         ),

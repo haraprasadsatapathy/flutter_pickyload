@@ -13,16 +13,14 @@ class OnLoading extends TripRequestStates {}
 class OnTripRequestSuccess extends TripRequestStates {
   final String tripId;
   final String message;
-  final bool needsInsurance;
 
   OnTripRequestSuccess({
     required this.tripId,
     required this.message,
-    required this.needsInsurance,
   });
 
   @override
-  List<Object?> get props => [tripId, message, needsInsurance];
+  List<Object?> get props => [tripId, message];
 }
 
 // Trip request failed
@@ -53,16 +51,6 @@ class OnScheduledDateSelected extends TripRequestStates {
 
   @override
   List<Object?> get props => [scheduledDate];
-}
-
-// Insurance toggled
-class OnInsuranceToggled extends TripRequestStates {
-  final bool needsInsurance;
-
-  OnInsuranceToggled(this.needsInsurance);
-
-  @override
-  List<Object?> get props => [needsInsurance];
 }
 
 // Error state

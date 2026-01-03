@@ -26,8 +26,6 @@ class Trip {
   final String? driverName;
   final String? driverPhone;
   final String? confirmationOtp;
-  final bool insuranceOpted;
-  final double? insurancePremium;
 
   Trip({
     required this.id,
@@ -49,8 +47,6 @@ class Trip {
     this.driverName,
     this.driverPhone,
     this.confirmationOtp,
-    this.insuranceOpted = false,
-    this.insurancePremium,
   });
 
   Map<String, dynamic> toJson() {
@@ -74,8 +70,6 @@ class Trip {
       'driverName': driverName,
       'driverPhone': driverPhone,
       'confirmationOtp': confirmationOtp,
-      'insuranceOpted': insuranceOpted,
-      'insurancePremium': insurancePremium,
     };
   }
 }

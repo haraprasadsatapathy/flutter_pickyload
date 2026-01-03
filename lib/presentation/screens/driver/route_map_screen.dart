@@ -618,10 +618,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                                       'Straight-Line Distance',
                                       style: Theme.of(context)
                                           .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color: Colors.grey[600],
-                                          ),
+                                          .bodyMedium,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -736,7 +733,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                                           index == 0 ? 'Primary' : 'Alt $index',
                                           style: TextStyle(
                                             fontSize: 11,
-                                            color: isSelected ? Colors.black : Colors.grey[700],
+                                            color: isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).textTheme.bodySmall?.color,
                                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                           ),
                                         ),
@@ -822,7 +819,6 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
                       fontSize: 11,
                     ),
               ),
@@ -861,7 +857,6 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
                     ),
               ),
               const SizedBox(height: 2),

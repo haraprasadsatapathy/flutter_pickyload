@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/data_source/api_client.dart';
+import '../../models/user_model.dart';
+import '../../services/local/saved_service.dart';
 import '../models/api_response.dart';
 import '../models/document_upload_response.dart';
 import '../models/document_list_response.dart';
@@ -14,9 +16,16 @@ import '../models/update_offer_price_response.dart';
 /// Repository for driver-related operations
 class DriverRepository {
   final ApiClient _apiClient;
-  final Uuid _uuid = const Uuid();
 
-  DriverRepository(this._apiClient);
+  // final Uuid _uuid = const Uuid();
+  final SavedService _savedService;
+
+  DriverRepository(this._apiClient, this._savedService);
+
+  /// Get user details from SharedPreferences
+  Future<User?> getUserDetailsSp() async {
+    return await _savedService.getUserDetailsSp();
+  }
 
   // ============================================
   // DOCUMENT OPERATIONS
@@ -57,27 +66,48 @@ class DriverRepository {
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      if (response.status == true && response.data != null) {
-        // Parse the document verification response
-        final documentUploadResponse = DocumentUploadResponse(
-          message: response.data!['message'] as String? ?? 'Document verified successfully',
-          data: response.data!['data'] != null
-              ? DocumentUploadData.fromJson(response.data!['data'] as Map<String, dynamic>)
-              : null,
-        );
+      if (response.data != null) {
+        final data = response.data!;
+        final message = response.message;
+        // final message = responseData['message'] as String? ?? '';
+        // final data = responseData['data'];
 
-        return ApiResponse(
-          status: true,
-          message: documentUploadResponse.message,
-          data: documentUploadResponse,
-        );
+        // print('DEBUG: Response data type: ${responseData.runtimeType}');
+        // print('DEBUG: Message: $message');
+        // print('DEBUG: Data type: ${data.runtimeType}');
+        // print('DEBUG: Data value: $data');
+        // print('DEBUG: Data is null: ${data == null}');
+        // print('DEBUG: Data is Map: ${data is Map<String, dynamic>}');
+        // print('DEBUG: Data is empty: ${data is Map ? (data as Map).isEmpty : "not a map"}');
+        // print('DEBUG: Has documentId: ${data is Map ? (data as Map).containsKey('documentId') : false}');
+        // print('DEBUG: Has userId: ${data is Map ? (data as Map).containsKey('userId') : false}');
+
+        // Check if data is a non-empty object (success)
+        // Error responses have data as empty array [] or null
+        // Success responses have data as object with documentId and userId
+        bool isSuccess = data.isNotEmpty && data.containsKey('documentId') && data.containsKey('userId');
+
+        print('DEBUG: isSuccess: $isSuccess');
+
+        if (isSuccess) {
+          // Parse the document verification response (success)
+          final documentUploadResponse = DocumentUploadResponse(
+            message: message!,
+            data: DocumentUploadData.fromJson(data),
+          );
+
+          return ApiResponse(status: true, message: message, data: documentUploadResponse);
+        } else {
+          // API returned error message (data is [] or null)
+          return ApiResponse(
+            status: false,
+            message: message!.isNotEmpty ? message : 'Failed to verify document',
+            data: null,
+          );
+        }
       }
 
-      return ApiResponse(
-        status: false,
-        message: response.message ?? 'Failed to verify document',
-        data: null,
-      );
+      return ApiResponse(status: false, message: response.message ?? 'Failed to verify document', data: null);
     } catch (e) {
       // Handle validation errors from API
       String errorMessage = 'An error occurred while verifying document: ${e.toString()}';
@@ -85,7 +115,12 @@ class DriverRepository {
       // Try to parse validation errors if present
       if (e is DioException && e.response?.data != null) {
         final responseData = e.response!.data;
-        if (responseData is Map<String, dynamic> && responseData['errors'] != null) {
+
+        // Check for the new API error format with "message" field
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        } else if (responseData is Map<String, dynamic> && responseData['errors'] != null) {
+          // Handle validation errors format
           final errors = responseData['errors'] as Map<String, dynamic>;
           final errorMessages = <String>[];
 
@@ -103,11 +138,7 @@ class DriverRepository {
         }
       }
 
-      return ApiResponse(
-        status: false,
-        message: errorMessage,
-        data: null,
-      );
+      return ApiResponse(status: false, message: errorMessage, data: null);
     }
   }
 
@@ -151,9 +182,7 @@ class DriverRepository {
 
   /// Get all documents for a user
   /// Note: This endpoint returns response format: {message, data: {documents, count}}
-  Future<ApiResponse<DocumentListResponse>> getAllDocuments({
-    required String userId,
-  }) async {
+  Future<ApiResponse<DocumentListResponse>> getAllDocuments({required String userId}) async {
     try {
       // Use getRaw since this endpoint has a specific response format
       final response = await _apiClient.getRaw<DocumentListResponse>(
@@ -221,22 +250,12 @@ class DriverRepository {
       );
 
       if (response.status == true || response.data != null) {
-        final vehicleUpsertResponse = VehicleUpsertResponse.fromJson(
-          response.data!,
-        );
+        final vehicleUpsertResponse = VehicleUpsertResponse.fromJson(response.data!);
 
-        return ApiResponse(
-          status: true,
-          message: vehicleUpsertResponse.message,
-          data: vehicleUpsertResponse,
-        );
+        return ApiResponse(status: true, message: vehicleUpsertResponse.message, data: vehicleUpsertResponse);
       }
 
-      return ApiResponse(
-        status: false,
-        message: response.message ?? 'Failed to upsert vehicle',
-        data: null,
-      );
+      return ApiResponse(status: false, message: response.message ?? 'Failed to upsert vehicle', data: null);
     } catch (e) {
       // Handle specific error responses from API
       String errorMessage = 'An error occurred while adding/updating vehicle: ${e.toString()}';
@@ -249,11 +268,7 @@ class DriverRepository {
         }
       }
 
-      return ApiResponse(
-        status: false,
-        message: errorMessage,
-        data: null,
-      );
+      return ApiResponse(status: false, message: errorMessage, data: null);
     }
   }
 
@@ -261,9 +276,7 @@ class DriverRepository {
   ///
   /// Parameters:
   /// - driverId: Driver ID (UUID)
-  Future<ApiResponse<VehicleListResponse>> getDriverVehicles({
-    required String driverId,
-  }) async {
+  Future<ApiResponse<VehicleListResponse>> getDriverVehicles({required String driverId}) async {
     try {
       final response = await _apiClient.getRaw<VehicleListResponse>(
         '/Driver/GetAllVehiclesByDriverId/$driverId',
@@ -292,28 +305,18 @@ class DriverRepository {
       // TODO: Implement API call to /Driver/Update-Vehicle
       throw UnimplementedError('Update vehicle API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Delete vehicle
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<dynamic>> deleteVehicle({
-    required String vehicleId,
-  }) async {
+  Future<ApiResponse<dynamic>> deleteVehicle({required String vehicleId}) async {
     try {
       // TODO: Implement API call to /Driver/Delete-Vehicle
       throw UnimplementedError('Delete vehicle API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
@@ -323,36 +326,23 @@ class DriverRepository {
 
   /// Get driver profile
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<dynamic>> getDriverProfile({
-    required String driverId,
-  }) async {
+  Future<ApiResponse<dynamic>> getDriverProfile({required String driverId}) async {
     try {
       // TODO: Implement API call to /Driver/Get-Profile
       throw UnimplementedError('Get driver profile API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Update driver availability status
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<dynamic>> updateDriverAvailability({
-    required String driverId,
-    required bool isAvailable,
-  }) async {
+  Future<ApiResponse<dynamic>> updateDriverAvailability({required String driverId, required bool isAvailable}) async {
     try {
       // TODO: Implement API call to /Driver/Update-Availability
       throw UnimplementedError('Update availability API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
@@ -414,18 +404,10 @@ class DriverRepository {
       if (response.status == true && response.data != null) {
         final offerLoadsResponse = OfferLoadsResponse.fromJson(response.data!);
 
-        return ApiResponse(
-          status: true,
-          message: offerLoadsResponse.message,
-          data: offerLoadsResponse,
-        );
+        return ApiResponse(status: true, message: offerLoadsResponse.message, data: offerLoadsResponse);
       }
 
-      return ApiResponse(
-        status: false,
-        message: response.message ?? 'Failed to submit load offer',
-        data: null,
-      );
+      return ApiResponse(status: false, message: response.message ?? 'Failed to submit load offer', data: null);
     } catch (e) {
       return ApiResponse(
         status: false,
@@ -439,9 +421,7 @@ class DriverRepository {
   ///
   /// Parameters:
   /// - driverId: Driver ID (UUID)
-  Future<ApiResponse<OfferLoadsListResponse>> getAllOfferLoads({
-    required String driverId,
-  }) async {
+  Future<ApiResponse<OfferLoadsListResponse>> getAllOfferLoads({required String driverId}) async {
     try {
       final response = await _apiClient.getRaw<OfferLoadsListResponse>(
         '/Driver/GetAllOfferLoadsByDriverId/$driverId',
@@ -474,31 +454,17 @@ class DriverRepository {
     try {
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/Driver/Update-OfferPrice',
-        queryParameters: {
-          'OfferId': offerId,
-          'DriverId': driverId,
-          'VehicleId': vehicleId,
-          'Price': price.toString(),
-        },
+        queryParameters: {'OfferId': offerId, 'DriverId': driverId, 'VehicleId': vehicleId, 'Price': price.toString()},
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
       if (response.status == true && response.data != null) {
-        final updateOfferPriceResponse =
-            UpdateOfferPriceResponse.fromJson(response.data!);
+        final updateOfferPriceResponse = UpdateOfferPriceResponse.fromJson(response.data!);
 
-        return ApiResponse(
-          status: true,
-          message: updateOfferPriceResponse.message,
-          data: updateOfferPriceResponse,
-        );
+        return ApiResponse(status: true, message: updateOfferPriceResponse.message, data: updateOfferPriceResponse);
       }
 
-      return ApiResponse(
-        status: false,
-        message: response.message ?? 'Failed to update offer price',
-        data: null,
-      );
+      return ApiResponse(status: false, message: response.message ?? 'Failed to update offer price', data: null);
     } catch (e) {
       return ApiResponse(
         status: false,
@@ -510,91 +476,56 @@ class DriverRepository {
 
   /// Get available trips for driver
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getAvailableTrips({
-    required String driverId,
-    String? location,
-  }) async {
+  Future<ApiResponse<List<dynamic>>> getAvailableTrips({required String driverId, String? location}) async {
     try {
       // TODO: Implement API call to /Driver/Get-Available-Trips
       throw UnimplementedError('Get available trips API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Accept trip/booking
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<dynamic>> acceptTrip({
-    required String driverId,
-    required String tripId,
-  }) async {
+  Future<ApiResponse<dynamic>> acceptTrip({required String driverId, required String tripId}) async {
     try {
       // TODO: Implement API call to /Driver/Accept-Trip
       throw UnimplementedError('Accept trip API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Get driver's active trips
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getActiveTrips({
-    required String driverId,
-  }) async {
+  Future<ApiResponse<List<dynamic>>> getActiveTrips({required String driverId}) async {
     try {
       // TODO: Implement API call to /Driver/Get-Active-Trips
       throw UnimplementedError('Get active trips API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Get driver's trip history
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getTripHistory({
-    required String driverId,
-    int? page,
-    int? limit,
-  }) async {
+  Future<ApiResponse<List<dynamic>>> getTripHistory({required String driverId, int? page, int? limit}) async {
     try {
       // TODO: Implement API call to /Driver/Get-Trip-History
       throw UnimplementedError('Get trip history API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Update trip status
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<dynamic>> updateTripStatus({
-    required String tripId,
-    required String status,
-  }) async {
+  Future<ApiResponse<dynamic>> updateTripStatus({required String tripId, required String status}) async {
     try {
       // TODO: Implement API call to /Driver/Update-Trip-Status
       throw UnimplementedError('Update trip status API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
@@ -613,28 +544,18 @@ class DriverRepository {
       // TODO: Implement API call to /Driver/Get-Earnings
       throw UnimplementedError('Get earnings API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
   /// Get payment history
   /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getPaymentHistory({
-    required String driverId,
-  }) async {
+  Future<ApiResponse<List<dynamic>>> getPaymentHistory({required String driverId}) async {
     try {
       // TODO: Implement API call to /Driver/Get-Payment-History
       throw UnimplementedError('Get payment history API not yet implemented');
     } catch (e) {
-      return ApiResponse(
-        status: false,
-        message: 'An error occurred: ${e.toString()}',
-        data: null,
-      );
+      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
     }
   }
 
@@ -643,7 +564,7 @@ class DriverRepository {
   // ============================================
 
   /// Generate a proper UUID v4
-  String _generateUuid() {
-    return _uuid.v4();
-  }
+  // String _generateUuid() {
+  //   return _uuid.v4();
+  // }
 }

@@ -288,7 +288,6 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
                         '${trip.loadCapacity.toStringAsFixed(0)} kg',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[700],
                         ),
                       ),
                     ],
@@ -316,9 +315,8 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
                   Expanded(
                     child: Text(
                       trip.vehicleType,
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 13,
-                        color: Colors.grey[600],
                       ),
                     ),
                   ),
@@ -356,9 +354,8 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
                   const SizedBox(width: 8),
                   Text(
                     _formatDate(trip.bookingDate),
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontSize: 12,
-                      color: Colors.grey[600],
                     ),
                   ),
                 ],
