@@ -23,6 +23,15 @@ class MyTripsBloc extends Bloc<MyTripsEvent, MyTripsStates> {
   void _registerEventHandlers() {
     // Load all trips for the current user
     on<LoadMyTrips>((event, emit) async {
+      print('🔄 LoadMyTrips: Starting to load trips for userId: ${event.userId}');
+
+      // Check if userId is empty
+      if (event.userId.isEmpty) {
+        print('❌ LoadMyTrips: userId is empty');
+        emit(OnMyTripsError('User not logged in. Please login to view your trips.'));
+        return;
+      }
+
       emit(OnMyTripsLoading());
 
       // ============================================
@@ -31,19 +40,24 @@ class MyTripsBloc extends Bloc<MyTripsEvent, MyTripsStates> {
 
       try {
         // Call API to fetch user booking history
+        print('📞 LoadMyTrips: Calling API...');
         final result = await tripRepository.getUserBookings(userId: event.userId);
+        print('📦 LoadMyTrips: API Response - status: ${result.status}, message: ${result.message}');
 
         if (result.status == true && result.data != null) {
           // Successfully fetched booking history
           allTrips = result.data!.data;
+          print('✅ LoadMyTrips: Fetched ${allTrips.length} trips');
 
           if (allTrips.isEmpty) {
+            print('⚠️ LoadMyTrips: No trips found');
             emit(OnMyTripsEmpty());
             return;
           }
 
           // Apply current filter
           final filteredTrips = _applyFilter(allTrips, currentFilter);
+          print('🔍 LoadMyTrips: Filtered to ${filteredTrips.length} trips with filter: $currentFilter');
 
           emit(OnMyTripsLoaded(
             trips: filteredTrips,
@@ -51,9 +65,11 @@ class MyTripsBloc extends Bloc<MyTripsEvent, MyTripsStates> {
           ));
         } else {
           // Failed to fetch booking history
+          print('❌ LoadMyTrips: Failed - ${result.message}');
           emit(OnMyTripsError(result.message ?? 'Failed to load trips'));
         }
       } catch (e) {
+        print('💥 LoadMyTrips: Exception - ${e.toString()}');
         emit(OnMyTripsError('Failed to load trips: ${e.toString()}'));
       }
     });
@@ -124,6 +140,56 @@ class MyTripsBloc extends Bloc<MyTripsEvent, MyTripsStates> {
     // Navigate to trip details
     on<NavigateToTripDetails>((event, emit) {
       emit(OnNavigateToTripDetails(event.tripId));
+    });
+
+    // Cancel a booking
+    on<CancelBooking>((event, emit) async {
+      print('🗑️ CancelBooking: Starting to cancel booking ${event.bookingId}');
+
+      // ============================================
+      // BUSINESS LOGIC: Cancel Booking
+      // ============================================
+
+      try {
+        // Call API to cancel booking
+        print('📞 CancelBooking: Calling API...');
+        final result = await tripRepository.cancelBooking(
+          userId: event.userId,
+          bookingId: event.bookingId,
+        );
+        print('📦 CancelBooking: API Response - status: ${result.status}, message: ${result.message}');
+
+        if (result.status == true && result.data != null) {
+          // Successfully canceled booking
+          print('✅ CancelBooking: Booking canceled successfully');
+
+          // Remove the canceled booking from the list
+          allTrips.removeWhere((trip) => trip.bookingId == event.bookingId);
+
+          emit(OnBookingCanceled(
+            message: result.data!.message,
+            bookingId: event.bookingId,
+          ));
+
+          // Reload trips to show updated list
+          if (allTrips.isEmpty) {
+            emit(OnMyTripsEmpty());
+          } else {
+            final filteredTrips = _applyFilter(allTrips, currentFilter);
+            emit(OnMyTripsLoaded(
+              trips: filteredTrips,
+              currentFilter: currentFilter,
+            ));
+          }
+        } else {
+          // Failed to cancel booking
+          print('❌ CancelBooking: Failed - ${result.message}');
+          emit(OnBookingCancelFailed(result.message ?? 'Failed to cancel booking'));
+        }
+      } catch (e) {
+        print('💥 CancelBooking: Exception - ${e.toString()}');
+        emit(OnBookingCancelFailed('Failed to cancel booking: ${e.toString()}'));
+      }
     });
   }
 

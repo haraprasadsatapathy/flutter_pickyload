@@ -55,3 +55,37 @@ class OnNavigateToTripDetails extends MyTripsStates {
   @override
   List<Object?> get props => [tripId];
 }
+
+// Canceling booking state
+class OnCancelingBooking extends MyTripsStates {
+  final String bookingId;
+
+  OnCancelingBooking(this.bookingId);
+
+  @override
+  List<Object?> get props => [bookingId];
+}
+
+// Booking canceled successfully
+class OnBookingCanceled extends MyTripsStates {
+  final String message;
+  final String bookingId;
+
+  OnBookingCanceled({
+    required this.message,
+    required this.bookingId,
+  });
+
+  @override
+  List<Object?> get props => [message, bookingId];
+}
+
+// Booking cancel failed
+class OnBookingCancelFailed extends MyTripsStates {
+  final String message;
+
+  OnBookingCancelFailed(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
