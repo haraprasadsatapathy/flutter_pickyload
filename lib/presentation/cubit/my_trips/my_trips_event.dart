@@ -50,3 +50,17 @@ class NavigateToTripDetails extends MyTripsEvent {
   @override
   List<Object?> get props => [tripId];
 }
+
+// Cancel a booking
+class CancelBooking extends MyTripsEvent {
+  final String userId;
+  final String bookingId;
+
+  CancelBooking({
+    required this.userId,
+    required this.bookingId,
+  });
+
+  @override
+  List<Object?> get props => [userId, bookingId];
+}

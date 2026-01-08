@@ -8,6 +8,7 @@ class SubmitTripRequest extends TripRequestEvent {
   final String dropLocation;
   final String loadCapacity;
   final String bodyCoverType;
+  final String loadName;
   final double length;
   final double width;
   final double height;
@@ -23,6 +24,7 @@ class SubmitTripRequest extends TripRequestEvent {
     required this.dropLocation,
     required this.loadCapacity,
     required this.bodyCoverType,
+    required this.loadName,
     required this.length,
     required this.width,
     required this.height,
@@ -40,6 +42,7 @@ class SubmitTripRequest extends TripRequestEvent {
         dropLocation,
         loadCapacity,
         bodyCoverType,
+        loadName,
         length,
         width,
         height,

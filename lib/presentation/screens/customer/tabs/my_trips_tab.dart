@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../domain/repository/trip_repository.dart';
 import '../../../../domain/models/booking_history_response.dart';
-import '../../../../providers/auth_provider.dart';
 import '../../../cubit/my_trips/my_trips_bloc.dart';
 import '../../../cubit/my_trips/my_trips_event.dart';
 import '../../../cubit/my_trips/my_trips_state.dart';
@@ -35,22 +34,74 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
     _loadTrips();
   }
 
-  void _loadTrips() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final userId = authProvider.currentUser?.id ?? '';
+  Future<void> _loadTrips() async {
+    print('🔧 MyTripsTab: Loading trips...');
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? '';
+    print('👤 MyTripsTab: Retrieved userId from SharedPreferences: $userId');
 
-    if (userId.isNotEmpty) {
-      context.read<MyTripsBloc>().add(LoadMyTrips(userId: userId));
+    if (!mounted) {
+      print('⚠️ MyTripsTab: Widget not mounted');
+      return;
+    }
+
+    if (userId.isEmpty) {
+      print('⚠️ MyTripsTab: userId is empty - user may not be logged in');
+      // Show error state if userId is not found
+      context.read<MyTripsBloc>().add(LoadMyTrips(userId: ''));
+      return;
+    }
+
+    print('✨ MyTripsTab: Dispatching LoadMyTrips event');
+    context.read<MyTripsBloc>().add(LoadMyTrips(userId: userId));
+  }
+
+  Future<void> _refreshTrips() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId') ?? '';
+
+    if (userId.isNotEmpty && mounted) {
+      context.read<MyTripsBloc>().add(RefreshMyTrips(userId: userId));
     }
   }
 
-  void _refreshTrips() {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final userId = authProvider.currentUser?.id ?? '';
+  void _showCancelConfirmationDialog(BuildContext context, BookingHistory trip) {
+    // Get the bloc before async operations
+    final bloc = context.read<MyTripsBloc>();
 
-    if (userId.isNotEmpty) {
-      context.read<MyTripsBloc>().add(RefreshMyTrips(userId: userId));
-    }
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cancel Booking'),
+        content: Text('Are you sure you want to cancel this booking?\n\nRoute: ${trip.route}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              // Get userId from SharedPreferences
+              final prefs = await SharedPreferences.getInstance();
+              final userId = prefs.getString('userId') ?? '';
+              if (userId.isNotEmpty) {
+                bloc.add(
+                  CancelBooking(
+                    userId: userId,
+                    bookingId: trip.bookingId,
+                  ),
+                );
+              }
+            },
+            child: const Text(
+              'Yes, Cancel',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -61,6 +112,28 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
         if (state is OnNavigateToTripDetails) {
           // TODO: Navigate to trip details screen
           // context.push('/trip-details/${state.tripId}');
+        }
+
+        // Handle booking canceled successfully
+        if (state is OnBookingCanceled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+
+        // Handle booking cancel failed
+        if (state is OnBookingCancelFailed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       },
       builder: (context, state) {
@@ -91,43 +164,6 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
                   ),
                 ),
                 title: const Text('My Trips'),
-                actions: [
-                  // Filter button
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.filter_list),
-                    onSelected: (value) {
-                      context.read<MyTripsBloc>().add(
-                        FilterTripsByStatus(status: value),
-                      );
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'all',
-                        child: Text('All Trips'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'requested',
-                        child: Text('Requested'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'accepted',
-                        child: Text('Accepted'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'in_progress',
-                        child: Text('In Progress'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'completed',
-                        child: Text('Completed'),
-                      ),
-                      const PopupMenuItem(
-                        value: 'cancelled',
-                        child: Text('Cancelled'),
-                      ),
-                    ],
-                  ),
-                ],
               ),
               // Content based on state
               if (state is OnMyTripsLoading)
@@ -289,6 +325,16 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Delete icon button
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => _showCancelConfirmationDialog(context, trip),
+                        tooltip: 'Cancel Booking',
                       ),
                     ],
                   ),
