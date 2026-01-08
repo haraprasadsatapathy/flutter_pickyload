@@ -14,6 +14,7 @@ class TripRepository {
     required String userId,
     required String vehicleBodyCoverType,
     required String loadCapacity,
+    required String loadName,
     required double length,
     required double width,
     required double height,
@@ -27,36 +28,28 @@ class TripRepository {
     required String dropAddress,
   }) async {
     try {
-      // Create fullRoutePoints array with pickup and drop coordinates
-      final fullRoutePoints = [
-        {
-          'latitude': pickupLat,
-          'longitude': pickupLng,
-        },
-        {
-          'latitude': dropLat,
-          'longitude': dropLng,
-        },
-      ];
-
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/User/create-booking',
         data: {
           'userId': userId,
           'vehicleBodyCoverType': vehicleBodyCoverType,
           'loadCapacity': loadCapacity,
+          'loadName': loadName,
           'length': length,
           'width': width,
           'height': height,
           'pickupTime': pickupTime.toUtc().toIso8601String(),
           'isInsured': isInsured,
-          'pickupLat': pickupLat,
-          'pickupLng': pickupLng,
-          'dropLat': dropLat,
-          'dropLng': dropLng,
+          'pickupLocation': {
+            'latitude': pickupLat,
+            'longitude': pickupLng,
+          },
+          'dropLocation': {
+            'latitude': dropLat,
+            'longitude': dropLng,
+          },
           'pickupAddress': pickupAddress,
           'dropAddress': dropAddress,
-          'fullRoutePoints': fullRoutePoints,
         },
         fromJsonT: (json) => json as Map<String, dynamic>,
       );

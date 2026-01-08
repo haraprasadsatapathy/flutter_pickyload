@@ -34,6 +34,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
   final _formKey = GlobalKey<FormState>();
   final _pickupController = TextEditingController();
   final _dropController = TextEditingController();
+  final _loadNameController = TextEditingController();
   final _lengthController = TextEditingController();
   final _widthController = TextEditingController();
   final _heightController = TextEditingController();
@@ -69,6 +70,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
   void dispose() {
     _pickupController.dispose();
     _dropController.dispose();
+    _loadNameController.dispose();
     _lengthController.dispose();
     _widthController.dispose();
     _heightController.dispose();
@@ -210,6 +212,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
           dropLocation: _dropController.text,
           loadCapacity: _selectedLoadCapacity ?? '',
           bodyCoverType: _selectedBodyCoverType ?? '',
+          loadName: _loadNameController.text,
           length: length,
           width: width,
           height: height,
@@ -355,6 +358,23 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select body cover type';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Load Name
+                  TextFormField(
+                    controller: _loadNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Load Name',
+                      hintText: 'Enter load name (e.g., Furniture, Electronics)',
+                      prefixIcon: Icon(Icons.inventory_2_outlined),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter load name';
                       }
                       return null;
                     },

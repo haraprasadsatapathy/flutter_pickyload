@@ -46,7 +46,13 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
         return;
       }
 
-      // Validation Rule 4: Validate dimensions
+      // Validation Rule 4: Validate load name is filled
+      if (event.loadName.isEmpty) {
+        emit(OnTripRequestError('Please enter load name'));
+        return;
+      }
+
+      // Validation Rule 5: Validate dimensions
       if (event.length <= 0) {
         emit(OnTripRequestError('Please enter a valid length'));
         return;
@@ -62,25 +68,25 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
         return;
       }
 
-      // Validation Rule 5: Validate pickup time
+      // Validation Rule 6: Validate pickup time
       if (event.pickupTime == null) {
         emit(OnTripRequestError('Please select pickup date and time'));
         return;
       }
 
-      // Validation Rule 6: Validate pickup time is in future
+      // Validation Rule 7: Validate pickup time is in future
       if (event.pickupTime!.isBefore(DateTime.now())) {
         emit(OnTripRequestError('Pickup time must be in the future'));
         return;
       }
 
-      // Validation Rule 7: Check if userId is provided
+      // Validation Rule 8: Check if userId is provided
       if (event.userId.isEmpty) {
         emit(OnTripRequestError('User ID is required'));
         return;
       }
 
-      // Validation Rule 8: Validate location coordinates
+      // Validation Rule 9: Validate location coordinates
       if (event.pickupLat == 0.0 || event.pickupLng == 0.0) {
         emit(OnTripRequestError('Please select pickup location from map'));
         return;
@@ -100,6 +106,7 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
           userId: event.userId,
           vehicleBodyCoverType: event.bodyCoverType,
           loadCapacity: event.loadCapacity,
+          loadName: event.loadName,
           length: event.length,
           width: event.width,
           height: event.height,
