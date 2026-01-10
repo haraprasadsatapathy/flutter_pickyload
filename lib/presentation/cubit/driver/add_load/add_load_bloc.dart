@@ -36,6 +36,7 @@ class AddLoadBloc extends Bloc<AddLoadEvent, AddLoadState> {
                         vehicleNumber: vehicle.vehicleNumber,
                         makeModel: vehicle.makeModel,
                         capacity: vehicle.capacity,
+                        rcNumber: vehicle.rcNumber,
                       ))
                   .toList();
 

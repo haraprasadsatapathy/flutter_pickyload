@@ -6,12 +6,14 @@ class VehicleOptionModel {
   final String vehicleNumber;
   final String makeModel;
   final String capacity;
+  final String rcNumber;
 
   VehicleOptionModel({
     required this.vehicleId,
     required this.vehicleNumber,
     required this.makeModel,
     required this.capacity,
+    required this.rcNumber,
   });
 
   factory VehicleOptionModel.fromJson(Map<String, dynamic> json) {
@@ -20,10 +22,11 @@ class VehicleOptionModel {
       vehicleNumber: json['vehicleNumber'] ?? '',
       makeModel: json['makeModel'] ?? '',
       capacity: json['capacity'] ?? '',
+      rcNumber: json['rcNumber'] ?? '',
     );
   }
 
-  String get displayName => '$vehicleNumber - $makeModel';
+  String get displayName => '$vehicleNumber - $makeModel (RC: $rcNumber)';
 }
 
 // Load Offer Request Model

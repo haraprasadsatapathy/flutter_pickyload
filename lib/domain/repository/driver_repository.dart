@@ -380,18 +380,22 @@ class DriverRepository {
     required double price,
   }) async {
     try {
+      // Convert fullRoutePoints from List<Map<String, double>> to List<List<double>>
+      // Format: [[longitude, latitude], [longitude, latitude], ...]
+      final convertedRoutePoints = fullRoutePoints.map((point) {
+        return [point['longitude']!, point['latitude']!];
+      }).toList();
+
       final requestData = {
-        'driverId': driverId,
         'vehicleId': vehicleId,
+        'driverId': driverId,
         'availableTimeStart': availableTimeStart.toUtc().toIso8601String(),
         'availableTimeEnd': availableTimeEnd.toUtc().toIso8601String(),
-        'pickupLat': pickupLat,
-        'pickupLng': pickupLng,
-        'dropLat': dropLat,
-        'dropLng': dropLng,
+        'pickupLocation': [pickupLng, pickupLat],
+        'dropLocation': [dropLng, dropLat],
         'pickupAddress': pickupAddress,
         'dropAddress': dropAddress,
-        'fullRoutePoints': fullRoutePoints,
+        'fullRoutePoints': convertedRoutePoints,
         'price': price,
       };
 
@@ -401,7 +405,7 @@ class DriverRepository {
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      if (response.status == true && response.data != null) {
+      if (response.data != null) {
         final offerLoadsResponse = OfferLoadsResponse.fromJson(response.data!);
 
         return ApiResponse(status: true, message: offerLoadsResponse.message, data: offerLoadsResponse);

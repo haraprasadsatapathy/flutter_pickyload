@@ -20,7 +20,9 @@
       "Bash(del nul)",
       "Bash(del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\models\\\\insurance_model.dart\")",
       "Bash(rm:*)",
-      "Bash(rmdir:*)"
+      "Bash(rmdir:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(flutter devices:*)"
     ],
     "deny": [],
     "ask": []

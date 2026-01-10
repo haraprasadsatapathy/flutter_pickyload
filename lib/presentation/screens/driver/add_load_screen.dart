@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../../providers/auth_provider.dart';
 import '../../cubit/driver/add_load/add_load_bloc.dart';
 import '../../cubit/driver/add_load/add_load_event.dart';
@@ -204,21 +205,25 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
       body: BlocListener<AddLoadBloc, AddLoadState>(
         listener: (context, state) {
           if (state is LoadOfferSubmitted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 2),
-              ),
+            // Show toast message with green background
+            Fluttertoast.showToast(
+              msg: state.message,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0,
             );
-            // Close the screen after successful submission
-            context.pop();
+            // Navigate to driver dashboard
+            context.go('/driver-dashboard');
           } else if (state is AddLoadError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red,
-              ),
+            Fluttertoast.showToast(
+              msg: state.error,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0,
             );
           }
         },
