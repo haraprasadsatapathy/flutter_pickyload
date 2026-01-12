@@ -534,36 +534,6 @@ class DriverRepository {
   }
 
   // ============================================
-  // EARNINGS & PAYMENTS
-  // ============================================
-
-  /// Get driver earnings
-  /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<dynamic>> getDriverEarnings({
-    required String driverId,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
-    try {
-      // TODO: Implement API call to /Driver/Get-Earnings
-      throw UnimplementedError('Get earnings API not yet implemented');
-    } catch (e) {
-      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
-    }
-  }
-
-  /// Get payment history
-  /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getPaymentHistory({required String driverId}) async {
-    try {
-      // TODO: Implement API call to /Driver/Get-Payment-History
-      throw UnimplementedError('Get payment history API not yet implemented');
-    } catch (e) {
-      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
-    }
-  }
-
-  // ============================================
   // UTILITY METHODS
   // ============================================
 

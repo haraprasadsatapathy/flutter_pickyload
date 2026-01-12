@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/my_loads_tab.dart';
-import 'tabs/earnings_tab.dart';
 import 'tabs/profile_tab.dart';
 
 class DriverDashboard extends StatefulWidget {
@@ -17,7 +16,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
   final List<Widget> _screens = [
     const HomeTab(),
     const MyLoadsTab(),
-    const EarningsTab(),
     const ProfileTab(),
   ];
 
@@ -42,11 +40,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
             icon: Icon(Icons.local_shipping_outlined),
             selectedIcon: Icon(Icons.local_shipping),
             label: 'My Loads',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            label: 'Earnings',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outlined),
