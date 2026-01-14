@@ -326,29 +326,64 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Delete icon button
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        iconSize: 20,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () => _showCancelConfirmationDialog(context, trip),
-                        tooltip: 'Cancel Booking',
-                      ),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 12),
+              // From Address
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 20),
+                  const Icon(Icons.trip_origin, size: 20, color: Colors.green),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      trip.route,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'From',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          trip.pickupAddress,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // To Address
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on, size: 20, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'To',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          trip.dropAddress,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
                     ),
                   ),
                 ],

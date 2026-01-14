@@ -117,12 +117,7 @@ class ProfileTab extends StatelessWidget {
                       'Edit Profile',
                       () => context.push('/customer-profile'),
                     ),
-                    _buildProfileOption(
-                      context,
-                      Icons.history,
-                      'Trip History',
-                      () => context.push('/transaction-history'),
-                    ),
+
                     _buildProfileOption(
                       context,
                       Icons.payment,
