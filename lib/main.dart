@@ -12,6 +12,7 @@ import 'config/dependency_injection.dart';
 import 'domain/repository/user_repository.dart';
 import 'domain/repository/trip_repository.dart';
 import 'domain/repository/driver_repository.dart';
+import 'domain/repository/customer_repository.dart';
 
 /// Custom HTTP client that bypasses SSL certificate verification for pickyload.in
 class CustomHttpOverrides extends HttpOverrides {
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
         Provider<UserRepository>(create: (_) => getIt<UserRepository>()),
         Provider<TripRepository>(create: (_) => getIt<TripRepository>()),
         Provider<DriverRepository>(create: (_) => getIt<DriverRepository>()),
+        Provider<CustomerRepository>(create: (_) => getIt<CustomerRepository>()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

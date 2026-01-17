@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:picky_load/presentation/screens/customer/tabs/home_tab.dart';
-import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../providers/theme_provider.dart';
 import 'tabs/my_trips_tab.dart';
 import 'tabs/notifications_tab.dart';
 import 'tabs/profile_tab.dart';
-import 'tabs/quick_action_button.dart';
 
 class CustomerDashboard extends StatefulWidget {
   const CustomerDashboard({super.key});

@@ -3,78 +3,14 @@ import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 // Base event class for Home Tab feature
 class HomeTabEvent extends BaseEventState {}
 
-// Toggle online/offline status
-class ToggleOnlineStatus extends HomeTabEvent {
-  final bool isOnline;
-
-  ToggleOnlineStatus({required this.isOnline});
-
+// Fetch home page data
+class FetchHomePage extends HomeTabEvent {
   @override
-  List<Object?> get props => [isOnline];
+  List<Object?> get props => [];
 }
 
-// Fetch today's stats
-class FetchTodayStats extends HomeTabEvent {
-  final String driverId;
-
-  FetchTodayStats({required this.driverId});
-
+// Refresh home page data
+class RefreshHomePage extends HomeTabEvent {
   @override
-  List<Object?> get props => [driverId];
-}
-
-// Fetch available load requests
-class FetchLoadRequests extends HomeTabEvent {
-  final String driverId;
-
-  FetchLoadRequests({required this.driverId});
-
-  @override
-  List<Object?> get props => [driverId];
-}
-
-// Accept a load request
-class AcceptLoadRequest extends HomeTabEvent {
-  final String loadRequestId;
-
-  AcceptLoadRequest({required this.loadRequestId});
-
-  @override
-  List<Object?> get props => [loadRequestId];
-}
-
-// Decline a load request
-class DeclineLoadRequest extends HomeTabEvent {
-  final String loadRequestId;
-
-  DeclineLoadRequest({required this.loadRequestId});
-
-  @override
-  List<Object?> get props => [loadRequestId];
-}
-
-// Submit a quote for a load request
-class SubmitQuote extends HomeTabEvent {
-  final String loadRequestId;
-  final String driverId;
-  final double quotePrice;
-
-  SubmitQuote({
-    required this.loadRequestId,
-    required this.driverId,
-    required this.quotePrice,
-  });
-
-  @override
-  List<Object?> get props => [loadRequestId, driverId, quotePrice];
-}
-
-// Refresh home tab data (stats and load requests)
-class RefreshHomeTab extends HomeTabEvent {
-  final String driverId;
-
-  RefreshHomeTab({required this.driverId});
-
-  @override
-  List<Object?> get props => [driverId];
+  List<Object?> get props => [];
 }

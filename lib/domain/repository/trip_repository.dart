@@ -28,6 +28,7 @@ class TripRepository {
     required double dropLng,
     required String pickupAddress,
     required String dropAddress,
+    required double distance,
   }) async {
     try {
       final response = await _apiClient.post<Map<String, dynamic>>(
@@ -52,6 +53,7 @@ class TripRepository {
           },
           'pickupAddress': pickupAddress,
           'dropAddress': dropAddress,
+          'distance': distance,
         },
         fromJsonT: (json) => json as Map<String, dynamic>,
       );

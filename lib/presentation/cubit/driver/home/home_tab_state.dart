@@ -1,131 +1,21 @@
 import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
+import 'package:picky_load/domain/models/home_page_response.dart';
 
-// Today's Stats Model
-class TodayStatsModel {
-  final int completedTrips;
-  final double earnedAmount;
-  final double traveledDistance;
-
-  TodayStatsModel({
-    required this.completedTrips,
-    required this.earnedAmount,
-    required this.traveledDistance,
-  });
-
-  factory TodayStatsModel.fromJson(Map<String, dynamic> json) {
-    return TodayStatsModel(
-      completedTrips: json['completedTrips'] ?? 0,
-      earnedAmount: (json['earnedAmount'] ?? 0).toDouble(),
-      traveledDistance: (json['traveledDistance'] ?? 0).toDouble(),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'completedTrips': completedTrips,
-      'earnedAmount': earnedAmount,
-      'traveledDistance': traveledDistance,
-    };
-  }
-
-  // Default/empty stats
-  static TodayStatsModel empty() {
-    return TodayStatsModel(
-      completedTrips: 0,
-      earnedAmount: 0.0,
-      traveledDistance: 0.0,
-    );
-  }
-}
-
-// Load Request Model
-class LoadRequestModel {
-  final String loadRequestId;
-  final String route;
-  final String fromLocation;
-  final String toLocation;
-  final String capacity;
-  final double price;
-  final String? description;
-  final DateTime? pickupDateTime;
-  final DateTime? startDate;
-  final DateTime? endDate;
-
-  LoadRequestModel({
-    required this.loadRequestId,
-    required this.route,
-    required this.fromLocation,
-    required this.toLocation,
-    required this.capacity,
-    required this.price,
-    this.description,
-    this.pickupDateTime,
-    this.startDate,
-    this.endDate,
-  });
-
-  factory LoadRequestModel.fromJson(Map<String, dynamic> json) {
-    return LoadRequestModel(
-      loadRequestId: json['loadRequestId'] ?? '',
-      route: json['route'] ?? '',
-      fromLocation: json['fromLocation'] ?? '',
-      toLocation: json['toLocation'] ?? '',
-      capacity: json['capacity'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      description: json['description'],
-      pickupDateTime: json['pickupDateTime'] != null
-          ? DateTime.parse(json['pickupDateTime'])
-          : null,
-      startDate: json['startDate'] != null
-          ? DateTime.parse(json['startDate'])
-          : null,
-      endDate: json['endDate'] != null
-          ? DateTime.parse(json['endDate'])
-          : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'loadRequestId': loadRequestId,
-      'route': route,
-      'fromLocation': fromLocation,
-      'toLocation': toLocation,
-      'capacity': capacity,
-      'price': price,
-      'description': description,
-      'pickupDateTime': pickupDateTime?.toIso8601String(),
-      'startDate': startDate?.toIso8601String(),
-      'endDate': endDate?.toIso8601String(),
-    };
-  }
-
-  // Formatted time getters
-  String get formattedStartTime {
-    if (startDate == null) return 'N/A';
-    return '${startDate!.day}/${startDate!.month}/${startDate!.year} ${startDate!.hour.toString().padLeft(2, '0')}:${startDate!.minute.toString().padLeft(2, '0')}';
-  }
-
-  String get formattedEndTime {
-    if (endDate == null) return 'N/A';
-    return '${endDate!.day}/${endDate!.month}/${endDate!.year} ${endDate!.hour.toString().padLeft(2, '0')}:${endDate!.minute.toString().padLeft(2, '0')}';
-  }
-}
+// Re-export TripDetail for convenience
+export 'package:picky_load/domain/models/home_page_response.dart' show TripDetail, UserOffer;
 
 // Base state class for Home Tab feature
 class HomeTabState extends BaseEventState {
-  final bool isOnline;
-  final TodayStatsModel todayStats;
-  final List<LoadRequestModel> loadRequests;
+  final String loadStatus;
+  final List<TripDetail> tripDetails;
 
   HomeTabState({
-    this.isOnline = false,
-    TodayStatsModel? todayStats,
-    this.loadRequests = const [],
-  }) : todayStats = todayStats ?? TodayStatsModel.empty();
+    this.loadStatus = '',
+    this.tripDetails = const [],
+  });
 
   @override
-  List<Object?> get props => [isOnline, todayStats, loadRequests];
+  List<Object?> get props => [loadStatus, tripDetails];
 }
 
 // Initial state
@@ -134,139 +24,23 @@ class HomeTabInitial extends HomeTabState {}
 // Loading state
 class HomeTabLoading extends HomeTabState {
   HomeTabLoading({
-    super.isOnline,
-    super.todayStats,
-    super.loadRequests,
+    super.loadStatus,
+    super.tripDetails,
   });
 }
 
-// Online status updated
-class OnlineStatusUpdated extends HomeTabState {
-  final String message;
-
-  OnlineStatusUpdated({
-    required this.message,
-    required super.isOnline,
-    super.todayStats,
-    super.loadRequests,
-  });
-
-  @override
-  List<Object?> get props => [message, isOnline, todayStats, loadRequests];
-}
-
-// Today's stats fetched successfully
-class TodayStatsFetched extends HomeTabState {
-  final String message;
-
-  TodayStatsFetched({
-    required this.message,
-    super.isOnline,
-    required super.todayStats,
-    super.loadRequests,
-  });
-
-  @override
-  List<Object?> get props => [message, isOnline, todayStats, loadRequests];
-}
-
-// Load requests fetched successfully
-class LoadRequestsFetched extends HomeTabState {
-  final String message;
-
-  LoadRequestsFetched({
-    required this.message,
-    super.isOnline,
-    super.todayStats,
-    required super.loadRequests,
-  });
-
-  @override
-  List<Object?> get props => [message, isOnline, todayStats, loadRequests];
-}
-
-// Home tab data loaded successfully (stats + load requests)
+// Home page data loaded successfully
 class HomeTabSuccess extends HomeTabState {
   final String message;
 
   HomeTabSuccess({
     required this.message,
-    super.isOnline,
-    required super.todayStats,
-    required super.loadRequests,
+    required super.loadStatus,
+    required super.tripDetails,
   });
 
   @override
-  List<Object?> get props => [message, isOnline, todayStats, loadRequests];
-}
-
-// Load request accepted
-class LoadRequestAccepted extends HomeTabState {
-  final String message;
-  final String loadRequestId;
-
-  LoadRequestAccepted({
-    required this.message,
-    required this.loadRequestId,
-    super.isOnline,
-    super.todayStats,
-    required super.loadRequests,
-  });
-
-  @override
-  List<Object?> get props => [
-        message,
-        loadRequestId,
-        isOnline,
-        todayStats,
-        loadRequests,
-      ];
-}
-
-// Load request declined
-class LoadRequestDeclined extends HomeTabState {
-  final String message;
-  final String loadRequestId;
-
-  LoadRequestDeclined({
-    required this.message,
-    required this.loadRequestId,
-    super.isOnline,
-    super.todayStats,
-    required super.loadRequests,
-  });
-
-  @override
-  List<Object?> get props => [
-        message,
-        loadRequestId,
-        isOnline,
-        todayStats,
-        loadRequests,
-      ];
-}
-
-// Quote submitted
-class QuoteSubmitted extends HomeTabState {
-  final String message;
-  final String loadRequestId;
-
-  QuoteSubmitted({
-    required this.message,
-    required this.loadRequestId,
-    super.isOnline,
-    super.todayStats,
-    required super.loadRequests,
-  });
-
-  @override
-  List<Object?> get props => [
-        message,
-        loadRequestId,
-        isOnline,
-        todayStats,
-        loadRequests,
-      ];
+  List<Object?> get props => [message, loadStatus, tripDetails];
 }
 
 // Error state
@@ -275,11 +49,10 @@ class HomeTabError extends HomeTabState {
 
   HomeTabError({
     required this.error,
-    super.isOnline,
-    super.todayStats,
-    super.loadRequests,
+    super.loadStatus,
+    super.tripDetails,
   });
 
   @override
-  List<Object?> get props => [error, isOnline, todayStats, loadRequests];
+  List<Object?> get props => [error, loadStatus, tripDetails];
 }

@@ -118,6 +118,7 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
           dropLng: event.dropLng,
           pickupAddress: event.pickupLocation,
           dropAddress: event.dropLocation,
+          distance: event.distance,
         );
 
         if (result.status == true && result.data != null) {

@@ -17,6 +17,7 @@ class SubmitTripRequest extends TripRequestEvent {
   final double pickupLng;
   final double dropLat;
   final double dropLng;
+  final double distance;
 
   SubmitTripRequest({
     required this.userId,
@@ -33,6 +34,7 @@ class SubmitTripRequest extends TripRequestEvent {
     this.pickupLng = 0.0,
     this.dropLat = 0.0,
     this.dropLng = 0.0,
+    this.distance = 0.0,
   });
 
   @override
@@ -51,6 +53,7 @@ class SubmitTripRequest extends TripRequestEvent {
         pickupLng,
         dropLat,
         dropLng,
+        distance,
       ];
 }
 

@@ -4,6 +4,7 @@ import '../data/data_source/api_client.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/trip_repository.dart';
 import '../domain/repository/driver_repository.dart';
+import '../domain/repository/customer_repository.dart';
 
 /// Dependency injection container
 final GetIt getIt = GetIt.instance;
@@ -27,5 +28,10 @@ Future<void> setupDependencyInjection() async {
   // Register Driver Repository
   getIt.registerLazySingleton<DriverRepository>(
     () => DriverRepository(getIt<ApiClient>(), getIt<SavedService>()),
+  );
+
+  // Register Customer Repository
+  getIt.registerLazySingleton<CustomerRepository>(
+    () => CustomerRepository(getIt<ApiClient>(), getIt<SavedService>()),
   );
 }

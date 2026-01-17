@@ -12,6 +12,7 @@ import '../models/vehicle_list_response.dart';
 import '../models/offer_loads_response.dart';
 import '../models/offer_loads_list_response.dart';
 import '../models/update_offer_price_response.dart';
+import '../models/home_page_response.dart';
 
 /// Repository for driver-related operations
 class DriverRepository {
@@ -530,6 +531,36 @@ class DriverRepository {
       throw UnimplementedError('Update trip status API not yet implemented');
     } catch (e) {
       return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
+    }
+  }
+
+  // ============================================
+  // HOME PAGE OPERATIONS
+  // ============================================
+
+  /// Get driver home page data including trip details
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  Future<ApiResponse<HomePageResponse>> getHomePage({required String driverId}) async {
+    try {
+      print('DriverRepository: Calling GET /Driver/GetHomePageByDriverId/$driverId');
+
+      final response = await _apiClient.getRaw<HomePageResponse>(
+        '/Driver/GetHomePageByDriverId/$driverId',
+        fromJson: (json) => HomePageResponse.fromJson(json),
+      );
+
+      print('DriverRepository: Response received - status: ${response.status}, message: ${response.message}');
+
+      return response;
+    } catch (e) {
+      print('DriverRepository: Error in getHomePage: $e');
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while fetching home page data: ${e.toString()}',
+        data: null,
+      );
     }
   }
 

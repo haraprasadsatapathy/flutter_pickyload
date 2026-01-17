@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -158,6 +160,34 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
     );
   }
 
+  /// Calculate distance between two coordinates using Haversine formula
+  /// Returns distance in kilometers
+  double _calculateDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const double earthRadius = 6371; // Earth's radius in kilometers
+
+    final double dLat = _degreesToRadians(lat2 - lat1);
+    final double dLon = _degreesToRadians(lon2 - lon1);
+
+    final double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
   void _submitRequest() {
     if (_formKey.currentState!.validate()) {
       if (_pickupLatitude == null || _pickupLongitude == null) {
@@ -205,6 +235,14 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
       final width = double.tryParse(_widthController.text) ?? 0.0;
       final height = double.tryParse(_heightController.text) ?? 0.0;
 
+      // Calculate distance between pickup and drop locations
+      final distance = _calculateDistance(
+        _pickupLatitude!,
+        _pickupLongitude!,
+        _dropLatitude!,
+        _dropLongitude!,
+      );
+
       context.read<TripRequestBloc>().add(
         SubmitTripRequest(
           userId: userIdFromStorage,
@@ -221,6 +259,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
           pickupLng: _pickupLongitude!,
           dropLat: _dropLatitude!,
           dropLng: _dropLongitude!,
+          distance: distance,
         ),
       );
     }

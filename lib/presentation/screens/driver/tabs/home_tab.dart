@@ -20,11 +20,7 @@ class _HomeTabState extends State<HomeTab> {
   void initState() {
     super.initState();
     // Fetch initial data when the tab loads
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final driverId = authProvider.currentUser?.id ?? '';
-
-    context.read<HomeTabBloc>().add(FetchTodayStats(driverId: driverId));
-    context.read<HomeTabBloc>().add(FetchLoadRequests(driverId: driverId));
+    context.read<HomeTabBloc>().add(FetchHomePage());
   }
 
   void _showLogoutDialog(BuildContext context) {
@@ -64,30 +60,8 @@ class _HomeTabState extends State<HomeTab> {
 
     return BlocListener<HomeTabBloc, HomeTabState>(
       listener: (context, state) {
-        // Show snackbar for success or error messages
-        if (state is OnlineStatusUpdated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        } else if (state is LoadRequestAccepted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else if (state is LoadRequestDeclined) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
-        } else if (state is QuoteSubmitted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else if (state is HomeTabError) {
+        // Show snackbar for error messages
+        if (state is HomeTabError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
@@ -101,8 +75,7 @@ class _HomeTabState extends State<HomeTab> {
           return SafeArea(
             child: RefreshIndicator(
               onRefresh: () async {
-                final driverId = authProvider.currentUser?.id ?? '';
-                context.read<HomeTabBloc>().add(RefreshHomeTab(driverId: driverId));
+                context.read<HomeTabBloc>().add(RefreshHomePage());
               },
               child: CustomScrollView(
                 slivers: [
@@ -167,27 +140,26 @@ class _HomeTabState extends State<HomeTab> {
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         const SizedBox(height: 20),
-                        _buildAddLoadButton(context),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Available Load Requests',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        if (state is HomeTabLoading && state.loadRequests.isEmpty)
-                          const Center(child: CircularProgressIndicator())
-                        else if (state.loadRequests.isEmpty)
+                        if (state is HomeTabLoading && state.tripDetails.isEmpty)
                           const Center(
                             child: Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: Text('No load requests available'),
+                              padding: EdgeInsets.symmetric(vertical: 60),
+                              child: CircularProgressIndicator(),
                             ),
                           )
-                        else
-                          ...state.loadRequests.map((loadRequest) =>
-                              _buildLoadRequestCard(context, loadRequest)),
+                        else if (state.tripDetails.isEmpty)
+                          _buildEmptyState(context)
+                        else ...[
+                          Text(
+                            'My Offered Trips',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ...state.tripDetails.map((tripDetail) =>
+                              _buildTripCard(context, tripDetail)),
+                        ],
                       ]),
                     ),
                   ),
@@ -200,12 +172,9 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-
-
-
-  Widget _buildLoadRequestCard(
+  Widget _buildTripCard(
     BuildContext context,
-    LoadRequestModel loadRequest,
+    TripDetail tripDetail,
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -215,183 +184,105 @@ class _HomeTabState extends State<HomeTab> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Route header with price
+            // Route header with status chip
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
-                    loadRequest.route,
+                    tripDetail.route,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                Text(
-                  '₹${loadRequest.price.toStringAsFixed(0)}',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+                _buildStatusChip(tripDetail.tripStatus),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Origin
+            // Pickup Address
             _buildInfoRow(
               context: context,
               icon: Icons.trip_origin,
-              label: 'Origin',
-              value: loadRequest.fromLocation,
+              label: 'Pickup',
+              value: tripDetail.pickupAddress,
             ),
             const SizedBox(height: 8),
 
-            // Destination
+            // Drop Address
             _buildInfoRow(
               context: context,
               icon: Icons.flag,
-              label: 'Destination',
-              value: loadRequest.toLocation,
+              label: 'Drop',
+              value: tripDetail.dropAddress,
             ),
             const SizedBox(height: 8),
 
-            // Capacity
+            // Vehicle Number
             _buildInfoRow(
               context: context,
-              icon: Icons.inventory_2,
-              label: 'Capacity',
-              value: loadRequest.capacity,
+              icon: Icons.local_shipping,
+              label: 'Vehicle',
+              value: tripDetail.vehicleNo,
             ),
             const SizedBox(height: 8),
 
-            // Available From
-            if (loadRequest.startDate != null)
+            // User Offers count if any
+            if (tripDetail.userOffers.isNotEmpty)
               _buildInfoRow(
                 context: context,
-                icon: Icons.calendar_today,
-                label: 'Available From',
-                value: loadRequest.formattedStartTime,
+                icon: Icons.people,
+                label: 'User Offers',
+                value: '${tripDetail.userOffers.length} offer(s)',
               ),
-            if (loadRequest.startDate != null) const SizedBox(height: 8),
-
-            // Available Until
-            if (loadRequest.endDate != null)
-              _buildInfoRow(
-                context: context,
-                icon: Icons.calendar_today,
-                label: 'Available Until',
-                value: loadRequest.formattedEndTime,
-              ),
-            if (loadRequest.endDate != null) const SizedBox(height: 16),
-            if (loadRequest.startDate == null && loadRequest.endDate == null)
-              const SizedBox(height: 8),
-
-            // Quote button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  _showQuoteDialog(context, loadRequest);
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Quote'),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  void _showQuoteDialog(BuildContext context, LoadRequestModel loadRequest) {
-    final priceController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
+  Widget _buildStatusChip(String status) {
+    Color chipColor;
+    String displayStatus;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Submit Quote'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Route: ${loadRequest.route}',
-                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Estimated Price: ₹${loadRequest.price.toStringAsFixed(0)}',
-                  style: Theme.of(dialogContext).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: priceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Your Quote Price',
-                    hintText: 'Enter quote price',
-                    prefixIcon: const Icon(Icons.currency_rupee),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a price';
-                    }
-                    final price = double.tryParse(value);
-                    if (price == null) {
-                      return 'Please enter a valid number';
-                    }
-                    if (price <= 0) {
-                      return 'Price must be greater than 0';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() ?? false) {
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                  final driverId = authProvider.currentUser?.id ?? '';
-                  final quotePrice = double.parse(priceController.text);
+    switch (status.toLowerCase()) {
+      case 'driveroffered':
+        chipColor = Colors.blue;
+        displayStatus = 'Offered';
+        break;
+      case 'accepted':
+        chipColor = Colors.green;
+        displayStatus = 'Accepted';
+        break;
+      case 'completed':
+        chipColor = Colors.grey;
+        displayStatus = 'Completed';
+        break;
+      case 'cancelled':
+        chipColor = Colors.red;
+        displayStatus = 'Cancelled';
+        break;
+      default:
+        chipColor = Colors.orange;
+        displayStatus = status;
+    }
 
-                  context.read<HomeTabBloc>().add(
-                        SubmitQuote(
-                          loadRequestId: loadRequest.loadRequestId,
-                          driverId: driverId,
-                          quotePrice: quotePrice,
-                        ),
-                      );
-
-                  Navigator.of(dialogContext).pop();
-                }
-              },
-              child: const Text('Submit Quote'),
-            ),
-          ],
-        );
-      },
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: chipColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: chipColor.withValues(alpha: 0.5)),
+      ),
+      child: Text(
+        displayStatus,
+        style: TextStyle(
+          color: chipColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 
@@ -438,27 +329,94 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildAddLoadButton(BuildContext context) {
+  /// Empty state widget shown when no trips are available
+  Widget _buildEmptyState(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 40),
+        // Empty state illustration
+        Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.local_shipping_outlined,
+            size: 80,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'No Trips Available',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Text(
+            'You haven\'t offered any trips yet.\nStart by adding a load offer to find customers.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 32),
+        // Add Load Offer Button
+        _buildAddLoadOfferCard(context),
+      ],
+    );
+  }
+
+  Widget _buildAddLoadOfferCard(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 3,
+      shadowColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
       child: InkWell(
         onTap: () {
           context.push('/add-load');
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.add_box,
-                  color: Theme.of(context).colorScheme.primary,
+                child: const Icon(
+                  Icons.add_road,
+                  color: Colors.white,
                   size: 28,
                 ),
               ),
@@ -470,21 +428,30 @@ class _HomeTabState extends State<HomeTab> {
                     Text(
                       'Add Load Offer',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Post your available vehicle for load requests',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      'Post your route and find customers',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Colors.grey[400],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.arrow_forward,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             ],
           ),

@@ -28,8 +28,11 @@ import '../presentation/screens/customer/notifications_screen.dart';
 import '../presentation/screens/customer/help_support_screen.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
+import '../domain/repository/customer_repository.dart';
 import '../presentation/cubit/user_profile/edit_profile/edit_profile_bloc.dart';
 import '../presentation/cubit/driver/home/home_tab_bloc.dart';
+import '../presentation/cubit/customer/home/customer_home_tab_bloc.dart';
+import '../presentation/cubit/customer/home/customer_home_tab_event.dart';
 import '../presentation/cubit/driver/add_load/add_load_bloc.dart';
 import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_bloc.dart';
 import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_state.dart';
@@ -64,7 +67,12 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/customer-dashboard',
-      builder: (context, state) => const CustomerDashboard(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => CustomerHomeTabBloc(
+          Provider.of<CustomerRepository>(context, listen: false),
+        )..add(LoadUserData()),
+        child: const CustomerDashboard(),
+      ),
     ),
     GoRoute(
       path: '/driver-dashboard',
