@@ -269,14 +269,22 @@ class HomeTab extends StatelessWidget {
   Widget _buildBookingCard(BuildContext context, BookingDetail booking) {
     final dateFormat = DateFormat('MMM dd, yyyy');
     final timeFormat = DateFormat('hh:mm a');
+    final hasMatchedVehicles = booking.vehicleMatch.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: InkWell(
+        onTap: hasMatchedVehicles
+            ? () {
+                context.push('/matched-vehicles', extra: booking);
+              }
+            : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header with load name and capacity
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -421,7 +429,31 @@ class HomeTab extends StatelessWidget {
                 ),
               ),
             ],
+            // Chevron indicator for navigation
+            if (hasMatchedVehicles) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'View Details',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 12,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
+            ],
           ],
+        ),
         ),
       ),
     );

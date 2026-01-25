@@ -2,8 +2,8 @@ import 'package:picky_load/domain/models/customer_home_page_response.dart';
 import 'package:picky_load/models/user_model.dart';
 import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 
-// Re-export BookingDetail for convenience
-export 'package:picky_load/domain/models/customer_home_page_response.dart' show BookingDetail;
+// Re-export BookingDetail and VehicleMatch for convenience
+export 'package:picky_load/domain/models/customer_home_page_response.dart' show BookingDetail, VehicleMatch;
 
 /// Base state class for Customer Home Tab feature
 class CustomerHomeTabState extends BaseEventState {

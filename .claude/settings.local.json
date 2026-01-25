@@ -22,7 +22,10 @@
       "Bash(rm:*)",
       "Bash(rmdir:*)",
       "Bash(flutter doctor:*)",
-      "Bash(flutter devices:*)"
+      "Bash(flutter devices:*)",
+      "Bash(powershell:*)",
+      "Bash(copy:*)",
+      "Bash(flutter run:*)"
     ],
     "deny": [],
     "ask": []

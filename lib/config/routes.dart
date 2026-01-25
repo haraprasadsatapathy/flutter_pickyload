@@ -26,6 +26,8 @@ import '../presentation/screens/customer/transaction_history_screen.dart';
 import '../presentation/screens/customer/customer_profile_screen.dart';
 import '../presentation/screens/customer/notifications_screen.dart';
 import '../presentation/screens/customer/help_support_screen.dart';
+import '../presentation/screens/customer/matched_vehicles_screen.dart';
+import '../domain/models/customer_home_page_response.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
 import '../domain/repository/customer_repository.dart';
@@ -176,6 +178,13 @@ final router = GoRouter(
     GoRoute(
       path: '/help-support',
       builder: (context, state) => const HelpSupportScreen(),
+    ),
+    GoRoute(
+      path: '/matched-vehicles',
+      builder: (context, state) {
+        final booking = state.extra as BookingDetail;
+        return MatchedVehiclesScreen(booking: booking);
+      },
     ),
   ],
 );

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "164327845432",
+    "project_id": "pickyload",
+    "storage_bucket": "pickyload.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:164327845432:android:2cdc80ee1abbfe9ca400cd",
+        "android_client_info": {
+          "package_name": "com.picky_load"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXsXZA92Qx--rPAHWj6cs9I_h1hBGYmfs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

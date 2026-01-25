@@ -57,6 +57,79 @@ class CustomerHomePageData {
   }
 }
 
+class VehicleMatch {
+  final String bookingId;
+  final String vehicleNo;
+  final String vehicleId;
+  final int vehicleWheels;
+  final String vehicleModel;
+  final String loadType;
+  final double quotedPrice;
+  final String status;
+
+  VehicleMatch({
+    required this.bookingId,
+    required this.vehicleNo,
+    required this.vehicleId,
+    required this.vehicleWheels,
+    required this.vehicleModel,
+    required this.loadType,
+    required this.quotedPrice,
+    required this.status,
+  });
+
+  factory VehicleMatch.fromJson(Map<String, dynamic> json) {
+    return VehicleMatch(
+      bookingId: json['bookingId'] as String? ?? '',
+      vehicleNo: json['vehicle_no'] as String? ?? '',
+      vehicleId: json['vehicleId'] as String? ?? '',
+      vehicleWheels: json['vehicleWheels'] as int? ?? 0,
+      vehicleModel: json['vehicleModel'] as String? ?? '',
+      loadType: json['loadType'] as String? ?? '',
+      quotedPrice: (json['quotedPrice'] as num?)?.toDouble() ?? 0.0,
+      status: json['status'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'bookingId': bookingId,
+      'vehicle_no': vehicleNo,
+      'vehicleId': vehicleId,
+      'vehicleWheels': vehicleWheels,
+      'vehicleModel': vehicleModel,
+      'loadType': loadType,
+      'quotedPrice': quotedPrice,
+      'status': status,
+    };
+  }
+
+  /// QuotationStatus helpers
+  bool get isRequestQuote => status.toLowerCase() == 'requestquoate' || status.toLowerCase() == 'requestquote';
+  bool get isPending => status.toLowerCase() == 'pending';
+  bool get isUpdated => status.toLowerCase() == 'updated';
+  bool get isAccepted => status.toLowerCase() == 'accepted';
+  bool get isRejected => status.toLowerCase() == 'rejected';
+  bool get isWithdrawn => status.toLowerCase() == 'withdrawn';
+  bool get isExpired => status.toLowerCase() == 'expired';
+
+  /// Check if user can take action (Request Quote or Accept/Reject)
+  bool get canRequestQuote => isRequestQuote;
+  bool get canAcceptOrReject => isPending || isUpdated;
+
+  /// Get display status text
+  String get displayStatus {
+    if (isRequestQuote) return 'Request Quote';
+    if (isPending) return 'Pending';
+    if (isUpdated) return 'Price Updated';
+    if (isAccepted) return 'Accepted';
+    if (isRejected) return 'Rejected';
+    if (isWithdrawn) return 'Withdrawn';
+    if (isExpired) return 'Expired';
+    return status;
+  }
+}
+
 class BookingDetail {
   final String bookingId;
   final String loadCapacity;
@@ -66,7 +139,7 @@ class BookingDetail {
   final double distance;
   final DateTime bookingOn;
   final DateTime createdOn;
-  final List<dynamic> vehicleMatch;
+  final List<VehicleMatch> vehicleMatch;
 
   BookingDetail({
     required this.bookingId,
@@ -94,7 +167,10 @@ class BookingDetail {
       createdOn: json['created_on'] != null
           ? DateTime.parse(json['created_on'] as String)
           : DateTime.now(),
-      vehicleMatch: json['vehicleMatch'] as List<dynamic>? ?? [],
+      vehicleMatch: (json['vehicleMatch'] as List<dynamic>?)
+              ?.map((e) => VehicleMatch.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -108,7 +184,7 @@ class BookingDetail {
       'distance': distance,
       'booking_on': bookingOn.toIso8601String(),
       'created_on': createdOn.toIso8601String(),
-      'vehicleMatch': vehicleMatch,
+      'vehicleMatch': vehicleMatch.map((e) => e.toJson()).toList(),
     };
   }
 
