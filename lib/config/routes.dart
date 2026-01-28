@@ -22,6 +22,7 @@ import '../presentation/screens/driver/edit_offer_price_screen.dart';
 import '../presentation/screens/customer/trip_request_screen.dart';
 import '../presentation/screens/customer/trip_tracking_screen.dart';
 import '../presentation/screens/customer/payment_screen.dart';
+import '../presentation/screens/customer/advance_payment_screen.dart';
 import '../presentation/screens/customer/transaction_history_screen.dart';
 import '../presentation/screens/customer/customer_profile_screen.dart';
 import '../presentation/screens/customer/notifications_screen.dart';
@@ -152,6 +153,17 @@ final router = GoRouter(
       path: '/payment',
       builder: (context, state) =>
           PaymentScreen(tripId: state.extra as String? ?? ''),
+    ),
+    GoRoute(
+      path: '/advance-payment',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return AdvancePaymentScreen(
+          vehicle: extra['vehicle'] as VehicleMatch,
+          booking: extra['booking'] as BookingDetail,
+          onPaymentSuccess: extra['onPaymentSuccess'] as Function()?,
+        );
+      },
     ),
     GoRoute(
       path: '/transaction-history',

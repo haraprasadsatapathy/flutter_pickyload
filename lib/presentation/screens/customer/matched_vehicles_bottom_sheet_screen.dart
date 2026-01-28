@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../domain/models/customer_home_page_response.dart';
+import 'advance_payment_screen.dart';
 
 class VehicleDetailsBottomSheet extends StatefulWidget {
   final VehicleMatch vehicle;
@@ -77,6 +78,22 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
   }
 
   Future<void> _handleAccept() async {
+    if (widget.vehicle.isUpdated) {
+      // Status is "Updated" — navigate to advance payment screen
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdvancePaymentScreen(
+            vehicle: widget.vehicle,
+            booking: widget.booking,
+            onPaymentSuccess: widget.onAccept,
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       widget.onAccept?.call();
