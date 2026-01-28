@@ -1,18 +1,134 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../config/dependency_injection.dart';
 import '../../../domain/models/customer_home_page_response.dart';
+import '../../../domain/repository/customer_repository.dart';
+import '../../../services/local/saved_service.dart';
 import 'matched_vehicles_bottom_sheet_screen.dart';
 
-class MatchedVehiclesScreen extends StatelessWidget {
+class MatchedVehiclesScreen extends StatefulWidget {
   final BookingDetail booking;
 
   const MatchedVehiclesScreen({super.key, required this.booking});
 
   @override
+  State<MatchedVehiclesScreen> createState() => _MatchedVehiclesScreenState();
+}
+
+class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
+  final CustomerRepository _customerRepository = getIt<CustomerRepository>();
+  final SavedService _savedService = getIt<SavedService>();
+
+  Future<String> _getUserId() async {
+    final user = await _savedService.getUserDetailsSp();
+    return user?.id ?? '';
+  }
+
+  Future<void> _onRequestQuote(VehicleMatch vehicle) async {
+    final userId = await _getUserId();
+    if (userId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found. Please login again.')),
+        );
+      }
+      return;
+    }
+
+    final response = await _customerRepository.requestQuote(
+      userId: userId,
+      bookingId: widget.booking.bookingId,
+      offerId: vehicle.offerId,
+    );
+
+    if (!mounted) return;
+
+    if (response.status == true) {
+      setState(() {
+        vehicle.status = 'Pending';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Quote requested successfully. Waiting for driver response.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to request quote')),
+      );
+    }
+  }
+
+  Future<void> _onAcceptOffer(VehicleMatch vehicle, double advanceAmount) async {
+    final userId = await _getUserId();
+    if (userId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found. Please login again.')),
+        );
+      }
+      return;
+    }
+
+    final response = await _customerRepository.acceptOffer(
+      userId: userId,
+      offerId: vehicle.offerId,
+      bookingId: widget.booking.bookingId,
+      advanceAmountPaid: advanceAmount,
+    );
+
+    if (!mounted) return;
+
+    if (response.status == true) {
+      setState(() {
+        vehicle.status = 'Accepted';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Offer accepted and booking confirmed!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to accept offer')),
+      );
+    }
+  }
+
+  Future<void> _onRejectBooking(VehicleMatch vehicle) async {
+    final userId = await _getUserId();
+    if (userId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found. Please login again.')),
+        );
+      }
+      return;
+    }
+
+    final response = await _customerRepository.cancelBooking(
+      userId: userId,
+      bookingId: widget.booking.bookingId,
+    );
+
+    if (!mounted) return;
+
+    if (response.status == true) {
+      setState(() {
+        vehicle.status = 'Rejected';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking cancelled successfully.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.message ?? 'Failed to cancel booking')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, yyyy');
     final timeFormat = DateFormat('hh:mm a');
+    final booking = widget.booking;
 
     return Scaffold(
       appBar: AppBar(
@@ -239,6 +355,18 @@ class MatchedVehiclesScreen extends StatelessWidget {
       statusColor = Colors.red.shade700;
       statusBgColor = Colors.red.shade50;
       statusIcon = Icons.cancel;
+    } else if (vehicle.isPending) {
+      statusColor = Colors.orange.shade700;
+      statusBgColor = Colors.orange.shade50;
+      statusIcon = Icons.pending;
+    } else if (vehicle.isUpdated) {
+      statusColor = Colors.blue.shade700;
+      statusBgColor = Colors.blue.shade50;
+      statusIcon = Icons.update;
+    } else if (vehicle.isRequestQuote) {
+      statusColor = Colors.purple.shade700;
+      statusBgColor = Colors.purple.shade50;
+      statusIcon = Icons.request_quote;
     } else {
       statusColor = Colors.orange.shade700;
       statusBgColor = Colors.orange.shade50;
@@ -314,7 +442,7 @@ class MatchedVehiclesScreen extends StatelessWidget {
                         Icon(statusIcon, size: 14, color: statusColor),
                         const SizedBox(width: 4),
                         Text(
-                          vehicle.status,
+                          vehicle.displayStatus,
                           style: TextStyle(
                             fontSize: 12,
                             color: statusColor,
@@ -349,6 +477,39 @@ class MatchedVehiclesScreen extends StatelessWidget {
                     ),
                 ],
               ),
+              // Show pending message for Pending status
+              if (vehicle.isPending) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Waiting for driver response',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.orange.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -398,7 +559,13 @@ class MatchedVehiclesScreen extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => VehicleDetailsBottomSheet(vehicle: vehicle, booking: booking),
+      builder: (context) => VehicleDetailsBottomSheet(
+        vehicle: vehicle,
+        booking: widget.booking,
+        onRequestQuote: (_) => _onRequestQuote(vehicle),
+        onAccept: () => _onAcceptOffer(vehicle, 1000),
+        onReject: () => _onRejectBooking(vehicle),
+      ),
     );
   }
 }

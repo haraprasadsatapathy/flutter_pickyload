@@ -25,7 +25,8 @@
       "Bash(flutter devices:*)",
       "Bash(powershell:*)",
       "Bash(copy:*)",
-      "Bash(flutter run:*)"
+      "Bash(flutter run:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

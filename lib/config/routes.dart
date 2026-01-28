@@ -27,7 +27,9 @@ import '../presentation/screens/customer/customer_profile_screen.dart';
 import '../presentation/screens/customer/notifications_screen.dart';
 import '../presentation/screens/customer/help_support_screen.dart';
 import '../presentation/screens/customer/matched_vehicles_screen.dart';
+import '../presentation/screens/driver/user_offers_list_screen.dart';
 import '../domain/models/customer_home_page_response.dart';
+import '../domain/models/home_page_response.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
 import '../domain/repository/customer_repository.dart';
@@ -39,6 +41,8 @@ import '../presentation/cubit/driver/add_load/add_load_bloc.dart';
 import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_bloc.dart';
 import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_state.dart';
 import '../presentation/cubit/driver/update_offer_price/update_offer_price_bloc.dart';
+import '../presentation/cubit/driver/user_offers_list/user_offers_list_bloc.dart';
+import '../presentation/cubit/driver/user_offers_list/user_offers_list_event.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -184,6 +188,19 @@ final router = GoRouter(
       builder: (context, state) {
         final booking = state.extra as BookingDetail;
         return MatchedVehiclesScreen(booking: booking);
+      },
+    ),
+    GoRoute(
+      path: '/user-offers-list',
+      builder: (context, state) {
+        final tripDetail = state.extra as TripDetail;
+        return BlocProvider(
+          create: (context) => UserOffersListBloc(
+            context,
+            Provider.of<DriverRepository>(context, listen: false),
+          )..add(InitializeUserOffersList(tripDetail: tripDetail)),
+          child: UserOffersListScreen(tripDetail: tripDetail),
+        );
       },
     ),
   ],

@@ -5,20 +5,22 @@ class UpdateOfferPriceEvent extends BaseEventState {}
 
 // Update offer price
 class UpdateOfferPrice extends UpdateOfferPriceEvent {
+  final String quotationId;
   final String offerId;
   final String driverId;
-  final String vehicleId;
+  final String bookingId;
   final double price;
 
   UpdateOfferPrice({
+    required this.quotationId,
     required this.offerId,
     required this.driverId,
-    required this.vehicleId,
+    required this.bookingId,
     required this.price,
   });
 
   @override
-  List<Object?> get props => [offerId, driverId, vehicleId, price];
+  List<Object?> get props => [quotationId, offerId, driverId, bookingId, price];
 }
 
 // Reset form

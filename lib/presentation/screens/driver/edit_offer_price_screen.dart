@@ -35,11 +35,15 @@ class _EditOfferPriceScreenState extends State<EditOfferPriceScreen> {
       final driverId = authProvider.currentUser?.id ?? '';
       final price = double.tryParse(_priceController.text) ?? 0;
 
+      // TODO: This screen needs quotationId and bookingId from the API
+      // For now, using empty strings - this may need to be updated
+      // when the OfferLoadModel includes these fields
       context.read<UpdateOfferPriceBloc>().add(
             UpdateOfferPrice(
+              quotationId: '', // Not available in OfferLoadModel yet
               offerId: widget.offerLoad.offerId,
               driverId: driverId,
-              vehicleId: widget.offerLoad.vehicleId,
+              bookingId: '', // Not available in OfferLoadModel yet
               price: price,
             ),
           );

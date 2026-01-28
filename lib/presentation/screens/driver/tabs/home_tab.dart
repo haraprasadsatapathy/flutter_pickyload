@@ -176,67 +176,109 @@ class _HomeTabState extends State<HomeTab> {
     BuildContext context,
     TripDetail tripDetail,
   ) {
+    final bool isDriverOffered = tripDetail.tripStatus.toLowerCase() == 'driveroffered';
+    final bool hasMultipleOffers = tripDetail.userOffers.length > 1;
+    final bool canNavigate = isDriverOffered && hasMultipleOffers;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Route header with status chip
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    tripDetail.route,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+      child: InkWell(
+        onTap: canNavigate
+            ? () => context.push('/user-offers-list', extra: tripDetail)
+            : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Route header with status chip
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      tripDetail.route,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                _buildStatusChip(tripDetail.tripStatus),
-              ],
-            ),
-            const SizedBox(height: 16),
+                  _buildStatusChip(tripDetail.tripStatus),
+                ],
+              ),
+              const SizedBox(height: 16),
 
-            // Pickup Address
-            _buildInfoRow(
-              context: context,
-              icon: Icons.trip_origin,
-              label: 'Pickup',
-              value: tripDetail.pickupAddress,
-            ),
-            const SizedBox(height: 8),
-
-            // Drop Address
-            _buildInfoRow(
-              context: context,
-              icon: Icons.flag,
-              label: 'Drop',
-              value: tripDetail.dropAddress,
-            ),
-            const SizedBox(height: 8),
-
-            // Vehicle Number
-            _buildInfoRow(
-              context: context,
-              icon: Icons.local_shipping,
-              label: 'Vehicle',
-              value: tripDetail.vehicleNo,
-            ),
-            const SizedBox(height: 8),
-
-            // User Offers count if any
-            if (tripDetail.userOffers.isNotEmpty)
+              // Pickup Address
               _buildInfoRow(
                 context: context,
-                icon: Icons.people,
-                label: 'User Offers',
-                value: '${tripDetail.userOffers.length} offer(s)',
+                icon: Icons.trip_origin,
+                label: 'Pickup',
+                value: tripDetail.pickupAddress,
               ),
-          ],
+              const SizedBox(height: 8),
+
+              // Drop Address
+              _buildInfoRow(
+                context: context,
+                icon: Icons.flag,
+                label: 'Drop',
+                value: tripDetail.dropAddress,
+              ),
+              const SizedBox(height: 8),
+
+              // Vehicle Number
+              _buildInfoRow(
+                context: context,
+                icon: Icons.local_shipping,
+                label: 'Vehicle',
+                value: tripDetail.vehicleNo,
+              ),
+              const SizedBox(height: 8),
+
+              // User Offers count if any
+              if (tripDetail.userOffers.isNotEmpty) ...[
+                _buildInfoRow(
+                  context: context,
+                  icon: Icons.people,
+                  label: 'User Offers',
+                  value: '${tripDetail.userOffers.length} offer(s)',
+                ),
+                // Show tap hint for multiple offers
+                if (canNavigate) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.touch_app,
+                          size: 16,
+                          color: Colors.blue.shade700,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Tap to view all ${tripDetail.userOffers.length} customer requests',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ],
+          ),
         ),
       ),
     );

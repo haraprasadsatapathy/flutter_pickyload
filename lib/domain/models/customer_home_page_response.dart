@@ -61,16 +61,18 @@ class VehicleMatch {
   final String bookingId;
   final String vehicleNo;
   final String vehicleId;
+  final String offerId;
   final int vehicleWheels;
   final String vehicleModel;
   final String loadType;
   final double quotedPrice;
-  final String status;
+  String status;
 
   VehicleMatch({
     required this.bookingId,
     required this.vehicleNo,
     required this.vehicleId,
+    required this.offerId,
     required this.vehicleWheels,
     required this.vehicleModel,
     required this.loadType,
@@ -83,6 +85,7 @@ class VehicleMatch {
       bookingId: json['bookingId'] as String? ?? '',
       vehicleNo: json['vehicle_no'] as String? ?? '',
       vehicleId: json['vehicleId'] as String? ?? '',
+      offerId: json['offerID'] as String? ?? json['offerId'] as String? ?? '',
       vehicleWheels: json['vehicleWheels'] as int? ?? 0,
       vehicleModel: json['vehicleModel'] as String? ?? '',
       loadType: json['loadType'] as String? ?? '',
@@ -96,6 +99,7 @@ class VehicleMatch {
       'bookingId': bookingId,
       'vehicle_no': vehicleNo,
       'vehicleId': vehicleId,
+      'offerId': offerId,
       'vehicleWheels': vehicleWheels,
       'vehicleModel': vehicleModel,
       'loadType': loadType,

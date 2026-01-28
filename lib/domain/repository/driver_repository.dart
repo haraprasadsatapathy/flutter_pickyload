@@ -443,23 +443,33 @@ class DriverRepository {
     }
   }
 
-  /// Update offer price
+  /// Update offer price (Driver responds to user's quote request)
   ///
   /// Parameters:
+  /// - quotationId: Quotation ID (UUID)
   /// - offerId: Offer ID (UUID)
   /// - driverId: Driver ID (UUID)
-  /// - vehicleId: Vehicle ID (UUID)
-  /// - price: New price for the offer
+  /// - bookingId: Booking ID (UUID)
+  /// - price: Price quoted by driver
   Future<ApiResponse<UpdateOfferPriceResponse>> updateOfferPrice({
+    required String quotationId,
     required String offerId,
     required String driverId,
-    required String vehicleId,
+    required String bookingId,
     required double price,
   }) async {
     try {
+      final requestData = {
+        'quotationId': quotationId,
+        'offerId': offerId,
+        'driverId': driverId,
+        'bookingId': bookingId,
+        'price': price,
+      };
+
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/Driver/Update-OfferPrice',
-        queryParameters: {'OfferId': offerId, 'DriverId': driverId, 'VehicleId': vehicleId, 'Price': price.toString()},
+        data: requestData,
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 

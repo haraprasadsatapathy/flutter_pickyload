@@ -24,9 +24,10 @@ class UpdateOfferPriceBloc
       try {
         // Call API to update offer price
         final result = await driverRepository.updateOfferPrice(
+          quotationId: event.quotationId,
           offerId: event.offerId,
           driverId: event.driverId,
-          vehicleId: event.vehicleId,
+          bookingId: event.bookingId,
           price: event.price,
         );
 
@@ -34,7 +35,7 @@ class UpdateOfferPriceBloc
           emit(OfferPriceUpdated(
             message: result.data!.message,
             offerId: result.data!.data?.offerId ?? event.offerId,
-            price: result.data!.data?.price ?? event.price,
+            price: result.data!.data?.quotedPrice ?? event.price,
           ));
         } else {
           emit(UpdateOfferPriceError(
