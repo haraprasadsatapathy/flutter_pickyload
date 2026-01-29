@@ -373,6 +373,7 @@ class _HomeTabState extends State<HomeTab> {
 
   /// Empty state widget shown when no trips are available
   Widget _buildEmptyState(BuildContext context) {
+    final state = context.read<HomeTabBloc>().state;
     return Column(
       children: [
         const SizedBox(height: 40),
@@ -412,7 +413,183 @@ class _HomeTabState extends State<HomeTab> {
         const SizedBox(height: 32),
         // Add Load Offer Button
         _buildAddLoadOfferCard(context),
+        const SizedBox(height: 24),
+        // Documents section
+        if (state.isDocumentsLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: CircularProgressIndicator(),
+          )
+        else if (state.documents.isEmpty)
+          _buildNoDocumentsWarning(context)
+        else if (state.documents.isNotEmpty) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'My Documents',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...state.documents.map((doc) => _buildDocumentCard(context, doc)),
+        ],
       ],
+    );
+  }
+
+  Widget _buildNoDocumentsWarning(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(top: 8),
+      color: Colors.red.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.red.shade200),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 48,
+              color: Colors.red.shade400,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Documents Required',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.red.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'You cannot proceed as a driver without uploading your documents. Please upload your Driving License and Registration Certificate to get started.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.red.shade600,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.push('/document-upload');
+              },
+              icon: const Icon(Icons.upload_file),
+              label: const Text('Upload Documents'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDocumentCard(BuildContext context, DocumentInfo doc) {
+    IconData iconData;
+    switch (doc.documentType) {
+      case 'DrivingLicense':
+        iconData = Icons.badge;
+        break;
+      case 'RegistrationCertificate':
+        iconData = Icons.description;
+        break;
+      default:
+        iconData = Icons.insert_drive_file;
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                iconData,
+                color: Theme.of(context).colorScheme.primary,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    doc.documentTypeName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    doc.documentNumber,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  if (doc.verifiedOn != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Verified on: ${doc.verifiedOn!.day}/${doc.verifiedOn!.month}/${doc.verifiedOn!.year}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.green[600],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (doc.isExpired)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Expired',
+                  style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              )
+            else if (doc.isExpiringSoon)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'Expiring Soon',
+                  style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              )
+            else
+              Icon(
+                Icons.verified,
+                color: Colors.green[600],
+                size: 24,
+              ),
+          ],
+        ),
+      ),
     );
   }
 

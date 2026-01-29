@@ -4,74 +4,71 @@ import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 class VehicleModel {
   final String vehicleId;
   final String driverId;
-  final bool isVehicleBodyCovered;
   final String capacity;
+  final int numberOfWheels;
   final double length;
   final double width;
   final double height;
   final String vehicleNumber;
-  final String rcNumber;
-  final String makeModel;
+  final String chassisNumber;
+  final String bodyCoverType;
+  final String? status;
+  final DateTime? verifiedOn;
+  final DateTime? updatedOn;
 
   VehicleModel({
     required this.vehicleId,
     required this.driverId,
-    required this.isVehicleBodyCovered,
     required this.capacity,
+    required this.numberOfWheels,
     required this.length,
     required this.width,
     required this.height,
     required this.vehicleNumber,
-    required this.rcNumber,
-    required this.makeModel,
+    required this.chassisNumber,
+    required this.bodyCoverType,
+    this.status,
+    this.verifiedOn,
+    this.updatedOn,
   });
-
-  factory VehicleModel.fromJson(Map<String, dynamic> json) {
-    return VehicleModel(
-      vehicleId: json['vehicleId'] ?? '',
-      driverId: json['driverId'] ?? '',
-      isVehicleBodyCovered: json['isVehicleBodyCovered'] ?? false,
-      capacity: json['capacity'] ?? '',
-      length: (json['length'] ?? 0).toDouble(),
-      width: (json['width'] ?? 0).toDouble(),
-      height: (json['height'] ?? 0).toDouble(),
-      vehicleNumber: json['vehicleNumber'] ?? '',
-      rcNumber: json['rcNumber'] ?? '',
-      makeModel: json['makeModel'] ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'vehicleId': vehicleId,
-      'driverId': driverId,
-      'isVehicleBodyCovered': isVehicleBodyCovered,
-      'capacity': capacity,
-      'length': length,
-      'width': width,
-      'height': height,
-      'vehicleNumber': vehicleNumber,
-      'rcNumber': rcNumber,
-      'makeModel': makeModel,
-    };
-  }
 
   String getCapacityLabel() {
     switch (capacity) {
       case 'upto_half_tonne':
-        return 'Up to Half Tonne';
-      case 'half_to_one_tonne':
-        return 'Half to One Tonne';
-      case 'one_to_two_tonne':
-        return 'One to Two Tonne';
-      case 'two_to_three_tonne':
-        return 'Two to Three Tonne';
-      case 'above_three_tonne':
-        return 'Above Three Tonne';
+        return 'Up to 0.5 Tonne';
+      case 'upto_01_tonne':
+        return 'Up to 1 Tonne';
+      case 'upto_05_tonne':
+        return 'Up to 5 Tonne';
+      case 'upto_15_tonne':
+        return 'Up to 15 Tonne';
+      case 'upto_25_tonne':
+        return 'Up to 25 Tonne';
+      case 'upto_35_tonne':
+        return 'Up to 35 Tonne';
+      case 'upto_45_tonne':
+        return 'Up to 45 Tonne';
+      case 'upto_55_tonne':
+        return 'Up to 55 Tonne';
       default:
         return capacity;
     }
   }
+
+  String get bodyCoverTypeLabel {
+    switch (bodyCoverType) {
+      case 'Open':
+        return 'Open';
+      case 'Closed':
+        return 'Closed';
+      case 'SemiClosed':
+        return 'Semi-Closed';
+      default:
+        return bodyCoverType;
+    }
+  }
+
+  bool get isVerified => status?.toLowerCase() == 'verified';
 }
 
 // Base state class for Vehicle List feature

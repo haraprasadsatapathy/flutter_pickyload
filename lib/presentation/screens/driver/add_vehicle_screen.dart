@@ -17,7 +17,6 @@ class AddVehicleScreen extends StatefulWidget {
 
 class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _vehicleNumberPlateController = TextEditingController();
   final _chassisNumberController = TextEditingController();
   final _lengthController = TextEditingController();
   final _widthController = TextEditingController();
@@ -45,7 +44,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
   @override
   void dispose() {
-    _vehicleNumberPlateController.dispose();
     _chassisNumberController.dispose();
     _lengthController.dispose();
     _widthController.dispose();
@@ -111,21 +109,6 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                             ),
                       ),
                       const SizedBox(height: 30),
-
-                      // Vehicle Number Plate
-                      TextFormField(
-                        controller: _vehicleNumberPlateController,
-                        decoration: const InputDecoration(
-                          labelText: 'Vehicle Number Plate',
-                          hintText: 'e.g., KA01AB1234',
-                          prefixIcon: Icon(Icons.local_shipping_outlined),
-                        ),
-                        textCapitalization: TextCapitalization.characters,
-                        onChanged: (value) {
-                          context.read<AddVehicleBloc>().add(UpdateVehicleNumberPlate(value));
-                        },
-                      ),
-                      const SizedBox(height: 20),
 
                       // RC Number Dropdown
                       state.isLoadingDocuments
@@ -243,8 +226,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         controller: _lengthController,
                         decoration: const InputDecoration(
                           labelText: 'Length (meters)',
-                          hintText: 'Max 18.75m (e.g., 6.1)',
-                          helperText: 'Maximum: 18.75 meters',
+                          hintText: 'e.g., 6.1',
                           prefixIcon: Icon(Icons.straighten_outlined),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -262,8 +244,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         controller: _widthController,
                         decoration: const InputDecoration(
                           labelText: 'Width (meters)',
-                          hintText: 'Max 2.6m (e.g., 2.5)',
-                          helperText: 'Maximum: 2.6 meters',
+                          hintText: 'e.g., 2.5',
                           prefixIcon: Icon(Icons.width_normal_outlined),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -281,8 +262,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         controller: _heightController,
                         decoration: const InputDecoration(
                           labelText: 'Height (meters)',
-                          hintText: 'Max 4.75m (e.g., 4.0)',
-                          helperText: 'Maximum: 4.75 meters',
+                          hintText: 'e.g., 4.0',
                           prefixIcon: Icon(Icons.height_outlined),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),

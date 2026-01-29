@@ -49,7 +49,7 @@ class UploadDocumentsBloc extends Bloc<UploadDocumentsEvent, UploadDocumentsStat
           userId: currentUser.id,
           documentType: apiDocumentType,
           documentNumber: event.documentNumber,
-          dateOfBirth: event.dateOfBirth!,
+          dateOfBirth: event.dateOfBirth,
           documentImagePath: null,
           validTill: DateTime.now().add(const Duration(days: 365 * 5)),
           verifiedOn: DateTime.now(),

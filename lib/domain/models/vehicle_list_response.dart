@@ -82,7 +82,7 @@ class Vehicle {
       width: (json['width'] ?? 0).toDouble(),
       height: (json['height'] ?? 0).toDouble(),
       rcNumber: json['rcNumber'] ?? '',
-      vehicleNumber: json['vehicleNumber'] ?? '',
+      vehicleNumber: json['vehicleNumberPlate'] ?? json['vehicleNumber'] ?? '',
       chassisNumber: json['chassisNumber'] ?? '',
       makerModel: json['makerModel'] ?? '',
       bodyCoverType: json['bodyCoverType'] ?? 'Open',

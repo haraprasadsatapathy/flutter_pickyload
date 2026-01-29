@@ -46,7 +46,7 @@ class DriverRepository {
     required String userId,
     required String documentType,
     required String documentNumber,
-    required DateTime dateOfBirth,
+    DateTime? dateOfBirth,
     String? documentImagePath,
     DateTime? validTill,
     DateTime? verifiedOn,
@@ -57,7 +57,7 @@ class DriverRepository {
         'userId': userId,
         'documentType': documentType,
         'documentNumber': documentNumber,
-        'dob': dateOfBirth.toUtc().toIso8601String(),
+        if (dateOfBirth != null) 'dob': dateOfBirth.toUtc().toIso8601String(),
       };
 
       final response = await _apiClient.post<Map<String, dynamic>>(

@@ -30,8 +30,8 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          // Refresh the list after successful update
-          context.read<UserOffersListBloc>().add(RefreshUserOffersList());
+          // Navigate back to driver home and refresh
+          context.go('/driver-dashboard');
         } else if (state is UserOffersListError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

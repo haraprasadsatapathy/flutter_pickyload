@@ -22,7 +22,6 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   final _formKey = GlobalKey<FormState>();
   final _originController = TextEditingController();
   final _destinationController = TextEditingController();
-  final _priceController = TextEditingController();
 
   String? _selectedVehicleId;
   DateTime? _availableTimeStart;
@@ -47,7 +46,6 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   void dispose() {
     _originController.dispose();
     _destinationController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 
@@ -184,7 +182,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
               dropLng: _destinationLongitude!,
               pickupAddress: _originController.text.trim(),
               dropAddress: _destinationController.text.trim(),
-              price: double.parse(_priceController.text.trim()),
+              price: 0,
               routePolylinePoints: _routePolylinePoints,
             ),
           );
@@ -329,34 +327,6 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Please select destination location';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Price
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: TextFormField(
-                          controller: _priceController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                            labelText: 'Price (₹)',
-                            hintText: 'Enter your offer price',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.currency_rupee),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter price';
-                            }
-                            final price = double.tryParse(value);
-                            if (price == null || price <= 0) {
-                              return 'Please enter a valid price greater than 0';
                             }
                             return null;
                           },

@@ -117,26 +117,7 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
       // BUSINESS LOGIC: Vehicle Form Validation
       // ============================================
 
-      // Validation Rule 1: Check if vehicle number plate is provided
-      if (state.vehicleNumberPlate == null || state.vehicleNumberPlate!.isEmpty) {
-        emit(VehicleAdditionError(
-          error: 'Please enter vehicle number plate',
-          vehicleNumberPlate: state.vehicleNumberPlate,
-          rcNumber: state.rcNumber,
-          chassisNumber: state.chassisNumber,
-          bodyCoverType: state.bodyCoverType,
-          capacity: state.capacity,
-          length: state.length,
-          width: state.width,
-          height: state.height,
-          numberOfWheels: state.numberOfWheels,
-          rcDocuments: state.rcDocuments,
-          isLoadingDocuments: state.isLoadingDocuments,
-        ));
-        return;
-      }
-
-      // Validation Rule 2: Check if RC number is provided
+      // Validation Rule 1: Check if RC number is provided
       if (state.rcNumber == null || state.rcNumber!.isEmpty) {
         emit(VehicleAdditionError(
           error: 'Please select RC number',
@@ -412,7 +393,7 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
         // Call API to upsert vehicle
         final result = await driverRepository.upsertVehicle(
           driverId: userId,
-          vehicleNumberPlate: state.vehicleNumberPlate!,
+          vehicleNumberPlate: state.rcNumber!,
           rcNumber: state.rcNumber!,
           chassisNumber: state.chassisNumber!,
           bodyCoverType: state.bodyCoverType,
