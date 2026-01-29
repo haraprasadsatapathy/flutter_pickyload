@@ -356,8 +356,8 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
       statusBgColor = Colors.red.shade50;
       statusIcon = Icons.cancel;
     } else if (vehicle.isPending) {
-      statusColor = Colors.orange.shade700;
-      statusBgColor = Colors.orange.shade50;
+      statusColor = Colors.amber.shade700;
+      statusBgColor = Colors.amber.shade50;
       statusIcon = Icons.pending;
     } else if (vehicle.isUpdated) {
       statusColor = Colors.blue.shade700;
@@ -405,28 +405,32 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          vehicle.vehicleModel,
+                          vehicle.vehicleNo.toUpperCase(),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.confirmation_number_outlined,
-                              size: 14,
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              vehicle.vehicleNo,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.secondary,
+                        if (vehicle.isUpdated && vehicle.quotedPrice > 0) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.currency_rupee,
+                                size: 14,
+                                color: Colors.green.shade700,
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 2),
+                              Text(
+                                vehicle.quotedPrice.toStringAsFixed(0),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -468,13 +472,6 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
                     Icons.category_outlined,
                     vehicle.loadType,
                   ),
-                  if (vehicle.quotedPrice > 0)
-                    _buildInfoChip(
-                      context,
-                      Icons.currency_rupee,
-                      vehicle.quotedPrice.toStringAsFixed(0),
-                      isHighlighted: true,
-                    ),
                 ],
               ),
               // Show pending message for Pending status

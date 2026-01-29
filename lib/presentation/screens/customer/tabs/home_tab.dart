@@ -135,7 +135,7 @@ class HomeTab extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Ongoing Trips',
+                              'Your Ongoing Trips',
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -154,7 +154,7 @@ class HomeTab extends StatelessWidget {
                         if (state.ongoingTrips.isEmpty)
                           _buildNoOngoingTripsState(context)
                         else
-                          ...state.ongoingTrips.map((trip) => _buildTripCard(context, trip, isOngoing: true)),
+                          ...state.ongoingTrips.map((trip) => _buildTripCard(context, trip)),
                         const SizedBox(height: 24),
 
                         // Booking Details Section
@@ -368,22 +368,23 @@ class HomeTab extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.straighten,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      booking.formattedDistance,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w500,
+                if (!hasMatchedVehicles)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.straighten,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 4),
+                      Text(
+                        booking.formattedDistance,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 Row(
                   children: [
                     Icon(
@@ -403,35 +404,252 @@ class HomeTab extends StatelessWidget {
               ],
             ),
 
-            // Vehicle match indicator
-            if (booking.vehicleMatch.isNotEmpty) ...[
+            // Highlighted distance and vehicle matched count
+            if (hasMatchedVehicles) ...[
               const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade200),
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                      Colors.green.withValues(alpha: 0.08),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.local_shipping, size: 16, color: Colors.green.shade700),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${booking.vehicleMatch.length} vehicle(s) matched',
-                      style: TextStyle(
-                        color: Colors.green.shade700,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
+                    // Distance highlight
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.route,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Distance',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                              Text(
+                                booking.formattedDistance,
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 36,
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                    ),
+                    // Vehicle matched count highlight
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.local_shipping,
+                              size: 18,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Vehicles Matched',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                              Text(
+                                '${booking.vehicleMatch.length}',
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ],
+
+            // Vehicle match details
+            if (booking.vehicleMatch.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ...booking.vehicleMatch.map((vehicle) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Vehicle number and status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.local_shipping, size: 16, color: Theme.of(context).colorScheme.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              vehicle.vehicleNo.toUpperCase(),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: vehicle.isAccepted
+                                ? Colors.green.shade50
+                                : vehicle.isRejected
+                                    ? Colors.red.shade50
+                                    : vehicle.isUpdated
+                                        ? Colors.blue.shade50
+                                        : vehicle.isPending
+                                            ? Colors.amber.shade50
+                                            : Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: vehicle.isAccepted
+                                  ? Colors.green.shade300
+                                  : vehicle.isRejected
+                                      ? Colors.red.shade300
+                                      : vehicle.isUpdated
+                                          ? Colors.blue.shade300
+                                          : vehicle.isPending
+                                              ? Colors.amber.shade300
+                                              : Colors.orange.shade300,
+                            ),
+                          ),
+                          child: Text(
+                            vehicle.displayStatus,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: vehicle.isAccepted
+                                  ? Colors.green.shade700
+                                  : vehicle.isRejected
+                                      ? Colors.red.shade700
+                                      : vehicle.isUpdated
+                                          ? Colors.blue.shade700
+                                          : vehicle.isPending
+                                              ? Colors.amber.shade700
+                                              : Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    // Price, wheels, load type
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.currency_rupee, size: 14, color: Colors.green.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                vehicle.quotedPrice.toStringAsFixed(0),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.tire_repair, size: 14, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${vehicle.vehicleWheels} wheels',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.inventory_2, size: 14, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  vehicle.loadType,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              )),
+            ],
             // Chevron indicator for navigation
             if (hasMatchedVehicles) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -459,158 +677,261 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  Widget _buildTripCard(BuildContext context, BookingDetail trip, {bool isOngoing = false}) {
+  Widget _buildTripCard(BuildContext context, OngoingTrip trip) {
     final dateFormat = DateFormat('MMM dd, yyyy');
     final timeFormat = DateFormat('hh:mm a');
+    final statusColor = trip.statusColor;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isOngoing ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: statusColor.withValues(alpha: 0.2),
+        ),
+      ),
       child: InkWell(
         onTap: () {
-          context.push('/trip-tracking', extra: trip.bookingId);
+          context.push('/trip-tracking', extra: trip.tripId);
         },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with status badge
-              Row(
+        borderRadius: BorderRadius.circular(14),
+        child: Column(
+          children: [
+            // Status header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.08),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(14),
+                  topRight: Radius.circular(14),
+                ),
+              ),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      trip.loadName,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                  Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade700,
-                            shape: BoxShape.circle,
-                          ),
+                      const SizedBox(width: 8),
+                      Text(
+                        trip.displayStatus,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'In Progress',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange.shade700,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                  const Icon(Icons.chevron_right, size: 20),
                 ],
               ),
-              const SizedBox(height: 12),
+            ),
 
-              // Route information
-              Row(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
+                  // Vehicle info
+                  Row(
                     children: [
-                      Icon(
-                        Icons.circle,
-                        size: 12,
-                        color: Colors.green.shade600,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.local_shipping,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              trip.vehicleNo.toUpperCase(),
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '${dateFormat.format(trip.createdOn)} at ${timeFormat.format(trip.createdOn)}',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Price and payment info
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTripInfoItem(
+                          context,
+                          Icons.currency_rupee,
+                          'Total Price',
+                          trip.formattedFinalPrice,
+                          Colors.green.shade700,
+                        ),
                       ),
                       Container(
-                        width: 2,
-                        height: 24,
-                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                        width: 1,
+                        height: 36,
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
                       ),
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.red.shade600,
+                      Expanded(
+                        child: _buildTripInfoItem(
+                          context,
+                          Icons.payment,
+                          'Advance Paid',
+                          trip.formattedAdvancePaid,
+                          Colors.blue.shade700,
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 36,
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+                      ),
+                      Expanded(
+                        child: _buildTripInfoItem(
+                          context,
+                          Icons.account_balance_wallet,
+                          'Remaining',
+                          trip.formattedRemainingAmount,
+                          Colors.orange.shade700,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          trip.pickupAddress,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          trip.dropAddress,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right),
-                ],
-              ),
-              const Divider(height: 24),
 
-              // Distance and capacity
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  const SizedBox(height: 12),
+
+                  // Insurance and payment status
                   Row(
                     children: [
-                      Icon(
-                        Icons.straighten,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        trip.formattedDistance,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w500,
+                      if (trip.insuranceOpted)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.shield, size: 14, color: Colors.green.shade700),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Insured',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.green.shade700,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.scale,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        trip.loadCapacityLabel,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.secondary,
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: trip.isPaidFull ? Colors.green.shade50 : Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: trip.isPaidFull ? Colors.green.shade200 : Colors.orange.shade200,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              trip.isPaidFull ? Icons.check_circle : Icons.pending,
+                              size: 14,
+                              color: trip.isPaidFull ? Colors.green.shade700 : Colors.orange.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              trip.isPaidFull ? 'Fully Paid' : 'Partial Payment',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: trip.isPaidFull ? Colors.green.shade700 : Colors.orange.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTripInfoItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[500],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

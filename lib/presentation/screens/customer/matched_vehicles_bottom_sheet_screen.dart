@@ -38,9 +38,9 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
     if (widget.vehicle.isWithdrawn) return Colors.grey.shade700;
     if (widget.vehicle.isExpired) return Colors.grey.shade600;
     if (widget.vehicle.isUpdated) return Colors.blue.shade700;
-    if (widget.vehicle.isPending) return Colors.orange.shade700;
+    if (widget.vehicle.isPending) return Colors.amber.shade700;
     if (widget.vehicle.isRequestQuote) return Colors.purple.shade700;
-    return Colors.orange.shade700;
+    return Colors.amber.shade700;
   }
 
   Color _getStatusBgColor() {
@@ -49,9 +49,9 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
     if (widget.vehicle.isWithdrawn) return Colors.grey.shade100;
     if (widget.vehicle.isExpired) return Colors.grey.shade100;
     if (widget.vehicle.isUpdated) return Colors.blue.shade50;
-    if (widget.vehicle.isPending) return Colors.orange.shade50;
+    if (widget.vehicle.isPending) return Colors.amber.shade50;
     if (widget.vehicle.isRequestQuote) return Colors.purple.shade50;
-    return Colors.orange.shade50;
+    return Colors.amber.shade50;
   }
 
   IconData _getStatusIcon() {

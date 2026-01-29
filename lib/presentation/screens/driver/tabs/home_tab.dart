@@ -250,27 +250,45 @@ class _HomeTabState extends State<HomeTab> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8),
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.touch_app,
-                          size: 16,
-                          color: Colors.blue.shade700,
+                          size: 18,
+                          color: Colors.white,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Tap to view all ${tripDetail.userOffers.length} customer requests',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w500,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 14,
+                          color: Colors.white,
                         ),
                       ],
                     ),
@@ -293,9 +311,17 @@ class _HomeTabState extends State<HomeTab> {
         chipColor = Colors.blue;
         displayStatus = 'Offered';
         break;
+      case 'pending':
+        chipColor = Colors.amber;
+        displayStatus = 'Pending';
+        break;
       case 'accepted':
         chipColor = Colors.green;
         displayStatus = 'Accepted';
+        break;
+      case 'rejected':
+        chipColor = Colors.red;
+        displayStatus = 'Rejected';
         break;
       case 'completed':
         chipColor = Colors.grey;
@@ -311,18 +337,24 @@ class _HomeTabState extends State<HomeTab> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: chipColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: chipColor.withValues(alpha: 0.5)),
+        color: chipColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: chipColor.withValues(alpha: 0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Text(
         displayStatus,
-        style: TextStyle(
-          color: chipColor,
+        style: const TextStyle(
+          color: Colors.white,
           fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

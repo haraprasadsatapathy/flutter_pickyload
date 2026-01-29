@@ -208,7 +208,7 @@ class UserOffer {
       case 'pending':
         return 'Pending';
       case 'updated':
-        return 'Price Updated';
+        return 'Quotation Sent';
       case 'accepted':
         return 'Accepted';
       case 'rejected':

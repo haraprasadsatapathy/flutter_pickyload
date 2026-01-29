@@ -279,8 +279,8 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
       statusBgColor = Colors.red.shade50;
       statusIcon = Icons.cancel;
     } else if (userOffer.isPending) {
-      statusColor = Colors.orange.shade700;
-      statusBgColor = Colors.orange.shade50;
+      statusColor = Colors.amber.shade700;
+      statusBgColor = Colors.amber.shade50;
       statusIcon = Icons.hourglass_empty;
     } else if (userOffer.isUpdated) {
       statusColor = Colors.blue.shade700;
@@ -436,23 +436,94 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Info chips
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildInfoChip(
-                      context,
-                      Icons.straighten,
-                      userOffer.formattedDistance,
+                // Distance and price
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
                     ),
-                    if (userOffer.quotedPrice > 0)
-                      _buildInfoChip(
-                        context,
-                        Icons.currency_rupee,
-                        userOffer.quotedPrice.toStringAsFixed(0),
-                        isHighlighted: true,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.route,
+                              size: 20,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Distance',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                                Text(
+                                  userOffer.formattedDistance,
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                  ],
+                      if (userOffer.quotedPrice > 0) ...[
+                        Container(
+                          width: 1,
+                          height: 32,
+                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                        ),
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.currency_rupee,
+                                size: 20,
+                                color: Colors.green.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Quoted Price',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${userOffer.quotedPrice.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
 
                 // Pending status - show update price button (driver can give quote)
@@ -664,41 +735,6 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(BuildContext context, IconData icon, String label, {bool isHighlighted = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isHighlighted
-            ? Theme.of(context).colorScheme.primaryContainer
-            : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 14,
-            color: isHighlighted
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isHighlighted
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
         ],
       ),
     );

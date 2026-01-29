@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 /// Response model for Customer Home Page API
 class CustomerHomePageResponse {
   final String message;
@@ -26,7 +28,7 @@ class CustomerHomePageResponse {
 class CustomerHomePageData {
   final String bookingStatus;
   final List<BookingDetail> bookingDetails;
-  final List<BookingDetail> ongoingTrips;
+  final List<OngoingTrip> ongoingTrips;
 
   CustomerHomePageData({
     required this.bookingStatus,
@@ -42,7 +44,7 @@ class CustomerHomePageData {
               .toList() ??
           [],
       ongoingTrips: (json['ongoingTrips'] as List<dynamic>?)
-              ?.map((e) => BookingDetail.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => OngoingTrip.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -125,12 +127,119 @@ class VehicleMatch {
   String get displayStatus {
     if (isRequestQuote) return 'Request Quote';
     if (isPending) return 'Pending';
-    if (isUpdated) return 'Price Updated';
+    if (isUpdated) return 'Quotation Sent';
     if (isAccepted) return 'Accepted';
     if (isRejected) return 'Rejected';
     if (isWithdrawn) return 'Withdrawn';
     if (isExpired) return 'Expired';
     return status;
+  }
+}
+
+class OngoingTrip {
+  final String tripId;
+  final String vehicleNo;
+  final String tripStatus;
+  final DateTime createdOn;
+  final DateTime modifiedOn;
+  final String status;
+  final double finalPrice;
+  final bool insuranceOpted;
+  final double advanceAmountPaid;
+  final bool isPaidFull;
+
+  OngoingTrip({
+    required this.tripId,
+    required this.vehicleNo,
+    required this.tripStatus,
+    required this.createdOn,
+    required this.modifiedOn,
+    required this.status,
+    required this.finalPrice,
+    required this.insuranceOpted,
+    required this.advanceAmountPaid,
+    required this.isPaidFull,
+  });
+
+  factory OngoingTrip.fromJson(Map<String, dynamic> json) {
+    return OngoingTrip(
+      tripId: json['tripId'] as String? ?? '',
+      vehicleNo: json['vehicleNo'] as String? ?? '',
+      tripStatus: json['tripstatus'] as String? ?? json['tripStatus'] as String? ?? '',
+      createdOn: json['createdOn'] != null
+          ? DateTime.parse(json['createdOn'] as String)
+          : DateTime.now(),
+      modifiedOn: json['modifiedOn'] != null
+          ? DateTime.parse(json['modifiedOn'] as String)
+          : DateTime.now(),
+      status: json['status'] as String? ?? '',
+      finalPrice: (json['finalPrice'] as num?)?.toDouble() ?? 0.0,
+      insuranceOpted: json['insuranceOpted'] as bool? ?? false,
+      advanceAmountPaid: (json['advanceAmountPaid'] as num?)?.toDouble() ?? 0.0,
+      isPaidFull: json['isPaidFull'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'tripId': tripId,
+      'vehicleNo': vehicleNo,
+      'tripstatus': tripStatus,
+      'createdOn': createdOn.toIso8601String(),
+      'modifiedOn': modifiedOn.toIso8601String(),
+      'status': status,
+      'finalPrice': finalPrice,
+      'insuranceOpted': insuranceOpted,
+      'advanceAmountPaid': advanceAmountPaid,
+      'isPaidFull': isPaidFull,
+    };
+  }
+
+  String get formattedFinalPrice => '₹${finalPrice.toStringAsFixed(0)}';
+  String get formattedAdvancePaid => '₹${advanceAmountPaid.toStringAsFixed(0)}';
+  double get remainingAmount => finalPrice - advanceAmountPaid;
+  String get formattedRemainingAmount => '₹${remainingAmount.toStringAsFixed(0)}';
+
+  String get displayStatus {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Rejected';
+      case 'scheduled':
+        return 'Scheduled';
+      case 'inprogress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
+
+  Color get statusColor {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return const Color(0xFFFFB300); // Amber
+      case 'accepted':
+        return const Color(0xFF4CAF50); // Green
+      case 'rejected':
+        return const Color(0xFFF44336); // Red
+      case 'scheduled':
+        return const Color(0xFFFF9800); // Orange
+      case 'inprogress':
+        return const Color(0xFF2196F3); // Blue
+      case 'completed':
+        return const Color(0xFF4CAF50); // Green
+      case 'cancelled':
+        return const Color(0xFFF44336); // Red
+      default:
+        return const Color(0xFF9E9E9E);
+    }
   }
 }
 

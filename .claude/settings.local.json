@@ -27,7 +27,8 @@
       "Bash(copy:*)",
       "Bash(flutter run:*)",
       "mcp__ide__getDiagnostics",
-      "WebFetch(domain:pickyload.in)"
+      "WebFetch(domain:pickyload.in)",
+      "Bash(del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\edit_offer_price_screen.dart\")"
     ],
     "deny": [],
     "ask": []

@@ -305,28 +305,6 @@ class ShowDocumentsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement deactivate functionality
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Deactivate functionality coming soon'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.block, size: 16),
-                  label: const Text('Deactivate'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 16),

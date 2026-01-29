@@ -18,7 +18,6 @@ import '../presentation/screens/driver/show_vehicle_screen.dart';
 import '../presentation/screens/driver/show_documents_screen.dart';
 import '../presentation/screens/driver/add_load_screen.dart';
 import '../presentation/screens/driver/offer_loads_list_screen.dart';
-import '../presentation/screens/driver/edit_offer_price_screen.dart';
 import '../presentation/screens/customer/trip_request_screen.dart';
 import '../presentation/screens/customer/trip_tracking_screen.dart';
 import '../presentation/screens/customer/payment_screen.dart';
@@ -40,8 +39,6 @@ import '../presentation/cubit/customer/home/customer_home_tab_bloc.dart';
 import '../presentation/cubit/customer/home/customer_home_tab_event.dart';
 import '../presentation/cubit/driver/add_load/add_load_bloc.dart';
 import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_bloc.dart';
-import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_state.dart';
-import '../presentation/cubit/driver/update_offer_price/update_offer_price_bloc.dart';
 import '../presentation/cubit/driver/user_offers_list/user_offers_list_bloc.dart';
 import '../presentation/cubit/driver/user_offers_list/user_offers_list_event.dart';
 
@@ -126,19 +123,6 @@ final router = GoRouter(
         ),
         child: const OfferLoadsListScreen(),
       ),
-    ),
-    GoRoute(
-      path: '/edit-offer-price',
-      builder: (context, state) {
-        final offerLoad = state.extra as OfferLoadModel;
-        return BlocProvider(
-          create: (context) => UpdateOfferPriceBloc(
-            context,
-            Provider.of<DriverRepository>(context, listen: false),
-          ),
-          child: EditOfferPriceScreen(offerLoad: offerLoad),
-        );
-      },
     ),
     GoRoute(
       path: '/trip-request',

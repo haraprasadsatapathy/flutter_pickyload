@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../../../data/data_source/api_client.dart';
 import '../../../../domain/repository/driver_repository.dart';
 import '../../../../services/local/saved_service.dart';
@@ -102,15 +103,38 @@ class MyLoadsTabView extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(
-                          state.error,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.red),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red.shade400,
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
+                        const SizedBox(height: 20),
+                        Text(
+                          'Something went wrong',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Text(
+                            state.error,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
                           onPressed: () async {
                             final bloc = context.read<MyLoadsBloc>();
                             final savedService = SavedService();
@@ -119,7 +143,8 @@ class MyLoadsTabView extends StatelessWidget {
                               bloc.add(FetchMyLoads(driverId: user.id));
                             }
                           },
-                          child: const Text('Retry'),
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('Retry'),
                         ),
                       ],
                     ),
@@ -128,16 +153,36 @@ class MyLoadsTabView extends StatelessWidget {
               }
 
               if (state.loads.isEmpty) {
-                return const SliverFillRemaining(
+                return SliverFillRemaining(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.local_shipping_outlined, size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(28),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.local_shipping_outlined,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                         Text(
-                          'No loads available',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                          'No Loads Yet',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your offered loads will appear here.',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Colors.grey[500],
+                              ),
                         ),
                       ],
                     ),
@@ -151,14 +196,7 @@ class MyLoadsTabView extends StatelessWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final load = state.loads[index];
-                      return _buildLoadCard(
-                        context,
-                        load.status,
-                        load.pickupAddress,
-                        load.dropAddress,
-                        load.formattedPrice,
-                        _getStatusColor(load.status),
-                      );
+                      return _buildLoadCard(context, load);
                     },
                     childCount: state.loads.length,
                   ),
@@ -171,12 +209,35 @@ class MyLoadsTabView extends StatelessWidget {
     );
   }
 
+  String _getDisplayStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'driveroffered':
+        return 'Offered';
+      case 'pending':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Rejected';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'driveroffered':
         return Colors.orange;
+      case 'pending':
+        return Colors.amber;
       case 'accepted':
-        return Colors.blue;
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
       case 'completed':
         return Colors.green;
       case 'cancelled':
@@ -186,131 +247,268 @@ class MyLoadsTabView extends StatelessWidget {
     }
   }
 
-  Widget _buildLoadCard(
-    BuildContext context,
-    String status,
-    String pickupAddress,
-    String dropAddress,
-    String price,
-    Color statusColor,
-  ) {
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'driveroffered':
+        return Icons.access_time;
+      case 'pending':
+        return Icons.hourglass_empty;
+      case 'accepted':
+        return Icons.check_circle;
+      case 'rejected':
+        return Icons.cancel;
+      case 'completed':
+        return Icons.done_all;
+      case 'cancelled':
+        return Icons.cancel;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  Widget _buildLoadCard(BuildContext context, MyLoadModel load) {
+    final statusColor = _getStatusColor(load.status);
+    final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      margin: const EdgeInsets.only(bottom: 14),
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Status bar at top
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.08),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
+              ),
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    status,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                Text(
-                  price,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
+                Row(
                   children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.green.shade700, width: 2),
-                      ),
+                    Icon(
+                      _getStatusIcon(load.status),
+                      size: 16,
+                      color: statusColor,
                     ),
-                    Container(
-                      width: 2,
-                      height: 40,
-                      color: Colors.grey.shade400,
-                    ),
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.red.shade700, width: 2),
+                    const SizedBox(width: 6),
+                    Text(
+                      _getDisplayStatus(load.status),
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'Pickup: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              pickupAddress,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                if (load.price > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade600,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      load.formattedPrice,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
                       ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          const Text(
-                            'Drop: ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              dropAddress,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
+              ],
+            ),
+          ),
+
+          // Card body
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                // Route visualization
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Route line indicator
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade500,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Container(
+                            width: 2,
+                            height: 36,
+                            margin: const EdgeInsets.symmetric(vertical: 2),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.green.shade400,
+                                  Colors.red.shade400,
+                                ],
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: Colors.red.shade500,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    // Addresses
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PICKUP',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.green.shade600,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            load.pickupAddress,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'DROP-OFF',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.red.shade600,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            load.dropAddress,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+                Divider(
+                  height: 1,
+                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.12),
+                ),
+                const SizedBox(height: 12),
+
+                // Time info
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTimeInfo(
+                        context,
+                        Icons.play_circle_outline,
+                        'From',
+                        dateFormat.format(load.availableTimeStart),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 32,
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+                    ),
+                    Expanded(
+                      child: _buildTimeInfo(
+                        context,
+                        Icons.stop_circle_outlined,
+                        'Until',
+                        dateFormat.format(load.availableTimeEnd),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeInfo(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[500],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
