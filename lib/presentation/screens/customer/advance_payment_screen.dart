@@ -71,6 +71,7 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
       onSuccess: _onPaymentSuccess,
       onFailure: _onPaymentFailure,
       onExternalWallet: _onExternalWallet,
+      orderId:'${widget.booking.bookingId}${widget.vehicle.offerId}',
     );
   }
 
