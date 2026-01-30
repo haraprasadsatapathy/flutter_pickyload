@@ -49,7 +49,13 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             message: response.data!.message,
             loadStatus: response.data!.data.loadStatus,
             tripDetails: response.data!.data.tripDetails,
+            documents: state.documents,
           ));
+
+          // If no trips, fetch documents
+          if (response.data!.data.tripDetails.isEmpty) {
+            add(FetchDocuments());
+          }
         } else {
           emit(HomeTabError(
             error: response.message ?? 'Failed to fetch home page data',
@@ -63,6 +69,56 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
           error: 'Failed to fetch home page data: ${e.toString()}',
           loadStatus: state.loadStatus,
           tripDetails: state.tripDetails,
+        ));
+      }
+    });
+
+    // Fetch Documents
+    on<FetchDocuments>((event, emit) async {
+      emit(HomeTabLoading(
+        loadStatus: state.loadStatus,
+        tripDetails: state.tripDetails,
+        documents: state.documents,
+        isDocumentsLoading: true,
+      ));
+
+      try {
+        final user = await driverRepository.getUserDetailsSp();
+
+        if (user == null || user.id.isEmpty) {
+          emit(HomeTabError(
+            error: 'Driver ID not found. Please login again.',
+            loadStatus: state.loadStatus,
+            tripDetails: state.tripDetails,
+            documents: state.documents,
+          ));
+          return;
+        }
+
+        final response = await driverRepository.getAllDocuments(userId: user.id);
+
+        if (response.status == true && response.data != null) {
+          emit(DocumentsFetched(
+            message: 'Documents loaded successfully',
+            documents: response.data!.documents,
+            loadStatus: state.loadStatus,
+            tripDetails: state.tripDetails,
+          ));
+        } else {
+          emit(HomeTabError(
+            error: response.message ?? 'Failed to fetch documents',
+            loadStatus: state.loadStatus,
+            tripDetails: state.tripDetails,
+            documents: state.documents,
+          ));
+        }
+      } catch (e) {
+        debugPrint('HomeTabBloc: Error fetching documents: $e');
+        emit(HomeTabError(
+          error: 'Failed to fetch documents: ${e.toString()}',
+          loadStatus: state.loadStatus,
+          tripDetails: state.tripDetails,
+          documents: state.documents,
         ));
       }
     });
@@ -94,12 +150,19 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             message: 'Data refreshed successfully',
             loadStatus: response.data!.data.loadStatus,
             tripDetails: response.data!.data.tripDetails,
+            documents: state.documents,
           ));
+
+          // If no trips, fetch documents
+          if (response.data!.data.tripDetails.isEmpty) {
+            add(FetchDocuments());
+          }
         } else {
           emit(HomeTabError(
             error: response.message ?? 'Failed to refresh data',
             loadStatus: state.loadStatus,
             tripDetails: state.tripDetails,
+            documents: state.documents,
           ));
         }
       } catch (e) {

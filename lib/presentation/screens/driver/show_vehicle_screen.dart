@@ -173,6 +173,9 @@ class ShowVehicleScreen extends StatelessWidget {
   }
 
   Widget _buildVehicleCard(BuildContext context, VehicleModel vehicle) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -181,30 +184,36 @@ class ShowVehicleScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with Vehicle Number and Delete Button
+            // Header with Vehicle Number Plate and Status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        vehicle.vehicleNumber,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        vehicle.makeModel,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                      ),
-                    ],
+                  child: Text(
+                    vehicle.vehicleNumber.toUpperCase(),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
+                if (vehicle.status != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: vehicle.isVerified
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      vehicle.status!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: vehicle.isVerified ? Colors.green : Colors.orange,
+                      ),
+                    ),
+                  ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   onPressed: () {
@@ -222,13 +231,6 @@ class ShowVehicleScreen extends StatelessWidget {
             // Vehicle Details
             _buildDetailRow(
               context,
-              Icons.description_outlined,
-              'RC Number',
-              vehicle.rcNumber,
-            ),
-            const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
               Icons.scale_outlined,
               'Capacity',
               vehicle.getCapacityLabel(),
@@ -236,9 +238,23 @@ class ShowVehicleScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow(
               context,
-              Icons.check_circle_outline,
-              'Body Covered',
-              vehicle.isVehicleBodyCovered ? 'Yes' : 'No',
+              Icons.tire_repair_outlined,
+              'Number of Wheels',
+              vehicle.numberOfWheels.toString(),
+            ),
+            const SizedBox(height: 12),
+            _buildDetailRow(
+              context,
+              Icons.pin_outlined,
+              'Chassis Number',
+              vehicle.chassisNumber,
+            ),
+            const SizedBox(height: 12),
+            _buildDetailRow(
+              context,
+              Icons.local_shipping_outlined,
+              'Body Cover Type',
+              vehicle.bodyCoverTypeLabel,
             ),
             const SizedBox(height: 12),
 
@@ -246,15 +262,15 @@ class ShowVehicleScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Dimensions (cm)',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    'Dimensions (ft)',
+                    style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),

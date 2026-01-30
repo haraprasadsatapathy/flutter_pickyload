@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../domain/models/vehicle_list_response.dart';
 import '../../../../domain/repository/driver_repository.dart';
 import 'vehicle_list_event.dart';
 import 'vehicle_list_state.dart';
@@ -12,6 +13,26 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
   // Constructor
   VehicleListBloc(this.context, this.driverRepository) : super(VehicleListInitial()) {
     _registerEventHandlers();
+  }
+
+  List<VehicleModel> _mapVehicles(List<Vehicle> vehicles) {
+    return vehicles
+        .map((v) => VehicleModel(
+              vehicleId: v.vehicleId,
+              driverId: v.driverId,
+              capacity: v.capacity,
+              numberOfWheels: v.numberOfWheels,
+              length: v.length,
+              width: v.width,
+              height: v.height,
+              vehicleNumber: v.vehicleNumber,
+              chassisNumber: v.chassisNumber,
+              bodyCoverType: v.bodyCoverType,
+              status: v.status,
+              verifiedOn: v.verifiedOn,
+              updatedOn: v.updatedOn,
+            ))
+        .toList();
   }
 
   void _registerEventHandlers() {
@@ -27,20 +48,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
 
         if (result.status == true && result.data != null) {
           // Convert Vehicle objects to VehicleModel objects
-          final vehicles = result.data!.vehicles
-                  .map((vehicle) => VehicleModel(
-                        vehicleId: vehicle.vehicleId,
-                        driverId: vehicle.driverId,
-                        vehicleNumber: vehicle.vehicleNumber,
-                        rcNumber: vehicle.rcNumber,
-                        makeModel: vehicle.makeModel,
-                        capacity: vehicle.capacity,
-                        isVehicleBodyCovered: vehicle.isVehicleBodyCovered,
-                        length: vehicle.length,
-                        width: vehicle.width,
-                        height: vehicle.height,
-                      ))
-                  .toList();
+          final vehicles = _mapVehicles(result.data!.vehicles);
 
           emit(VehicleListSuccess(
             message: result.data!.message,
@@ -69,21 +77,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
         );
 
         if (result.status == true && result.data != null) {
-          // Convert Vehicle objects to VehicleModel objects
-          final vehicles = result.data!.vehicles
-                  .map((vehicle) => VehicleModel(
-                        vehicleId: vehicle.vehicleId,
-                        driverId: vehicle.driverId,
-                        vehicleNumber: vehicle.vehicleNumber,
-                        rcNumber: vehicle.rcNumber,
-                        makeModel: vehicle.makeModel,
-                        capacity: vehicle.capacity,
-                        isVehicleBodyCovered: vehicle.isVehicleBodyCovered,
-                        length: vehicle.length,
-                        width: vehicle.width,
-                        height: vehicle.height,
-                      ))
-                  .toList();
+          final vehicles = _mapVehicles(result.data!.vehicles);
 
           emit(VehicleListSuccess(
             message: 'Vehicles refreshed',
@@ -103,7 +97,7 @@ class VehicleListBloc extends Bloc<VehicleListEvent, VehicleListState> {
       }
     });
 
-    // Delete Vehicle
+    // Delete Vehicle (placeholder)
     on<DeleteVehicle>((event, emit) async {
       emit(VehicleListLoading(vehicles: state.vehicles));
 

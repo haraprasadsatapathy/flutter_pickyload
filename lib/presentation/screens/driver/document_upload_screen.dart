@@ -44,8 +44,9 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       return false;
     }
 
-    // Check if date of birth is selected
-    if (_selectedDateOfBirth == null) {
+    // Check if date of birth is selected (only required for DL, not RC)
+    final isRC = _selectedDocumentType == 'Registration Certificate (RC)';
+    if (!isRC && _selectedDateOfBirth == null) {
       return false;
     }
 
@@ -288,6 +289,9 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       _selectedDocumentType = newValue;
+                                      if (newValue == 'Registration Certificate (RC)') {
+                                        _selectedDateOfBirth = null;
+                                      }
                                     });
                                   },
                                 ),
@@ -411,7 +415,8 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Date of Birth Field
+                    // Date of Birth Field (hidden for RC)
+                    if (_selectedDocumentType != 'Registration Certificate (RC)')
                     Container(
                       decoration: BoxDecoration(
                         color: colorScheme.surface,

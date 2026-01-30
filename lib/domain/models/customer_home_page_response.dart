@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 /// Response model for Customer Home Page API
 class CustomerHomePageResponse {
   final String message;
@@ -26,7 +28,7 @@ class CustomerHomePageResponse {
 class CustomerHomePageData {
   final String bookingStatus;
   final List<BookingDetail> bookingDetails;
-  final List<BookingDetail> ongoingTrips;
+  final List<OngoingTrip> ongoingTrips;
 
   CustomerHomePageData({
     required this.bookingStatus,
@@ -42,7 +44,7 @@ class CustomerHomePageData {
               .toList() ??
           [],
       ongoingTrips: (json['ongoingTrips'] as List<dynamic>?)
-              ?.map((e) => BookingDetail.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => OngoingTrip.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -57,6 +59,202 @@ class CustomerHomePageData {
   }
 }
 
+class VehicleMatch {
+  final String bookingId;
+  final String vehicleNo;
+  final String vehicleId;
+  final String offerId;
+  final int vehicleWheels;
+  final String vehicleModel;
+  final String loadType;
+  final double quotedPrice;
+  String status;
+
+  VehicleMatch({
+    required this.bookingId,
+    required this.vehicleNo,
+    required this.vehicleId,
+    required this.offerId,
+    required this.vehicleWheels,
+    required this.vehicleModel,
+    required this.loadType,
+    required this.quotedPrice,
+    required this.status,
+  });
+
+  factory VehicleMatch.fromJson(Map<String, dynamic> json) {
+    return VehicleMatch(
+      bookingId: json['bookingId'] as String? ?? '',
+      vehicleNo: json['vehicle_no'] as String? ?? '',
+      vehicleId: json['vehicleId'] as String? ?? '',
+      offerId: json['offerID'] as String? ?? json['offerId'] as String? ?? '',
+      vehicleWheels: json['vehicleWheels'] as int? ?? 0,
+      vehicleModel: json['vehicleModel'] as String? ?? '',
+      loadType: json['loadType'] as String? ?? '',
+      quotedPrice: (json['quotedPrice'] as num?)?.toDouble() ?? 0.0,
+      status: json['status'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'bookingId': bookingId,
+      'vehicle_no': vehicleNo,
+      'vehicleId': vehicleId,
+      'offerId': offerId,
+      'vehicleWheels': vehicleWheels,
+      'vehicleModel': vehicleModel,
+      'loadType': loadType,
+      'quotedPrice': quotedPrice,
+      'status': status,
+    };
+  }
+
+  /// QuotationStatus helpers
+  bool get isRequestQuote => status.toLowerCase() == 'requestquoate' || status.toLowerCase() == 'requestquote';
+  bool get isPending => status.toLowerCase() == 'pending';
+  bool get isUpdated => status.toLowerCase() == 'updated';
+  bool get isAccepted => status.toLowerCase() == 'accepted';
+  bool get isRejected => status.toLowerCase() == 'rejected';
+  bool get isWithdrawn => status.toLowerCase() == 'withdrawn';
+  bool get isExpired => status.toLowerCase() == 'expired';
+
+  /// Check if user can take action (Request Quote or Accept/Reject)
+  bool get canRequestQuote => isRequestQuote;
+  bool get canAcceptOrReject => isPending || isUpdated;
+
+  /// Get display status text
+  String get displayStatus {
+    if (isRequestQuote) return 'Request Quote';
+    if (isPending) return 'Pending';
+    if (isUpdated) return 'Quotation Sent';
+    if (isAccepted) return 'Accepted';
+    if (isRejected) return 'Rejected';
+    if (isWithdrawn) return 'Withdrawn';
+    if (isExpired) return 'Expired';
+    return status;
+  }
+}
+
+class OngoingTrip {
+  final String tripId;
+  final String vehicleNo;
+  final String tripStatus;
+  final DateTime createdOn;
+  final DateTime modifiedOn;
+  final String status;
+  final double finalPrice;
+  final bool insuranceOpted;
+  final double advanceAmountPaid;
+  final bool isPaidFull;
+  final String pickUpConfirmationOtp;
+  final String pickupAddress;
+  final String dropAddress;
+
+  OngoingTrip({
+    required this.tripId,
+    required this.vehicleNo,
+    required this.tripStatus,
+    required this.createdOn,
+    required this.modifiedOn,
+    required this.status,
+    required this.finalPrice,
+    required this.insuranceOpted,
+    required this.advanceAmountPaid,
+    required this.isPaidFull,
+    required this.pickUpConfirmationOtp,
+    required this.pickupAddress,
+    required this.dropAddress,
+  });
+
+  factory OngoingTrip.fromJson(Map<String, dynamic> json) {
+    return OngoingTrip(
+      tripId: json['tripId'] as String? ?? '',
+      vehicleNo: json['vehicleNo'] as String? ?? '',
+      tripStatus: json['tripstatus'] as String? ?? json['tripStatus'] as String? ?? '',
+      createdOn: json['createdOn'] != null
+          ? DateTime.parse(json['createdOn'] as String)
+          : DateTime.now(),
+      modifiedOn: json['modifiedOn'] != null
+          ? DateTime.parse(json['modifiedOn'] as String)
+          : DateTime.now(),
+      status: json['status'] as String? ?? '',
+      finalPrice: (json['finalPrice'] as num?)?.toDouble() ?? 0.0,
+      insuranceOpted: json['insuranceOpted'] as bool? ?? false,
+      advanceAmountPaid: (json['advanceAmountPaid'] as num?)?.toDouble() ?? 0.0,
+      isPaidFull: json['isPaidFull'] as bool? ?? false,
+      pickUpConfirmationOtp: json['pickUpConfirmationOtp'] as String? ?? '',
+      pickupAddress: json['pickupAddress'] as String? ?? '',
+      dropAddress: json['dropAddress'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'tripId': tripId,
+      'vehicleNo': vehicleNo,
+      'tripstatus': tripStatus,
+      'createdOn': createdOn.toIso8601String(),
+      'modifiedOn': modifiedOn.toIso8601String(),
+      'status': status,
+      'finalPrice': finalPrice,
+      'insuranceOpted': insuranceOpted,
+      'advanceAmountPaid': advanceAmountPaid,
+      'isPaidFull': isPaidFull,
+      'pickUpConfirmationOtp': pickUpConfirmationOtp,
+      'pickupAddress': pickupAddress,
+      'dropAddress': dropAddress,
+    };
+  }
+
+  String get formattedFinalPrice => '₹${finalPrice.toStringAsFixed(0)}';
+  String get formattedAdvancePaid => '₹${advanceAmountPaid.toStringAsFixed(0)}';
+  double get remainingAmount => finalPrice - advanceAmountPaid;
+  String get formattedRemainingAmount => '₹${remainingAmount.toStringAsFixed(0)}';
+
+  String get displayStatus {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Rejected';
+      case 'scheduled':
+        return 'Scheduled';
+      case 'inprogress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return status;
+    }
+  }
+
+  Color get statusColor {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return const Color(0xFFFFB300); // Amber
+      case 'accepted':
+        return const Color(0xFF4CAF50); // Green
+      case 'rejected':
+        return const Color(0xFFF44336); // Red
+      case 'scheduled':
+        return const Color(0xFFFF9800); // Orange
+      case 'inprogress':
+        return const Color(0xFF2196F3); // Blue
+      case 'completed':
+        return const Color(0xFF4CAF50); // Green
+      case 'cancelled':
+        return const Color(0xFFF44336); // Red
+      default:
+        return const Color(0xFF9E9E9E);
+    }
+  }
+}
+
 class BookingDetail {
   final String bookingId;
   final String loadCapacity;
@@ -66,7 +264,7 @@ class BookingDetail {
   final double distance;
   final DateTime bookingOn;
   final DateTime createdOn;
-  final List<dynamic> vehicleMatch;
+  final List<VehicleMatch> vehicleMatch;
 
   BookingDetail({
     required this.bookingId,
@@ -94,7 +292,10 @@ class BookingDetail {
       createdOn: json['created_on'] != null
           ? DateTime.parse(json['created_on'] as String)
           : DateTime.now(),
-      vehicleMatch: json['vehicleMatch'] as List<dynamic>? ?? [],
+      vehicleMatch: (json['vehicleMatch'] as List<dynamic>?)
+              ?.map((e) => VehicleMatch.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -108,7 +309,7 @@ class BookingDetail {
       'distance': distance,
       'booking_on': bookingOn.toIso8601String(),
       'created_on': createdOn.toIso8601String(),
-      'vehicleMatch': vehicleMatch,
+      'vehicleMatch': vehicleMatch.map((e) => e.toJson()).toList(),
     };
   }
 

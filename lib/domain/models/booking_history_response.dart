@@ -137,6 +137,7 @@ class BookingHistory {
       case 'requested':
         return 'blue';
       case 'accepted':
+        return 'green';
       case 'in_progress':
       case 'in progress':
         return 'orange';

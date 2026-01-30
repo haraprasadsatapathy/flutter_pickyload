@@ -269,7 +269,15 @@ class _MyTripsTabContentState extends State<_MyTripsTabContent> {
       case 'requested':
         statusColor = Colors.blue;
         break;
+      case 'pending':
+        statusColor = Colors.amber;
+        break;
       case 'accepted':
+        statusColor = Colors.green;
+        break;
+      case 'rejected':
+        statusColor = Colors.red;
+        break;
       case 'in_progress':
       case 'in progress':
         statusColor = Colors.orange;

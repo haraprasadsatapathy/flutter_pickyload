@@ -3,179 +3,97 @@ import 'dart:developer' as developer;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-/// Custom Dio interceptor for pretty printing JSON requests and responses
+/// Custom Dio interceptor that logs requests and responses.
+///
+/// Uses [developer.log] so output appears cleanly in the IDE's
+/// Debug Console (VS Code / Android Studio) without the "I/flutter" prefix.
+/// You can copy the pretty-printed JSON directly from there.
 class PrettyDioLoggerInterceptor extends Interceptor {
+  static const _tag = 'API';
+  static const _encoder = JsonEncoder.withIndent('  ');
+
   void _log(String message) {
     if (kDebugMode) {
-      developer.log(message, name: 'API');
+      developer.log(message, name: _tag);
     }
   }
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    _log('\n');
-    _log(
-      '╔══════════════════════════════════════════════════════════════════════',
-    );
-    _log('║ REQUEST');
-    _log(
-      '╠══════════════════════════════════════════════════════════════════════',
-    );
-    _log('║ ${options.method} ${options.uri}');
-    _log(
-      '╠══════════════════════════════════════════════════════════════════════',
-    );
+    final buf = StringBuffer()
+      ..writeln('')
+      ..writeln('========== REQUEST ==========')
+      ..writeln('${options.method} ${options.uri}');
 
-    // Print headers
     if (options.headers.isNotEmpty) {
-      _log('║ HEADERS:');
+      buf.writeln('HEADERS:');
       options.headers.forEach((key, value) {
-        _log('║   $key: $value');
+        buf.writeln('  $key: $value');
       });
-      _log(
-        '╠══════════════════════════════════════════════════════════════════════',
-      );
     }
 
-    // Print query parameters
     if (options.queryParameters.isNotEmpty) {
-      _log('║ QUERY PARAMETERS:');
-      options.queryParameters.forEach((key, value) {
-        _log('║   $key: $value');
-      });
-      _log(
-        '╠══════════════════════════════════════════════════════════════════════',
-      );
+      buf.writeln('QUERY PARAMETERS:');
+      buf.writeln(_toPrettyJson(options.queryParameters));
     }
 
-    // Print request body as pretty JSON
     if (options.data != null) {
-      _log('║ REQUEST BODY:');
-      try {
-        final prettyJson = _getPrettyJson(options.data);
-        _log(prettyJson);
-        // prettyJson.split('\n').forEach((line) {
-        //   _log('║ $line');
-        // });
-      } catch (e) {
-        _log('║ ${options.data}');
-      }
-      _log(
-        '╠══════════════════════════════════════════════════════════════════════',
-      );
+      buf.writeln('BODY:');
+      buf.writeln(_toPrettyJson(options.data));
     }
 
-    _log(
-      '╚══════════════════════════════════════════════════════════════════════',
-    );
-    _log('\n');
+    buf.writeln('=============================');
+    _log(buf.toString());
 
     super.onRequest(options, handler);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    _log('\n');
-    _log(
-      '╔══════════════════════════════════════════════════════════════════════',
-    );
-    _log('║ RESPONSE');
-    _log(
-      '╠══════════════════════════════════════════════════════════════════════',
-    );
-    _log('║ ${response.requestOptions.method} ${response.requestOptions.uri}');
-    _log('║ Status Code: ${response.statusCode}');
-    _log(
-      '╠══════════════════════════════════════════════════════════════════════',
-    );
+    final buf = StringBuffer()
+      ..writeln('')
+      ..writeln('========== RESPONSE [${response.statusCode}] ==========')
+      ..writeln('${response.requestOptions.method} ${response.requestOptions.uri}');
 
-    // Print response headers
-    if (response.headers.map.isNotEmpty) {
-      _log('║ RESPONSE HEADERS:');
-      response.headers.map.forEach((key, value) {
-        _log('║   $key: ${value.join(', ')}');
-      });
-      _log(
-        '╠══════════════════════════════════════════════════════════════════════',
-      );
-    }
-
-    // Print response data as pretty JSON
     if (response.data != null) {
-      _log('║ RESPONSE BODY:');
-      try {
-        final prettyJson = _getPrettyJson(response.data);
-        prettyJson.split('\n').forEach((line) {
-          _log('║ $line');
-        });
-      } catch (e) {
-        _log('║ ${response.data}');
-      }
-      _log(
-        '╠══════════════════════════════════════════════════════════════════════',
-      );
+      buf.writeln('BODY:');
+      buf.writeln(_toPrettyJson(response.data));
     }
 
-    _log(
-      '╚══════════════════════════════════════════════════════════════════════',
-    );
-    _log('\n');
+    buf.writeln('==========================================');
+    _log(buf.toString());
 
     super.onResponse(response, handler);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    _log('\n');
-    _log(
-      '╔══════════════════════════════════════════════════════════════════════',
-    );
-    _log('║ ERROR');
-    _log(
-      '╠══════════════════════════════════════════════════════════════════════',
-    );
-    _log('║ ${err.requestOptions.method} ${err.requestOptions.uri}');
-    _log('║ Error Type: ${err.type}');
-    _log('║ Error Message: ${err.message}');
-    _log(
-      '╠══════════════════════════════════════════════════════════════════════',
-    );
+    final buf = StringBuffer()
+      ..writeln('')
+      ..writeln('========== ERROR ==========')
+      ..writeln('${err.requestOptions.method} ${err.requestOptions.uri}')
+      ..writeln('Type    : ${err.type}')
+      ..writeln('Message : ${err.message}');
 
-    // Print error response data as pretty JSON
     if (err.response?.data != null) {
-      _log('║ ERROR RESPONSE BODY:');
-      try {
-        final prettyJson = _getPrettyJson(err.response!.data);
-        prettyJson.split('\n').forEach((line) {
-          _log('║ $line');
-        });
-      } catch (e) {
-        _log('║ ${err.response!.data}');
-      }
-      _log(
-        '╠══════════════════════════════════════════════════════════════════════',
-      );
+      buf.writeln('BODY:');
+      buf.writeln(_toPrettyJson(err.response!.data));
     }
 
-    _log(
-      '╚══════════════════════════════════════════════════════════════════════',
-    );
-    _log('\n');
+    buf.writeln('===========================');
+    _log(buf.toString());
 
     super.onError(err, handler);
   }
 
-  /// Convert data to pretty printed JSON string
-  String _getPrettyJson(dynamic data) {
-    if (data is String) {
-      try {
-        final decoded = jsonDecode(data);
-        return const JsonEncoder.withIndent('  ').convert(decoded);
-      } catch (e) {
-        return data;
+  String _toPrettyJson(dynamic data) {
+    try {
+      if (data is String) {
+        return _encoder.convert(jsonDecode(data));
       }
-    } else {
-      return const JsonEncoder.withIndent('  ').convert(data);
+      return _encoder.convert(data);
+    } catch (_) {
+      return data.toString();
     }
   }
 }

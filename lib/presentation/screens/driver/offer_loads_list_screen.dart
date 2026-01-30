@@ -167,21 +167,6 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
                 ),
                 const SizedBox(width: 8),
                 _buildStatusChip(offerLoad.status),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 20),
-                  color: Theme.of(context).colorScheme.primary,
-                  onPressed: () async {
-                    final result = await context.push('/edit-offer-price', extra: offerLoad);
-                    // Refresh the list if the price was updated
-                    if (result == true && mounted) {
-                      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                      final driverId = authProvider.currentUser?.id ?? '';
-                      context.read<OfferLoadsListBloc>().add(RefreshOfferLoads(driverId: driverId));
-                    }
-                  },
-                  tooltip: 'Edit Price',
-                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -268,16 +253,20 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
     Color chipColor;
     Color textColor;
 
-    switch (status) {
-      case 'DriverOffered':
+    switch (status.toLowerCase()) {
+      case 'driveroffered':
         chipColor = Colors.blue.shade100;
         textColor = Colors.blue.shade900;
         break;
-      case 'Accepted':
+      case 'pending':
+        chipColor = Colors.amber.shade100;
+        textColor = Colors.amber.shade900;
+        break;
+      case 'accepted':
         chipColor = Colors.green.shade100;
         textColor = Colors.green.shade900;
         break;
-      case 'Rejected':
+      case 'rejected':
         chipColor = Colors.red.shade100;
         textColor = Colors.red.shade900;
         break;

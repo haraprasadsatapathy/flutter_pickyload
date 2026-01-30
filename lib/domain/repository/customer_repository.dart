@@ -22,9 +22,6 @@ class CustomerRepository {
   }
 
   /// Get customer home page data including bookings and ongoing trips
-  ///
-  /// Parameters:
-  /// - userId: User ID (UUID)
   Future<ApiResponse<CustomerHomePageResponse>> getHomePage({
     required String userId,
   }) async {
@@ -39,6 +36,87 @@ class CustomerRepository {
       return ApiResponse(
         status: false,
         message: 'An error occurred while fetching home page data: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Request a quote update from a driver
+  Future<ApiResponse<Map<String, dynamic>>> requestQuote({
+    required String userId,
+    required String bookingId,
+    required String offerId,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/User/OfferPrice-UpdateRequest',
+        data: {
+          'userId': userId,
+          'bookingId': bookingId,
+          'offerId': offerId,
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while requesting quote: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Accept an offer price and confirm booking
+  Future<ApiResponse<Map<String, dynamic>>> acceptOffer({
+    required String userId,
+    required String offerId,
+    required String bookingId,
+    required double advanceAmountPaid,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/User/OfferPrice-Accept',
+        data: {
+          'userId': userId,
+          'offerId': offerId,
+          'bookingId': bookingId,
+          'advanceAmountPaid': advanceAmountPaid,
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while accepting offer: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Cancel/reject a booking
+  Future<ApiResponse<Map<String, dynamic>>> cancelBooking({
+    required String userId,
+    required String bookingId,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/User/Booking-Cancel',
+        data: {
+          'userId': userId,
+          'bookingId': bookingId,
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while cancelling booking: ${e.toString()}',
         data: null,
       );
     }

@@ -18,14 +18,18 @@ import '../presentation/screens/driver/show_vehicle_screen.dart';
 import '../presentation/screens/driver/show_documents_screen.dart';
 import '../presentation/screens/driver/add_load_screen.dart';
 import '../presentation/screens/driver/offer_loads_list_screen.dart';
-import '../presentation/screens/driver/edit_offer_price_screen.dart';
 import '../presentation/screens/customer/trip_request_screen.dart';
 import '../presentation/screens/customer/trip_tracking_screen.dart';
 import '../presentation/screens/customer/payment_screen.dart';
+import '../presentation/screens/customer/advance_payment_screen.dart';
 import '../presentation/screens/customer/transaction_history_screen.dart';
 import '../presentation/screens/customer/customer_profile_screen.dart';
 import '../presentation/screens/customer/notifications_screen.dart';
 import '../presentation/screens/customer/help_support_screen.dart';
+import '../presentation/screens/customer/matched_vehicles_screen.dart';
+import '../presentation/screens/driver/user_offers_list_screen.dart';
+import '../domain/models/customer_home_page_response.dart';
+import '../domain/models/home_page_response.dart';
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
 import '../domain/repository/customer_repository.dart';
@@ -35,8 +39,8 @@ import '../presentation/cubit/customer/home/customer_home_tab_bloc.dart';
 import '../presentation/cubit/customer/home/customer_home_tab_event.dart';
 import '../presentation/cubit/driver/add_load/add_load_bloc.dart';
 import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_bloc.dart';
-import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_state.dart';
-import '../presentation/cubit/driver/update_offer_price/update_offer_price_bloc.dart';
+import '../presentation/cubit/driver/user_offers_list/user_offers_list_bloc.dart';
+import '../presentation/cubit/driver/user_offers_list/user_offers_list_event.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -121,31 +125,29 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/edit-offer-price',
-      builder: (context, state) {
-        final offerLoad = state.extra as OfferLoadModel;
-        return BlocProvider(
-          create: (context) => UpdateOfferPriceBloc(
-            context,
-            Provider.of<DriverRepository>(context, listen: false),
-          ),
-          child: EditOfferPriceScreen(offerLoad: offerLoad),
-        );
-      },
-    ),
-    GoRoute(
       path: '/trip-request',
       builder: (context, state) => const TripRequestScreen(),
     ),
     GoRoute(
       path: '/trip-tracking',
       builder: (context, state) =>
-          TripTrackingScreen(tripId: state.extra as String? ?? ''),
+          TripTrackingScreen(trip: state.extra as OngoingTrip),
     ),
     GoRoute(
       path: '/payment',
       builder: (context, state) =>
           PaymentScreen(tripId: state.extra as String? ?? ''),
+    ),
+    GoRoute(
+      path: '/advance-payment',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return AdvancePaymentScreen(
+          vehicle: extra['vehicle'] as VehicleMatch,
+          booking: extra['booking'] as BookingDetail,
+          onPaymentSuccess: extra['onPaymentSuccess'] as Function()?,
+        );
+      },
     ),
     GoRoute(
       path: '/transaction-history',
@@ -176,6 +178,26 @@ final router = GoRouter(
     GoRoute(
       path: '/help-support',
       builder: (context, state) => const HelpSupportScreen(),
+    ),
+    GoRoute(
+      path: '/matched-vehicles',
+      builder: (context, state) {
+        final booking = state.extra as BookingDetail;
+        return MatchedVehiclesScreen(booking: booking);
+      },
+    ),
+    GoRoute(
+      path: '/user-offers-list',
+      builder: (context, state) {
+        final tripDetail = state.extra as TripDetail;
+        return BlocProvider(
+          create: (context) => UserOffersListBloc(
+            context,
+            Provider.of<DriverRepository>(context, listen: false),
+          )..add(InitializeUserOffersList(tripDetail: tripDetail)),
+          child: UserOffersListScreen(tripDetail: tripDetail),
+        );
+      },
     ),
   ],
 );

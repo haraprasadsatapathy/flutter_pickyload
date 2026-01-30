@@ -14,3 +14,9 @@ class RefreshHomePage extends HomeTabEvent {
   @override
   List<Object?> get props => [];
 }
+
+// Fetch documents for user
+class FetchDocuments extends HomeTabEvent {
+  @override
+  List<Object?> get props => [];
+}

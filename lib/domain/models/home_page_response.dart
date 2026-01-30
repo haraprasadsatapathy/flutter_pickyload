@@ -118,33 +118,107 @@ class TripDetail {
 
 /// User offer model for offers made by users on driver's trips
 class UserOffer {
-  final String? offerId;
-  final String? userId;
-  final double? price;
-  final String? status;
+  final String quotationId;
+  final String pickupAddress;
+  final String dropAddress;
+  final DateTime? offerDate;
+  final double tripDistance;
+  final String bookingId;
+  final String status;
+  final double quotedPrice;
 
   UserOffer({
-    this.offerId,
-    this.userId,
-    this.price,
-    this.status,
+    required this.quotationId,
+    required this.pickupAddress,
+    required this.dropAddress,
+    this.offerDate,
+    required this.tripDistance,
+    required this.bookingId,
+    required this.status,
+    required this.quotedPrice,
   });
 
   factory UserOffer.fromJson(Map<String, dynamic> json) {
     return UserOffer(
-      offerId: json['offerId'] as String?,
-      userId: json['userId'] as String?,
-      price: (json['price'] as num?)?.toDouble(),
-      status: json['status'] as String?,
+      quotationId: json['quotationId'] as String? ?? '',
+      pickupAddress: json['pickupAddress'] as String? ?? '',
+      dropAddress: json['dropAddress'] as String? ?? '',
+      offerDate: json['offerDate'] != null
+          ? DateTime.tryParse(json['offerDate'] as String)
+          : null,
+      tripDistance: (json['tripDistance'] as num?)?.toDouble() ?? 0.0,
+      bookingId: json['bookingId'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      quotedPrice: (json['quotedPrice'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'offerId': offerId,
-      'userId': userId,
-      'price': price,
+      'quotationId': quotationId,
+      'pickupAddress': pickupAddress,
+      'dropAddress': dropAddress,
+      'offerDate': offerDate?.toIso8601String(),
+      'tripDistance': tripDistance,
+      'bookingId': bookingId,
       'status': status,
+      'quotedPrice': quotedPrice,
     };
+  }
+
+  /// Get a formatted route string
+  String get route {
+    final pickup = _getShortAddress(pickupAddress);
+    final drop = _getShortAddress(dropAddress);
+    return '$pickup to $drop';
+  }
+
+  /// Extract short address (city name) from full address
+  String _getShortAddress(String fullAddress) {
+    final parts = fullAddress.split(',');
+    if (parts.isNotEmpty) {
+      return parts.first.trim();
+    }
+    return fullAddress;
+  }
+
+  /// Get formatted distance string
+  String get formattedDistance {
+    if (tripDistance == 0) return 'N/A';
+    return '${tripDistance.toStringAsFixed(2)} km';
+  }
+
+  /// Status helpers
+  bool get isRequestQuote => status.toLowerCase() == 'requestquote';
+  bool get isPending => status.toLowerCase() == 'pending';
+  bool get isUpdated => status.toLowerCase() == 'updated';
+  bool get isAccepted => status.toLowerCase() == 'accepted';
+  bool get isRejected => status.toLowerCase() == 'rejected';
+  bool get isWithdrawn => status.toLowerCase() == 'withdrawn';
+  bool get isExpired => status.toLowerCase() == 'expired';
+
+  /// Check if driver can respond with a price (only when status is Pending)
+  bool get canUpdatePrice => isPending;
+
+  /// Get display status text
+  String get displayStatus {
+    switch (status.toLowerCase()) {
+      case 'requestquote':
+        return 'Quote Requested';
+      case 'pending':
+        return 'Pending';
+      case 'updated':
+        return 'Quotation Sent';
+      case 'accepted':
+        return 'Accepted';
+      case 'rejected':
+        return 'Rejected';
+      case 'withdrawn':
+        return 'Withdrawn';
+      case 'expired':
+        return 'Expired';
+      default:
+        return status;
+    }
   }
 }

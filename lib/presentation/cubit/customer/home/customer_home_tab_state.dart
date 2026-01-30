@@ -2,8 +2,8 @@ import 'package:picky_load/domain/models/customer_home_page_response.dart';
 import 'package:picky_load/models/user_model.dart';
 import 'package:picky_load/presentation/cubit/base/base_event_state.dart';
 
-// Re-export BookingDetail for convenience
-export 'package:picky_load/domain/models/customer_home_page_response.dart' show BookingDetail;
+// Re-export BookingDetail, VehicleMatch, and OngoingTrip for convenience
+export 'package:picky_load/domain/models/customer_home_page_response.dart' show BookingDetail, VehicleMatch, OngoingTrip;
 
 /// Base state class for Customer Home Tab feature
 class CustomerHomeTabState extends BaseEventState {
@@ -11,7 +11,7 @@ class CustomerHomeTabState extends BaseEventState {
   final bool isLoading;
   final String bookingStatus;
   final List<BookingDetail> bookingDetails;
-  final List<BookingDetail> ongoingTrips;
+  final List<OngoingTrip> ongoingTrips;
 
   CustomerHomeTabState({
     this.user,
