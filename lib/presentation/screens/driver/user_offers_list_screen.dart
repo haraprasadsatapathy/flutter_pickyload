@@ -47,7 +47,7 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('User Offers'),
+            title: const Text('Load Deal'),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => context.pop(),

@@ -147,6 +147,9 @@ class OngoingTrip {
   final bool insuranceOpted;
   final double advanceAmountPaid;
   final bool isPaidFull;
+  final String pickUpConfirmationOtp;
+  final String pickupAddress;
+  final String dropAddress;
 
   OngoingTrip({
     required this.tripId,
@@ -159,6 +162,9 @@ class OngoingTrip {
     required this.insuranceOpted,
     required this.advanceAmountPaid,
     required this.isPaidFull,
+    required this.pickUpConfirmationOtp,
+    required this.pickupAddress,
+    required this.dropAddress,
   });
 
   factory OngoingTrip.fromJson(Map<String, dynamic> json) {
@@ -177,6 +183,9 @@ class OngoingTrip {
       insuranceOpted: json['insuranceOpted'] as bool? ?? false,
       advanceAmountPaid: (json['advanceAmountPaid'] as num?)?.toDouble() ?? 0.0,
       isPaidFull: json['isPaidFull'] as bool? ?? false,
+      pickUpConfirmationOtp: json['pickUpConfirmationOtp'] as String? ?? '',
+      pickupAddress: json['pickupAddress'] as String? ?? '',
+      dropAddress: json['dropAddress'] as String? ?? '',
     );
   }
 
@@ -192,6 +201,9 @@ class OngoingTrip {
       'insuranceOpted': insuranceOpted,
       'advanceAmountPaid': advanceAmountPaid,
       'isPaidFull': isPaidFull,
+      'pickUpConfirmationOtp': pickUpConfirmationOtp,
+      'pickupAddress': pickupAddress,
+      'dropAddress': dropAddress,
     };
   }
 

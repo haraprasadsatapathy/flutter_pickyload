@@ -214,34 +214,38 @@ class _HomeTabState extends State<HomeTab> {
               _buildInfoRow(
                 context: context,
                 icon: Icons.trip_origin,
+                iconColor: Colors.green.shade600,
                 label: 'Pickup',
                 value: tripDetail.pickupAddress,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
               // Drop Address
               _buildInfoRow(
                 context: context,
                 icon: Icons.flag,
+                iconColor: Colors.red.shade600,
                 label: 'Drop',
                 value: tripDetail.dropAddress,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
               // Vehicle Number
               _buildInfoRow(
                 context: context,
                 icon: Icons.local_shipping,
+                iconColor: Colors.blue.shade600,
                 label: 'Vehicle',
-                value: tripDetail.vehicleNo,
+                value: tripDetail.vehicleNo.toUpperCase(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
 
               // User Offers count if any
               if (tripDetail.userOffers.isNotEmpty) ...[
                 _buildInfoRow(
                   context: context,
                   icon: Icons.people,
+                  iconColor: Colors.orange.shade600,
                   label: 'User Offers',
                   value: '${tripDetail.userOffers.length} offer(s)',
                 ),
@@ -365,6 +369,7 @@ class _HomeTabState extends State<HomeTab> {
     required IconData icon,
     required String label,
     required String value,
+    Color? iconColor,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,30 +378,34 @@ class _HomeTabState extends State<HomeTab> {
           padding: const EdgeInsets.only(top: 2),
           child: Icon(
             icon,
-            size: 16,
-            color: Colors.grey[600],
+            size: 18,
+            color: iconColor ?? Colors.grey[600],
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: Theme.of(context).textTheme.bodyMedium,
-              children: [
-                TextSpan(
-                  text: '$label: ',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: iconColor ?? Colors.grey[500],
+                  letterSpacing: 0.3,
                 ),
-                TextSpan(
-                  text: value,
-                  style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ],

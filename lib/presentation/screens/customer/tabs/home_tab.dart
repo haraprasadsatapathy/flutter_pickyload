@@ -693,7 +693,7 @@ class HomeTab extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          context.push('/trip-tracking', extra: trip.tripId);
+          context.push('/trip-tracking', extra: trip);
         },
         borderRadius: BorderRadius.circular(14),
         child: Column(

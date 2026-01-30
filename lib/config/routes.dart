@@ -131,7 +131,7 @@ final router = GoRouter(
     GoRoute(
       path: '/trip-tracking',
       builder: (context, state) =>
-          TripTrackingScreen(tripId: state.extra as String? ?? ''),
+          TripTrackingScreen(trip: state.extra as OngoingTrip),
     ),
     GoRoute(
       path: '/payment',
