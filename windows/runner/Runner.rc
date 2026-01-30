@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.picky_load" "\0"
+            VALUE "CompanyName", "app.ampber.pickyload" "\0"
             VALUE "FileDescription", "picky_load3" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "picky_load3" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.picky_load. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 app.ampber.pickyload. All rights reserved." "\0"
             VALUE "OriginalFilename", "picky_load3.exe" "\0"
             VALUE "ProductName", "picky_load3" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

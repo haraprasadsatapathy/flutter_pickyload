@@ -28,7 +28,11 @@
       "Bash(flutter run:*)",
       "mcp__ide__getDiagnostics",
       "WebFetch(domain:pickyload.in)",
-      "Bash(del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\edit_offer_price_screen.dart\")"
+      "Bash(del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\edit_offer_price_screen.dart\")",
+      "Bash(move \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\com\\\\picky_load\\\\MainActivity.kt\" \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\android\\\\app\\\\src\\\\main\\\\kotlin\\\\app\\\\ampber\\\\pickyload\\\\MainActivity.kt\")",
+      "Bash(cmd.exe /c del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\android\\\\app\\\\google-services.json\")",
+      "Bash(cmd.exe /c del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\ios\\\\Runner\\\\GoogleService-Info.plist\")",
+      "Bash(cmd.exe /c \"del /f E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\android\\\\app\\\\google-services.json\")"
     ],
     "deny": [],
     "ask": []

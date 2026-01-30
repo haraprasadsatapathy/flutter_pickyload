@@ -1,4 +1,4 @@
-package com.picky_load
+package app.ampber.pickyload
 
 import android.content.pm.PackageManager
 import android.os.Bundle
