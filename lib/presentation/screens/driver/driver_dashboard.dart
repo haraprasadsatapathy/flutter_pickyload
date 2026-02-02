@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../cubit/driver/home/home_tab_bloc.dart';
+import '../../cubit/driver/home/home_tab_event.dart';
 import 'tabs/home_tab.dart';
 import 'tabs/my_loads_tab.dart';
 import 'tabs/profile_tab.dart';
@@ -20,6 +23,15 @@ class _DriverDashboardState extends State<DriverDashboard> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Initial fetch for home tab
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeTabBloc>().add(FetchHomePage());
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_selectedIndex],
@@ -29,6 +41,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 0) {
+            context.read<HomeTabBloc>().add(FetchHomePage());
+          }
         },
         destinations: const [
           NavigationDestination(

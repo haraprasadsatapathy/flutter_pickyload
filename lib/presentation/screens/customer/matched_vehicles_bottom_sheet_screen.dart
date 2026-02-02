@@ -6,7 +6,7 @@ class VehicleDetailsBottomSheet extends StatefulWidget {
   final VehicleMatch vehicle;
   final BookingDetail booking;
   final Function(double price)? onRequestQuote;
-  final Function()? onAccept;
+  final Future<bool> Function()? onAccept;
   final Function()? onReject;
 
   const VehicleDetailsBottomSheet({
@@ -78,29 +78,31 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
   }
 
   Future<void> _handleAccept() async {
-    if (widget.vehicle.isUpdated) {
-      // Status is "Updated" — navigate to advance payment screen
-      Navigator.pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AdvancePaymentScreen(
-            vehicle: widget.vehicle,
-            booking: widget.booking,
-            onPaymentSuccess: widget.onAccept,
-          ),
-        ),
-      );
-      return;
-    }
-
     setState(() => _isLoading = true);
     try {
-      widget.onAccept?.call();
-    } finally {
+      final success = await widget.onAccept?.call() ?? false;
+      if (!mounted) return;
+
+      if (success && widget.vehicle.isUpdated) {
+        // API succeeded — close bottom sheet and navigate to advance payment screen
+        final navigator = Navigator.of(context);
+        navigator.pop();
+        navigator.push(
+          MaterialPageRoute(
+            builder: (_) => AdvancePaymentScreen(
+              vehicle: widget.vehicle,
+              booking: widget.booking,
+            ),
+          ),
+        );
+      } else if (success) {
+        Navigator.pop(context);
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (_) {
       if (mounted) {
         setState(() => _isLoading = false);
-        Navigator.pop(context);
       }
     }
   }

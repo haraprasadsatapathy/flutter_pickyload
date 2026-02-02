@@ -58,7 +58,7 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
     }
   }
 
-  Future<void> _onAcceptOffer(VehicleMatch vehicle, double advanceAmount) async {
+  Future<bool> _onAcceptOffer(VehicleMatch vehicle) async {
     final userId = await _getUserId();
     if (userId.isEmpty) {
       if (mounted) {
@@ -66,8 +66,10 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
           const SnackBar(content: Text('User not found. Please login again.')),
         );
       }
-      return;
+      return false;
     }
+
+    final advanceAmount = vehicle.quotedPrice * 0.10;
 
     final response = await _customerRepository.acceptOffer(
       userId: userId,
@@ -76,19 +78,18 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
       advanceAmountPaid: advanceAmount,
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
     if (response.status == true) {
-      setState(() {
-        vehicle.status = 'Accepted';
-      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Offer accepted and booking confirmed!')),
+        const SnackBar(content: Text('Offer accepted successfully!')),
       );
+      return true;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(response.message ?? 'Failed to accept offer')),
       );
+      return false;
     }
   }
 
@@ -560,7 +561,7 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
         vehicle: vehicle,
         booking: widget.booking,
         onRequestQuote: (_) => _onRequestQuote(vehicle),
-        onAccept: () => _onAcceptOffer(vehicle, 1000),
+        onAccept: () => _onAcceptOffer(vehicle),
         onReject: () => _onRejectBooking(vehicle),
       ),
     );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:picky_load/presentation/cubit/customer/home/customer_home_tab_bloc.dart';
+import 'package:picky_load/presentation/cubit/customer/home/customer_home_tab_event.dart';
 import 'package:picky_load/presentation/screens/customer/tabs/home_tab.dart';
 import 'tabs/my_trips_tab.dart';
 import 'tabs/notifications_tab.dart';
@@ -32,6 +35,9 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 0) {
+            context.read<CustomerHomeTabBloc>().add(RefreshHomePage());
+          }
         },
         destinations: const [
           NavigationDestination(
@@ -58,8 +64,11 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
-        onPressed: () {
-          context.push('/trip-request');
+        onPressed: () async {
+          await context.push('/trip-request');
+          if (mounted) {
+            context.read<CustomerHomeTabBloc>().add(RefreshHomePage());
+          }
         },
         icon: const Icon(Icons.add),
         label: const Text('Request Load'),

@@ -15,12 +15,24 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    // Fetch initial data when the tab loads
-    context.read<HomeTabBloc>().add(FetchHomePage());
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<HomeTabBloc>().add(FetchHomePage());
+    }
   }
 
   void _showLogoutDialog(BuildContext context) {
@@ -177,15 +189,20 @@ class _HomeTabState extends State<HomeTab> {
     TripDetail tripDetail,
   ) {
     final bool isDriverOffered = tripDetail.tripStatus.toLowerCase() == 'driveroffered';
-    final bool hasMultipleOffers = tripDetail.userOffers.length > 1;
-    final bool canNavigate = isDriverOffered && hasMultipleOffers;
+    final bool hasUserOffers = tripDetail.userOffers.isNotEmpty;
+    final bool canNavigate = isDriverOffered && hasUserOffers;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       child: InkWell(
         onTap: canNavigate
-            ? () => context.push('/user-offers-list', extra: tripDetail)
+            ? () async {
+                await context.push('/user-offers-list', extra: tripDetail);
+                if (mounted) {
+                  context.read<HomeTabBloc>().add(FetchHomePage());
+                }
+              }
             : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -281,7 +298,7 @@ class _HomeTabState extends State<HomeTab> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Tap to view all ${tripDetail.userOffers.length} customer requests',
+                          'Tap to view ${tripDetail.userOffers.length} customer request${tripDetail.userOffers.length > 1 ? 's' : ''}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: Colors.white,
@@ -516,8 +533,11 @@ class _HomeTabState extends State<HomeTab> {
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () {
-                context.push('/document-upload');
+              onPressed: () async {
+                await context.push('/document-upload');
+                if (mounted) {
+                  context.read<HomeTabBloc>().add(FetchHomePage());
+                }
               },
               icon: const Icon(Icons.upload_file),
               label: const Text('Upload Documents'),
@@ -646,8 +666,11 @@ class _HomeTabState extends State<HomeTab> {
         ),
       ),
       child: InkWell(
-        onTap: () {
-          context.push('/add-load');
+        onTap: () async {
+          await context.push('/add-load');
+          if (mounted) {
+            context.read<HomeTabBloc>().add(FetchHomePage());
+          }
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(

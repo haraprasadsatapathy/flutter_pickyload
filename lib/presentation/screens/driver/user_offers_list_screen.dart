@@ -24,14 +24,16 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
     return BlocConsumer<UserOffersListBloc, UserOffersListState>(
       listener: (context, state) {
         if (state is UserOfferPriceUpdated) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          final messenger = ScaffoldMessenger.of(context);
+          // Navigate back to driver home and refresh
+          context.go('/driver-dashboard');
+          // Show success message
+          messenger.showSnackBar(
             SnackBar(
               content: Text(state.message),
               backgroundColor: Colors.green,
             ),
           );
-          // Navigate back to driver home and refresh
-          context.go('/driver-dashboard');
         } else if (state is UserOffersListError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

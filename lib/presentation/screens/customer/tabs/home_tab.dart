@@ -9,8 +9,32 @@ import 'package:provider/provider.dart';
 
 import '../../../../providers/theme_provider.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<CustomerHomeTabBloc>().add(RefreshHomePage());
+    }
+  }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -275,8 +299,11 @@ class HomeTab extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: hasMatchedVehicles
-            ? () {
-                context.push('/matched-vehicles', extra: booking);
+            ? () async {
+                await context.push('/matched-vehicles', extra: booking);
+                if (mounted) {
+                  context.read<CustomerHomeTabBloc>().add(RefreshHomePage());
+                }
               }
             : null,
         borderRadius: BorderRadius.circular(12),
@@ -692,8 +719,11 @@ class HomeTab extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: () {
-          context.push('/trip-tracking', extra: trip);
+        onTap: () async {
+          await context.push('/trip-tracking', extra: trip);
+          if (mounted) {
+            context.read<CustomerHomeTabBloc>().add(RefreshHomePage());
+          }
         },
         borderRadius: BorderRadius.circular(14),
         child: Column(
