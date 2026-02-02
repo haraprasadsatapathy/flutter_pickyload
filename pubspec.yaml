@@ -55,6 +55,8 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   auto_route_generator: ^9.0.0
   build_runner: ^2.4.13
+  icons_launcher: ^3.0.0
+  package_rename_plus: ^1.5.1
 
 flutter:
   uses-material-design: true
@@ -74,3 +76,26 @@ flutter:
           weight: 600
         - asset: assets/fonts/Poppins-Bold.ttf
           weight: 700
+
+# =====================================================
+# Icons Launcher Configuration
+# Run: dart run icons_launcher:create
+# =====================================================
+icons_launcher:
+  image_path: "assets/images/app_icon.png"
+  platforms:
+    android:
+      enable: false
+    ios:
+      enable: true
+
+# =====================================================
+# Package Rename Plus Configuration
+# Run: dart run package_rename_plus
+# =====================================================
+package_rename_config:
+
+  ios:
+    app_name: Picky Load
+    bundle_name: Picky Load
+    package_name: app.ampber.pickyload
