@@ -276,7 +276,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
               backgroundColor: Colors.green,
             ),
           );
-          context.go('/customer-dashboard');
+          context.pop();
         }
 
         if (state is OnTripRequestError) {
