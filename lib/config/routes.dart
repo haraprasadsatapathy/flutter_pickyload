@@ -28,6 +28,7 @@ import '../presentation/screens/customer/notifications_screen.dart';
 import '../presentation/screens/customer/help_support_screen.dart';
 import '../presentation/screens/customer/matched_vehicles_screen.dart';
 import '../presentation/screens/driver/user_offers_list_screen.dart';
+import '../domain/models/payment_request_response.dart';
 import '../domain/models/customer_home_page_response.dart';
 import '../domain/models/home_page_response.dart';
 import '../domain/repository/user_repository.dart';
@@ -145,6 +146,7 @@ final router = GoRouter(
         return AdvancePaymentScreen(
           vehicle: extra['vehicle'] as VehicleMatch,
           booking: extra['booking'] as BookingDetail,
+          paymentData: extra['paymentData'] as PaymentRequestResponse,
           onPaymentSuccess: extra['onPaymentSuccess'] as Function()?,
         );
       },

@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../config/dependency_injection.dart';
 import '../../../domain/models/customer_home_page_response.dart';
+import '../../../domain/models/payment_request_response.dart';
 import '../../../domain/repository/customer_repository.dart';
 import '../../../services/local/saved_service.dart';
+import 'advance_payment_screen.dart';
 import 'matched_vehicles_bottom_sheet_screen.dart';
 
 class MatchedVehiclesScreen extends StatefulWidget {
@@ -58,38 +60,24 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
     }
   }
 
-  Future<bool> _onAcceptOffer(VehicleMatch vehicle) async {
-    final userId = await _getUserId();
-    if (userId.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User not found. Please login again.')),
-        );
-      }
-      return false;
-    }
-
-    final advanceAmount = vehicle.quotedPrice * 0.10;
-
-    final response = await _customerRepository.acceptOffer(
-      userId: userId,
-      offerId: vehicle.offerId,
+  Future<PaymentRequestResponse?> _onAcceptOffer(VehicleMatch vehicle) async {
+    final response = await _customerRepository.requestPayment(
       bookingId: widget.booking.bookingId,
-      advanceAmountPaid: advanceAmount,
+      offerId: vehicle.offerId,
     );
 
-    if (!mounted) return false;
+    if (!mounted) return null;
 
-    if (response.status == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Offer accepted successfully!')),
-      );
-      return true;
+    // Check if data is available (API returns data on success, status field may be absent)
+    if (response.data != null) {
+      return response.data;
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message ?? 'Failed to accept offer')),
-      );
-      return false;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.message ?? 'Failed to request payment')),
+        );
+      }
+      return null;
     }
   }
 

@@ -262,7 +262,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                                 items: state.vehicles.map((vehicle) {
                                   return DropdownMenuItem<String>(
                                     value: vehicle.vehicleId,
-                                    child: Text(vehicle.displayName),
+                                    child: Text(vehicle.vehicleNumber),
                                   );
                                 }).toList(),
                                 onChanged: (value) {

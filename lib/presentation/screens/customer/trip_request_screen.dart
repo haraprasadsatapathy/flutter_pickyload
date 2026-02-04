@@ -407,13 +407,13 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                   TextFormField(
                     controller: _loadNameController,
                     decoration: const InputDecoration(
-                      labelText: 'Load Name',
-                      hintText: 'Enter load name (e.g., Furniture, Electronics)',
+                      labelText: 'Goods Type',
+                      hintText: 'Enter goods type(e.g., Furniture, Electronics)',
                       prefixIcon: Icon(Icons.inventory_2_outlined),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter load name';
+                        return 'Please enter goods type';
                       }
                       return null;
                     },

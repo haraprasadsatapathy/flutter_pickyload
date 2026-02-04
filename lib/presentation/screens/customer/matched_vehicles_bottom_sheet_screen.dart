@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../domain/models/customer_home_page_response.dart';
+import '../../../domain/models/payment_request_response.dart';
 import 'advance_payment_screen.dart';
 
 class VehicleDetailsBottomSheet extends StatefulWidget {
   final VehicleMatch vehicle;
   final BookingDetail booking;
   final Function(double price)? onRequestQuote;
-  final Future<bool> Function()? onAccept;
+  final Future<PaymentRequestResponse?> Function()? onAccept;
   final Function()? onReject;
 
   const VehicleDetailsBottomSheet({
@@ -80,10 +81,10 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
   Future<void> _handleAccept() async {
     setState(() => _isLoading = true);
     try {
-      final success = await widget.onAccept?.call() ?? false;
+      final paymentData = await widget.onAccept?.call();
       if (!mounted) return;
 
-      if (success && widget.vehicle.isUpdated) {
+      if (paymentData != null) {
         // API succeeded — close bottom sheet and navigate to advance payment screen
         final navigator = Navigator.of(context);
         navigator.pop();
@@ -92,11 +93,10 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
             builder: (_) => AdvancePaymentScreen(
               vehicle: widget.vehicle,
               booking: widget.booking,
+              paymentData: paymentData,
             ),
           ),
         );
-      } else if (success) {
-        Navigator.pop(context);
       } else {
         setState(() => _isLoading = false);
       }

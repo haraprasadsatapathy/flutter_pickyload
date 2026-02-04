@@ -5,18 +5,23 @@ import 'package:go_router/go_router.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../../config/dependency_injection.dart';
 import '../../../domain/models/customer_home_page_response.dart';
+import '../../../domain/models/payment_request_response.dart';
+import '../../../domain/models/verify_payment_request.dart';
+import '../../../domain/repository/customer_repository.dart';
 import '../../../services/local/saved_service.dart';
 import '../../../services/payment/razorpay_service.dart';
 
 class AdvancePaymentScreen extends StatefulWidget {
   final VehicleMatch vehicle;
   final BookingDetail booking;
+  final PaymentRequestResponse paymentData;
   final Function()? onPaymentSuccess;
 
   const AdvancePaymentScreen({
     super.key,
     required this.vehicle,
     required this.booking,
+    required this.paymentData,
     this.onPaymentSuccess,
   });
 
@@ -27,30 +32,22 @@ class AdvancePaymentScreen extends StatefulWidget {
 class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
   bool _isProcessing = false;
   late final RazorpayService _razorpayService;
+  final CustomerRepository _customerRepository = getIt<CustomerRepository>();
   final SavedService _savedService = getIt<SavedService>();
 
-  String _userEmail = '';
-  String _userPhone = '';
+  double get _quotedPrice => widget.paymentData.totalAmount;
+  double get _advanceAmount => widget.paymentData.amountPayable;
 
-  double get _quotedPrice => widget.vehicle.quotedPrice;
-  double get _advanceAmount => _quotedPrice * 0.10;
+  Future<String> _getUserId() async {
+    final user = await _savedService.getUserDetailsSp();
+    return user?.id ?? '';
+  }
 
   @override
   void initState() {
     super.initState();
     _razorpayService = RazorpayService();
     _razorpayService.init();
-    _loadUserDetails();
-  }
-
-  Future<void> _loadUserDetails() async {
-    final user = await _savedService.getUserDetailsSp();
-    if (user != null && mounted) {
-      setState(() {
-        _userEmail = user.email;
-        _userPhone = user.phone;
-      });
-    }
   }
 
   @override
@@ -66,16 +63,16 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
       amount: (_advanceAmount * 100).toInt(), // amount in paise
       name: 'Picky Load',
       description: 'Advance payment for Booking #${widget.booking.bookingId}',
-      email: _userEmail,
-      contact: _userPhone,
+      email: widget.paymentData.email,
+      contact: widget.paymentData.contact,
+      orderId: widget.paymentData.orderId,
       onSuccess: _onPaymentSuccess,
       onFailure: _onPaymentFailure,
       onExternalWallet: _onExternalWallet,
     );
   }
 
-  void _onPaymentSuccess(PaymentSuccessResponse response) {
-
+  void _onPaymentSuccess(PaymentSuccessResponse response) async {
     final successData = {
       'paymentId': response.paymentId,
       'orderId': response.orderId,
@@ -90,6 +87,37 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
     debugPrint('=== RAZORPAY PAYMENT SUCCESS RESPONSE ===');
     debugPrint('$successData');
     debugPrint('==========================================');
+
+    if (!mounted) return;
+
+    // Call verify payment API for success
+    final userId = await _getUserId();
+    final verifyRequest = VerifyPaymentRequest(
+      success: PaymentSuccess(
+        razorpayPaymentId: response.paymentId ?? '',
+        razorpayOrderId: response.orderId ?? '',
+        razorpaySignature: response.signature ?? '',
+      ),
+      error: null,
+      bookingId: widget.booking.bookingId,
+      quotationId: widget.paymentData.quotationId,
+      userId: userId,
+      amount: _advanceAmount,
+    );
+
+    debugPrint('=== VERIFY PAYMENT API REQUEST (SUCCESS) ===');
+    debugPrint('Request Data: ${jsonEncode(verifyRequest.toJson())}');
+    debugPrint('=============================================');
+
+    final verifyResponse = await _customerRepository.verifyPayment(
+      request: verifyRequest,
+    );
+
+    debugPrint('=== VERIFY PAYMENT API RESPONSE ===');
+    debugPrint('Status: ${verifyResponse.status}');
+    debugPrint('Message: ${verifyResponse.message}');
+    debugPrint('Data: ${verifyResponse.data}');
+    debugPrint('===================================');
 
     if (!mounted) return;
     setState(() => _isProcessing = false);
@@ -150,14 +178,117 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
     );
   }
 
-  void _onPaymentFailure(PaymentFailureResponse response) {
+  void _onPaymentFailure(PaymentFailureResponse response) async {
+    final failureData = {
+      'code': response.code,
+      'message': response.message,
+      'advanceAmount': _advanceAmount,
+      'quotedPrice': widget.vehicle.quotedPrice,
+      'bookingId': widget.booking.bookingId,
+      'vehicleId': widget.vehicle.vehicleId,
+      'offerId': widget.vehicle.offerId,
+    };
+    debugPrint('=== RAZORPAY PAYMENT FAILURE RESPONSE ===');
+    debugPrint('$failureData');
+    debugPrint('==========================================');
+
+    if (!mounted) return;
+
+    // Parse error details from Razorpay response
+    Map<String, dynamic>? errorData;
+    if (response.message != null) {
+      try {
+        errorData = jsonDecode(response.message!) as Map<String, dynamic>;
+      } catch (_) {
+        // If message is not JSON, use it as description
+      }
+    }
+
+    // Call verify payment API for failure
+    final userId = await _getUserId();
+    final verifyRequest = VerifyPaymentRequest(
+      success: null,
+      error: PaymentError(
+        code: errorData?['code']?.toString() ?? response.code?.toString() ?? '',
+        description: errorData?['description'] ?? response.message ?? 'Payment failed',
+        source: errorData?['source'] ?? 'customer',
+        step: errorData?['step'] ?? 'payment_authentication',
+        reason: errorData?['reason'] ?? 'payment_failed',
+        orderId: errorData?['metadata']?['order_id'] ?? widget.paymentData.orderId,
+        paymentId: errorData?['metadata']?['payment_id'] ?? '',
+      ),
+      bookingId: widget.booking.bookingId,
+      quotationId: widget.paymentData.quotationId,
+      userId: userId,
+      amount: _advanceAmount,
+    );
+
+    debugPrint('=== VERIFY PAYMENT API REQUEST (FAILURE) ===');
+    debugPrint('Request Data: ${jsonEncode(verifyRequest.toJson())}');
+    debugPrint('=============================================');
+
+    final verifyResponse = await _customerRepository.verifyPayment(
+      request: verifyRequest,
+    );
+
+    debugPrint('=== VERIFY PAYMENT API RESPONSE (FAILURE) ===');
+    debugPrint('Status: ${verifyResponse.status}');
+    debugPrint('Message: ${verifyResponse.message}');
+    debugPrint('Data: ${verifyResponse.data}');
+    debugPrint('=============================================');
+
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment failed: ${response.message ?? 'Unknown error'}'),
-        backgroundColor: Colors.red,
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Payment Failed',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              errorData?['description'] ?? response.message ?? 'Something went wrong. Please try again.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _handlePay();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade600,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Retry Payment'),
+          ),
+        ],
       ),
     );
   }
@@ -203,8 +334,8 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            _buildPriceRow('Driver Quoted Price', _quotedPrice),
-                            _buildPriceRow('Advance (10%)', _advanceAmount),
+                            _buildPriceRow('Total Amount', _quotedPrice),
+                            _buildPriceRow('Advance Amount', _advanceAmount),
                             const Divider(height: 24),
                             _buildPriceRow(
                               'Amount to Pay Now',
@@ -233,7 +364,7 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'To confirm your booking, please pay 10% of the quoted price as an advance. The remaining amount will be collected upon delivery.',
+                              'To confirm your booking, please pay the advance amount. The remaining amount will be collected upon delivery.',
                               style: TextStyle(
                                 color: Colors.orange.shade800,
                                 fontSize: 14,
