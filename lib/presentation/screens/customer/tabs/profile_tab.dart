@@ -9,8 +9,16 @@ import '../../../cubit/user_profile/profile/profile_bloc.dart';
 import '../../../cubit/user_profile/profile/profile_event.dart';
 import '../../../cubit/user_profile/profile/profile_state.dart';
 
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
+
+  @override
+  State<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<ProfileTab> {
+  ProfileBloc? _bloc;
+  String? _lastFetchedUserId;
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -42,6 +50,13 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
+  void _fetchProfileIfNeeded(String? userId) {
+    if (userId != null && userId != _lastFetchedUserId && _bloc != null) {
+      _lastFetchedUserId = userId;
+      _bloc!.add(FetchProfile(userId: userId));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -49,108 +64,115 @@ class ProfileTab extends StatelessWidget {
 
     return BlocProvider(
       create: (context) {
-        final bloc = ProfileBloc(context, context.read<UserRepository>());
+        _bloc = ProfileBloc(context, context.read<UserRepository>());
         // Fetch profile data on initialization
         if (userId != null) {
-          bloc.add(FetchProfile(userId: userId));
+          _lastFetchedUserId = userId;
+          _bloc!.add(FetchProfile(userId: userId));
         }
-        return bloc;
+        return _bloc!;
       },
-      child: BlocListener<ProfileBloc, ProfileState>(
-        listener: (context, state) {
-          // Show success message when profile is fetched successfully
-          if (state is ProfileFetchSuccess) {
-            // Reload the AuthProvider to get updated user data
-            authProvider.loadUser();
-          }
+      child: Builder(
+        builder: (context) {
+          // This will trigger when authProvider changes
+          _bloc = context.read<ProfileBloc>();
+          _fetchProfileIfNeeded(userId);
 
-          // Show error message if profile fetch fails
-          if (state is ProfileFetchError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+          return BlocListener<ProfileBloc, ProfileState>(
+            listener: (context, state) {
+              // Show success message when profile is fetched successfully
+              if (state is ProfileFetchSuccess) {
+                // Reload the AuthProvider to get updated user data
+                authProvider.loadUser();
+              }
 
-          // Show success message when profile is updated
-          if (state is ProfileUpdateSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
-            // Reload the AuthProvider to get updated user data
-            authProvider.loadUser();
-          }
+              // Show error message if profile fetch fails
+              if (state is ProfileFetchError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
 
-          // Show error message if profile update fails
-          if (state is ProfileUpdateError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        child: BlocBuilder<ProfileBloc, ProfileState>(
-          builder: (context, state) {
-            return SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    // Profile Image
-                    _buildProfileImage(context, state, authProvider),
-                    const SizedBox(height: 16),
-                    // Profile Info
-                    _buildProfileInfo(context, state, authProvider),
-                    const SizedBox(height: 30),
-                    // Profile Options
-                    _buildProfileOption(
-                      context,
-                      Icons.person_outlined,
-                      'Edit Profile',
-                      () => context.push('/customer-profile'),
-                    ),
+              // Show success message when profile is updated
+              if (state is ProfileUpdateSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                // Reload the AuthProvider to get updated user data
+                authProvider.loadUser();
+              }
 
-                    _buildProfileOption(
-                      context,
-                      Icons.payment,
-                      'Payments',
-                      () => context.push('/transaction-history'),
-                    ),
-
-                    _buildProfileOption(
-                      context,
-                      Icons.help_outline,
-                      'Help & Support',
-                      () => context.push('/help-support'),
-                    ),
-                    const SizedBox(height: 20),
-                    // Logout Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showLogoutDialog(context),
-                        icon: const Icon(Icons.logout),
-                        label: const Text('Logout'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
+              // Show error message if profile update fails
+              if (state is ProfileUpdateError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, state) {
+                return SafeArea(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        // Profile Image
+                        _buildProfileImage(context, state, authProvider),
+                        const SizedBox(height: 16),
+                        // Profile Info
+                        _buildProfileInfo(context, state, authProvider),
+                        const SizedBox(height: 30),
+                        // Profile Options
+                        _buildProfileOption(
+                          context,
+                          Icons.person_outlined,
+                          'Edit Profile',
+                          () => context.push('/customer-profile'),
                         ),
-                      ),
+                        _buildProfileOption(
+                          context,
+                          Icons.payment,
+                          'Payments',
+                          () => context.push('/transaction-history'),
+                        ),
+                        _buildProfileOption(
+                          context,
+                          Icons.help_outline,
+                          'Help & Support',
+                          () => context.push('/help-support'),
+                        ),
+                        const SizedBox(height: 20),
+                        // Logout Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showLogoutDialog(context),
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Logout'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                              side: const BorderSide(color: Colors.red),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

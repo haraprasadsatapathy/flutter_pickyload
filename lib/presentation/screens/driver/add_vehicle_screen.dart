@@ -214,7 +214,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
 
                       // Vehicle Dimensions Section
                       Text(
-                        'Vehicle Dimensions (in meters)',
+                        'Vehicle Dimensions (in foot)',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
@@ -225,8 +225,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       TextFormField(
                         controller: _lengthController,
                         decoration: const InputDecoration(
-                          labelText: 'Length (meters)',
-                          hintText: 'e.g., 6.1',
+                          labelText: 'Length (ft)',
+                          hintText: 'e.g., 20',
                           prefixIcon: Icon(Icons.straighten_outlined),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -243,8 +243,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       TextFormField(
                         controller: _widthController,
                         decoration: const InputDecoration(
-                          labelText: 'Width (meters)',
-                          hintText: 'e.g., 2.5',
+                          labelText: 'Width (ft)',
+                          hintText: 'e.g., 8',
                           prefixIcon: Icon(Icons.width_normal_outlined),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -261,8 +261,8 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                       TextFormField(
                         controller: _heightController,
                         decoration: const InputDecoration(
-                          labelText: 'Height (meters)',
-                          hintText: 'e.g., 4.0',
+                          labelText: 'Height (ft)',
+                          hintText: 'e.g., 13',
                           prefixIcon: Icon(Icons.height_outlined),
                         ),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),

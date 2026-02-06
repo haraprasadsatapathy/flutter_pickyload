@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../domain/models/customer_home_page_response.dart';
 
-class TripTrackingScreen extends StatelessWidget {
+class TripDetailsScreen extends StatelessWidget {
   final OngoingTrip trip;
 
-  const TripTrackingScreen({
+  const TripDetailsScreen({
     super.key,
     required this.trip,
   });
@@ -24,6 +24,16 @@ class TripTrackingScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          TextButton.icon(
+            onPressed: () => context.push('/cancel-booking'),
+            icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+            label: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

@@ -42,11 +42,11 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterStates> {
       }
 
       // Validation Rule 2: Validate email format
-      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-      if (!emailRegex.hasMatch(event.email)) {
-        emit(OnRegisterError('Please enter a valid email'));
-        return;
-      }
+      // final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      // if (!emailRegex.hasMatch(event.email)) {
+      //   emit(OnRegisterError('Please enter a valid email'));
+      //   return;
+      // }
 
       // Validation Rule 3: Validate phone format (must be 10 digits)
       if (event.phone.length != 10) {

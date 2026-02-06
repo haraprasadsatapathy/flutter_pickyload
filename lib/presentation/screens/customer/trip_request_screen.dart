@@ -422,7 +422,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
 
                   // Dimensions Section
                   Text(
-                    'Vehicle Dimensions (in meters)',
+                    'Vehicle Dimensions (in foot)',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -434,7 +434,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     controller: _lengthController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Length (m)',
+                      labelText: 'Length (ft)',
                       hintText: 'Enter length',
                       prefixIcon: Icon(Icons.straighten),
                     ),
@@ -456,7 +456,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     controller: _widthController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Width (m)',
+                      labelText: 'Width (ft)',
                       hintText: 'Enter width',
                       prefixIcon: Icon(Icons.height),
                     ),
@@ -478,7 +478,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     controller: _heightController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Height (m)',
+                      labelText: 'Height (ft)',
                       hintText: 'Enter height',
                       prefixIcon: Icon(Icons.height_outlined),
                     ),

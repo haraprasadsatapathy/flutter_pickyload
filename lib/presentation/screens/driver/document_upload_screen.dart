@@ -20,12 +20,12 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
   DateTime? _selectedDateOfBirth;
 
-  // Document type options
-  String? _selectedDocumentType;
-  final List<String> _documentTypes = [
-    'Driving License (DL)',
-    'Registration Certificate (RC)'
-  ];
+  // Document type options - 0 for DL, 1 for RC
+  int _selectedDocumentIndex = 0;
+
+  String get _selectedDocumentType => _selectedDocumentIndex == 0
+      ? 'Driving License (DL)'
+      : 'Registration Certificate (RC)';
 
   @override
   void dispose() {
@@ -34,18 +34,13 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   }
 
   bool _canSubmit() {
-    // Check if document type is selected
-    if (_selectedDocumentType == null) {
-      return false;
-    }
-
     // Check if document number is provided
     if (_documentNumberController.text.trim().isEmpty) {
       return false;
     }
 
     // Check if date of birth is selected (only required for DL, not RC)
-    final isRC = _selectedDocumentType == 'Registration Certificate (RC)';
+    final isRC = _selectedDocumentIndex == 1;
     if (!isRC && _selectedDateOfBirth == null) {
       return false;
     }
@@ -57,7 +52,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     // Dispatch the event to submit the document
     context.read<UploadDocumentsBloc>().add(
           SubmitSingleDocument(
-            documentType: _selectedDocumentType!,
+            documentType: _selectedDocumentType,
             documentNumber: _documentNumberController.text.trim(),
             dateOfBirth: _selectedDateOfBirth,
           ),
@@ -81,7 +76,8 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final driverRepository = Provider.of<DriverRepository>(context, listen: false);
+    final driverRepository =
+        Provider.of<DriverRepository>(context, listen: false);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -121,286 +117,198 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
           final isLoading = state is UploadDocumentsLoading;
 
           return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: colorScheme.surface,
-        title: Text(
-          'Document Upload',
-          style: TextStyle(
-            color: colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        iconTheme: IconThemeData(color: colorScheme.onSurface),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
+            backgroundColor: theme.scaffoldBackgroundColor,
+            appBar: AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () => context.pop(),
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_ios_new,
+                    size: 16,
+                    color: colorScheme.onSurface,
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.cloud_upload_outlined,
-                        size: 32,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Upload Your Document',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Please provide your document type and number to verify your identity.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () => context.go('/driver-dashboard'),
+                  child: Text(
+                    'Skip',
+                    style: TextStyle(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      // Header
+                      Text(
+                        'Verify Your\nDocument',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please provide your document details for verification',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-              // Form Section
-              Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    // Document Type Dropdown
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark
-                                ? Colors.black.withValues(alpha: 0.3)
-                                : Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
+                      // Document Type Selection Cards
+                      Text(
+                        'Select Document Type',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface.withValues(alpha: 0.8),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          // DL Card
+                          Expanded(
+                            child: _buildDocumentTypeCard(
+                              context: context,
+                              index: 0,
+                              icon: Icons.badge_outlined,
+                              title: 'DL',
+                              subtitle: 'Driving License',
+                              isSelected: _selectedDocumentIndex == 0,
+                              colorScheme: colorScheme,
+                              isDark: isDark,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // RC Card
+                          Expanded(
+                            child: _buildDocumentTypeCard(
+                              context: context,
+                              index: 1,
+                              icon: Icons.directions_car_outlined,
+                              title: 'RC',
+                              subtitle: 'Registration Certificate',
+                              isSelected: _selectedDocumentIndex == 1,
+                              colorScheme: colorScheme,
+                              isDark: isDark,
+                            ),
                           ),
                         ],
-                        border: isDark
-                            ? Border.all(
-                                color: colorScheme.outline.withValues(alpha: 0.2),
-                                width: 1,
-                              )
-                            : null,
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    Icons.description_outlined,
-                                    size: 20,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Document Type',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Text(
-                                      ' *',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.error,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: colorScheme.outline.withValues(alpha: 0.5),
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: _selectedDocumentType,
-                                  isExpanded: true,
-                                  hint: Text(
-                                    'Select document type *',
-                                    style: TextStyle(
-                                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                                    ),
-                                  ),
-                                  icon: Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: colorScheme.onSurface.withValues(alpha: 0.6),
-                                  ),
-                                  dropdownColor: colorScheme.surface,
-                                  items: _documentTypes.map((String type) {
-                                    return DropdownMenuItem<String>(
-                                      value: type,
-                                      child: Text(
-                                        type,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: colorScheme.onSurface,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      _selectedDocumentType = newValue;
-                                      if (newValue == 'Registration Certificate (RC)') {
-                                        _selectedDateOfBirth = null;
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
+                      const SizedBox(height: 28),
+
+                      // Form Card
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.08),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDark
+                                  ? Colors.black.withValues(alpha: 0.2)
+                                  : colorScheme.primary.withValues(alpha: 0.04),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Document Number Field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark
-                                ? Colors.black.withValues(alpha: 0.3)
-                                : Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                        border: isDark
-                            ? Border.all(
-                                color: colorScheme.outline.withValues(alpha: 0.2),
-                                width: 1,
-                              )
-                            : null,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    Icons.badge_outlined,
-                                    size: 20,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Document Number',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Text(
-                                      ' *',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.error,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            // Document Number Field
+                            _buildInputLabel(
+                              context,
+                              _selectedDocumentIndex == 0
+                                  ? 'DL Number'
+                                  : 'RC Number',
+                              true,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
                             TextFormField(
                               controller: _documentNumberController,
+                              textCapitalization: TextCapitalization.characters,
                               style: TextStyle(
                                 fontSize: 15,
+                                fontWeight: FontWeight.w500,
                                 color: colorScheme.onSurface,
+                                letterSpacing: 1,
                               ),
                               onChanged: (value) {
-                                // Trigger rebuild to update submit button state
                                 setState(() {});
                               },
                               decoration: InputDecoration(
-                                hintText: 'Enter document number *',
+                                hintText: _selectedDocumentIndex == 0
+                                    ? 'e.g., KA01 20190001234'
+                                    : 'e.g., KA01AB1234',
                                 hintStyle: TextStyle(
-                                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                  color: colorScheme.onSurface
+                                      .withValues(alpha: 0.35),
+                                  fontWeight: FontWeight.normal,
+                                  letterSpacing: 0.5,
+                                ),
+                                prefixIcon: Container(
+                                  margin: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.numbers,
+                                    size: 18,
+                                    color: colorScheme.primary,
+                                  ),
                                 ),
                                 filled: true,
                                 fillColor: isDark
                                     ? colorScheme.surfaceContainerHighest
-                                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                                        .withValues(alpha: 0.5)
+                                    : colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.3),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colorScheme.outline.withValues(alpha: 0.5),
-                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: colorScheme.outline.withValues(alpha: 0.5),
-                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(14),
                                   borderSide: BorderSide(
                                     color: colorScheme.primary,
-                                    width: 2,
+                                    width: 1.5,
                                   ),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(
@@ -409,192 +317,338 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
 
-                    // Date of Birth Field (hidden for RC)
-                    if (_selectedDocumentType != 'Registration Certificate (RC)')
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark
-                                ? Colors.black.withValues(alpha: 0.3)
-                                : Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                        border: isDark
-                            ? Border.all(
-                                color: colorScheme.outline.withValues(alpha: 0.2),
-                                width: 1,
-                              )
-                            : null,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
+                            // Date of Birth Field (only for DL)
+                            if (_selectedDocumentIndex == 0) ...[
+                              const SizedBox(height: 20),
+                              _buildInputLabel(context, 'Date of Birth', true),
+                              const SizedBox(height: 8),
+                              InkWell(
+                                onTap: () => _selectDateOfBirth(context),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 14,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: colorScheme.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: isDark
+                                        ? colorScheme.surfaceContainerHighest
+                                            .withValues(alpha: 0.5)
+                                        : colorScheme.surfaceContainerHighest
+                                            .withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
-                                  child: Icon(
-                                    Icons.cake_outlined,
-                                    size: 20,
-                                    color: colorScheme.primary,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.primary
+                                              .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Icon(
+                                          Icons.calendar_today_outlined,
+                                          size: 18,
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _selectedDateOfBirth == null
+                                              ? 'Select your date of birth'
+                                              : _formatDate(
+                                                  _selectedDateOfBirth!),
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight:
+                                                _selectedDateOfBirth == null
+                                                    ? FontWeight.normal
+                                                    : FontWeight.w500,
+                                            color: _selectedDateOfBirth == null
+                                                ? colorScheme.onSurface
+                                                    .withValues(alpha: 0.35)
+                                                : colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: colorScheme.onSurface
+                                            .withValues(alpha: 0.4),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Date of Birth',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Text(
-                                      ' *',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.error,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Info Card
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: colorScheme.primary.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 20,
+                              color: colorScheme.primary,
                             ),
-                            const SizedBox(height: 16),
-                            InkWell(
-                              onTap: () => _selectDateOfBirth(context),
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? colorScheme.surfaceContainerHighest
-                                      : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                                  border: Border.all(
-                                    color: colorScheme.outline.withValues(alpha: 0.5),
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      _selectedDateOfBirth == null
-                                          ? 'Select date of birth *'
-                                          : '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        color: _selectedDateOfBirth == null
-                                            ? colorScheme.onSurface.withValues(alpha: 0.4)
-                                            : colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.calendar_today,
-                                      size: 20,
-                                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                                    ),
-                                  ],
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _selectedDocumentIndex == 0
+                                    ? 'Your DL will be verified instantly via government database'
+                                    : 'Your RC will be verified instantly via government database',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  height: 1.4,
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
 
-                    // Submit Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: (isLoading || !_canSubmit()) ? null : () => _submitDocument(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Text(
-                                'Submit Document',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 32),
 
-                    // Skip Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                context.go('/driver-dashboard');
-                              },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      // Submit Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: (isLoading || !_canSubmit())
+                              ? null
+                              : () => _submitDocument(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor:
+                                colorScheme.primary.withValues(alpha: 0.4),
+                            disabledForegroundColor:
+                                Colors.white.withValues(alpha: 0.7),
+                            elevation: 0,
+                            shadowColor: colorScheme.primary.withValues(alpha: 0.3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          'Skip for Now',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: colorScheme.onSurface.withValues(alpha: 0.7),
-                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      'Verify Document',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.arrow_forward_rounded,
+                                      size: 20,
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-        );
+            ),
+          );
         },
       ),
     );
   }
 
+  Widget _buildDocumentTypeCard({
+    required BuildContext context,
+    required int index,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required ColorScheme colorScheme,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedDocumentIndex = index;
+          if (index == 1) {
+            _selectedDateOfBirth = null;
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withValues(alpha: isDark ? 0.2 : 0.1)
+              : colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.1),
+            width: isSelected ? 1.5 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+        ),
+        child: Column(
+          children: [
+            // Selection indicator
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.outline.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? const Icon(
+                          Icons.check,
+                          size: 12,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Icon
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? colorScheme.primary.withValues(alpha: 0.15)
+                    : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                size: 28,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Title
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 2),
+            // Subtitle
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputLabel(BuildContext context, String label, bool isRequired) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
+          ),
+        ),
+        if (isRequired)
+          Text(
+            ' *',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.error,
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
 }

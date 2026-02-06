@@ -575,6 +575,66 @@ class DriverRepository {
   }
 
   // ============================================
+  // TRIP START OPERATIONS
+  // ============================================
+
+  /// Start trip with user OTP verification
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  /// - tripId: Trip ID (UUID)
+  /// - confirmationOtp: OTP shared by customer
+  Future<ApiResponse<Map<String, dynamic>>> startTripWithOtp({
+    required String driverId,
+    required String tripId,
+    required String confirmationOtp,
+  }) async {
+    try {
+      final requestData = {
+        'driverId': driverId,
+        'tripId': tripId,
+        'confirmationOtp': confirmationOtp,
+      };
+
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/Trip/TripStart/ByDriverWithUserOtp',
+        data: requestData,
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      // Check if data is present and not empty (success condition)
+      if (response.data != null && response.data!.isNotEmpty) {
+        return ApiResponse(
+          status: true,
+          message: response.message ?? 'Trip started successfully',
+          data: response.data,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: response.message ?? 'Failed to start trip',
+        data: null,
+      );
+    } catch (e) {
+      String errorMessage = 'An error occurred while starting trip: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: null,
+      );
+    }
+  }
+
+  // ============================================
   // UTILITY METHODS
   // ============================================
 
