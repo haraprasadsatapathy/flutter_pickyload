@@ -5,6 +5,7 @@ import '../models/api_response.dart';
 import '../models/customer_home_page_response.dart';
 import '../models/payment_request_response.dart';
 import '../models/verify_payment_request.dart';
+import '../models/customer_trip_history_response.dart';
 
 /// Repository for customer-related operations
 class CustomerRepository {
@@ -165,6 +166,29 @@ class CustomerRepository {
       return ApiResponse(
         status: false,
         message: 'An error occurred while verifying payment: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Get customer's trip history by user ID
+  ///
+  /// Parameters:
+  /// - userId: User ID (UUID)
+  Future<ApiResponse<CustomerTripHistoryResponse>> getTripHistoryByUserId({
+    required String userId,
+  }) async {
+    try {
+      final response = await _apiClient.getRaw<CustomerTripHistoryResponse>(
+        '/User/GetTriphistoryByUserId/$userId',
+        fromJson: (json) => CustomerTripHistoryResponse.fromJson(json),
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while fetching trip history: ${e.toString()}',
         data: null,
       );
     }

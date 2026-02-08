@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../domain/repository/driver_repository.dart';
 import '../../../domain/repository/user_repository.dart';
 import '../../cubit/auth/role_selection/role_selection_bloc.dart';
@@ -64,6 +65,86 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
   void dispose() {
     _logoController.dispose();
     super.dispose();
+  }
+
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.logout_rounded,
+                color: Colors.red.shade400,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Logout'),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to logout from your account?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await _performLogout();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performLogout() async {
+    try {
+      // Clear all stored user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      // Navigate to login screen
+      if (mounted) {
+        context.go('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to logout: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -148,6 +229,26 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                                 onTap: () {
                                   context.read<RoleSelectionBloc>().add(SelectDriverRole());
                                 },
+                              ),
+                              const Spacer(),
+                              // Logout option
+                              Center(
+                                child: TextButton.icon(
+                                  onPressed: () => _showLogoutConfirmation(context),
+                                  icon: Icon(
+                                    Icons.logout_rounded,
+                                    color: Colors.red.shade400,
+                                    size: 20,
+                                  ),
+                                  label: Text(
+                                    'Logout',
+                                    style: TextStyle(
+                                      color: Colors.red.shade400,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
                               ),
                               const SizedBox(height: 20),
                             ],

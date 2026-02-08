@@ -13,6 +13,7 @@ import '../models/offer_loads_response.dart';
 import '../models/offer_loads_list_response.dart';
 import '../models/update_offer_price_response.dart';
 import '../models/home_page_response.dart';
+import '../models/trip_history_response.dart';
 
 /// Repository for driver-related operations
 class DriverRepository {
@@ -524,14 +525,24 @@ class DriverRepository {
     }
   }
 
-  /// Get driver's trip history
-  /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getTripHistory({required String driverId, int? page, int? limit}) async {
+  /// Get driver's trip history by driver ID
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  Future<ApiResponse<TripHistoryResponse>> getTripHistoryByDriverId({required String driverId}) async {
     try {
-      // TODO: Implement API call to /Driver/Get-Trip-History
-      throw UnimplementedError('Get trip history API not yet implemented');
+      final response = await _apiClient.getRaw<TripHistoryResponse>(
+        '/Driver/GetTriphistoryByDriverId/$driverId',
+        fromJson: (json) => TripHistoryResponse.fromJson(json),
+      );
+
+      return response;
     } catch (e) {
-      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while fetching trip history: ${e.toString()}',
+        data: null,
+      );
     }
   }
 
