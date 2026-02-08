@@ -148,8 +148,11 @@ class OngoingTrip {
   final double advanceAmountPaid;
   final bool isPaidFull;
   final String pickUpConfirmationOtp;
+  final String dropConfirmationOtp;
   final String pickupAddress;
   final String dropAddress;
+  final String driverName;
+  final String driverNumber;
 
   OngoingTrip({
     required this.tripId,
@@ -163,8 +166,11 @@ class OngoingTrip {
     required this.advanceAmountPaid,
     required this.isPaidFull,
     required this.pickUpConfirmationOtp,
+    required this.dropConfirmationOtp,
     required this.pickupAddress,
     required this.dropAddress,
+    required this.driverName,
+    required this.driverNumber,
   });
 
   factory OngoingTrip.fromJson(Map<String, dynamic> json) {
@@ -174,18 +180,25 @@ class OngoingTrip {
       tripStatus: json['tripstatus'] as String? ?? json['tripStatus'] as String? ?? '',
       createdOn: json['createdOn'] != null
           ? DateTime.parse(json['createdOn'] as String)
-          : DateTime.now(),
+          : (json['tripStartDate'] != null
+              ? DateTime.parse(json['tripStartDate'] as String)
+              : DateTime.now()),
       modifiedOn: json['modifiedOn'] != null
           ? DateTime.parse(json['modifiedOn'] as String)
-          : DateTime.now(),
+          : (json['startTime'] != null
+              ? DateTime.parse(json['startTime'] as String)
+              : DateTime.now()),
       status: json['status'] as String? ?? '',
       finalPrice: (json['finalPrice'] as num?)?.toDouble() ?? 0.0,
       insuranceOpted: json['insuranceOpted'] as bool? ?? false,
       advanceAmountPaid: (json['advanceAmountPaid'] as num?)?.toDouble() ?? 0.0,
       isPaidFull: json['isPaidFull'] as bool? ?? false,
       pickUpConfirmationOtp: json['pickUpConfirmationOtp'] as String? ?? '',
+      dropConfirmationOtp: json['dropConfirmationOtp'] as String? ?? '',
       pickupAddress: json['pickupAddress'] as String? ?? '',
       dropAddress: json['dropAddress'] as String? ?? '',
+      driverName: json['driverName'] as String? ?? '',
+      driverNumber: json['driverNumber'] as String? ?? '',
     );
   }
 
@@ -202,15 +215,24 @@ class OngoingTrip {
       'advanceAmountPaid': advanceAmountPaid,
       'isPaidFull': isPaidFull,
       'pickUpConfirmationOtp': pickUpConfirmationOtp,
+      'dropConfirmationOtp': dropConfirmationOtp,
       'pickupAddress': pickupAddress,
       'dropAddress': dropAddress,
+      'driverName': driverName,
+      'driverNumber': driverNumber,
     };
   }
+
+  /// Check if driver details are available
+  bool get hasDriverDetails => driverName.isNotEmpty || driverNumber.isNotEmpty;
 
   String get formattedFinalPrice => '₹${finalPrice.toStringAsFixed(0)}';
   String get formattedAdvancePaid => '₹${advanceAmountPaid.toStringAsFixed(0)}';
   double get remainingAmount => finalPrice - advanceAmountPaid;
   String get formattedRemainingAmount => '₹${remainingAmount.toStringAsFixed(0)}';
+
+  /// Check if trip is in progress
+  bool get isInProgress => status.toLowerCase() == 'inprogress';
 
   String get displayStatus {
     switch (status.toLowerCase()) {

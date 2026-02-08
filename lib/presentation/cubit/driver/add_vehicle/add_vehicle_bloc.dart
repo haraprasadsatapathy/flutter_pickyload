@@ -406,7 +406,7 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
 
         if (result.status == true && result.data != null) {
           emit(VehicleAddedSuccess(
-            message: result.data!.message,
+            message: result.message ?? 'Vehicle added successfully',
             vehicleNumberPlate: state.vehicleNumberPlate,
             rcNumber: state.rcNumber,
             chassisNumber: state.chassisNumber,

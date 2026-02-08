@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../domain/models/customer_home_page_response.dart';
-import '../../../domain/models/payment_request_response.dart';
+import '../../../../domain/models/customer_home_page_response.dart';
+import '../../../../domain/models/payment_request_response.dart';
 import 'advance_payment_screen.dart';
 
 class VehicleDetailsBottomSheet extends StatefulWidget {
@@ -350,7 +350,6 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
                   ),
                   const SizedBox(height: 12),
 
-                  _buildDetailRow(context, 'Vehicle ID', widget.vehicle.vehicleId),
                   _buildDetailRow(context, 'Wheels', '${widget.vehicle.vehicleWheels} Wheels'),
                   _buildDetailRow(context, 'Load Type', widget.vehicle.loadType),
                   if (widget.vehicle.isAccepted && widget.vehicle.quotedPrice > 0)

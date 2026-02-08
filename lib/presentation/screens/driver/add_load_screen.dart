@@ -37,9 +37,22 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   void initState() {
     super.initState();
     // Fetch driver's vehicles when screen loads
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final driverId = authProvider.currentUser?.id ?? '';
-    context.read<AddLoadBloc>().add(FetchDriverVehicles(driverId: driverId));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final driverId = authProvider.currentUser?.id ?? '';
+      if (driverId.isEmpty) {
+        Fluttertoast.showToast(
+          msg: 'Driver ID not found. Please login again.',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      } else {
+        context.read<AddLoadBloc>().add(FetchDriverVehicles(driverId: driverId));
+      }
+    });
   }
 
   @override
@@ -194,6 +207,69 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
+  Widget _buildNoVehicleCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.local_shipping_outlined,
+            size: 48,
+            color: Colors.orange.shade700,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No Vehicles Available',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange.shade800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please add a vehicle first to offer loads',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.orange.shade700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                await context.push('/add-vehicle');
+                // Refresh vehicles list after returning from add vehicle screen
+                if (mounted) {
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final driverId = authProvider.currentUser?.id ?? '';
+                  if (driverId.isNotEmpty) {
+                    context.read<AddLoadBloc>().add(FetchDriverVehicles(driverId: driverId));
+                  }
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Vehicle'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -254,7 +330,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                                   if (state is AddLoadLoading && state.vehicles.isEmpty)
                                     const Center(child: CircularProgressIndicator())
                                   else if (state.vehicles.isEmpty)
-                                    const Text('No vehicles available. Please add a vehicle first.')
+                                    _buildNoVehicleCard(context)
                                   else
                                     DropdownButtonFormField<String>(
                                       value: _selectedVehicleId,

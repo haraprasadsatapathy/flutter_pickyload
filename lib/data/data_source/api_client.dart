@@ -36,6 +36,9 @@ class ApiClient {
     _dio.interceptors.add(PrettyDioLoggerInterceptor());
   }
 
+  /// Get the Dio instance for raw API calls
+  Dio get dio => _dio;
+
   /// Set authorization token
   void setToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';

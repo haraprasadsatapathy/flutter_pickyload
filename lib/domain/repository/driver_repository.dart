@@ -252,8 +252,9 @@ class DriverRepository {
 
       if (response.status == true || response.data != null) {
         final vehicleUpsertResponse = VehicleUpsertResponse.fromJson(response.data!);
+        final successMessage = response.message ?? 'Vehicle added successfully';
 
-        return ApiResponse(status: true, message: vehicleUpsertResponse.message, data: vehicleUpsertResponse);
+        return ApiResponse(status: true, message: successMessage, data: vehicleUpsertResponse);
       }
 
       return ApiResponse(status: false, message: response.message ?? 'Failed to upsert vehicle', data: null);
@@ -408,8 +409,9 @@ class DriverRepository {
 
       if (response.data != null) {
         final offerLoadsResponse = OfferLoadsResponse.fromJson(response.data!);
+        final successMessage = response.message ?? 'Load offer submitted successfully';
 
-        return ApiResponse(status: true, message: offerLoadsResponse.message, data: offerLoadsResponse);
+        return ApiResponse(status: true, message: successMessage, data: offerLoadsResponse);
       }
 
       return ApiResponse(status: false, message: response.message ?? 'Failed to submit load offer', data: null);
@@ -584,7 +586,9 @@ class DriverRepository {
   /// - driverId: Driver ID (UUID)
   /// - tripId: Trip ID (UUID)
   /// - confirmationOtp: OTP shared by customer
-  Future<ApiResponse<Map<String, dynamic>>> startTripWithOtp({
+  ///
+  /// Returns ApiResponse<bool> where data is true if trip started successfully
+  Future<ApiResponse<bool>> startTripWithOtp({
     required String driverId,
     required String tripId,
     required String confirmationOtp,
@@ -596,25 +600,31 @@ class DriverRepository {
         'confirmationOtp': confirmationOtp,
       };
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
-        '/Trip/TripStart/ByDriverWithUserOtp',
+      // Make raw API call to handle the response format
+      // Success: {"success": true, "message": "Trip Started successfully."}
+      // Error: {"message": "...", "data": []}
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Trip/TripStart/TripStartOtp',
         data: requestData,
-        fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      // Check if data is present and not empty (success condition)
-      if (response.data != null && response.data!.isNotEmpty) {
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final success = responseData['success'] as bool? ?? false;
+      final message = responseData['message'] as String? ?? '';
+
+      if (success) {
         return ApiResponse(
           status: true,
-          message: response.message ?? 'Trip started successfully',
-          data: response.data,
+          message: message.isNotEmpty ? message : 'Trip started successfully',
+          data: true,
         );
       }
 
       return ApiResponse(
         status: false,
-        message: response.message ?? 'Failed to start trip',
-        data: null,
+        message: message.isNotEmpty ? message : 'Failed to start trip',
+        data: false,
       );
     } catch (e) {
       String errorMessage = 'An error occurred while starting trip: ${e.toString()}';
@@ -629,7 +639,71 @@ class DriverRepository {
       return ApiResponse(
         status: false,
         message: errorMessage,
-        data: null,
+        data: false,
+      );
+    }
+  }
+
+  /// End trip with user OTP verification
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  /// - tripId: Trip ID (UUID)
+  /// - confirmationOtp: OTP shared by customer
+  ///
+  /// Returns ApiResponse<bool> where data is true if trip ended successfully
+  Future<ApiResponse<bool>> endTripWithOtp({
+    required String driverId,
+    required String tripId,
+    required String confirmationOtp,
+  }) async {
+    try {
+      final requestData = {
+        'driverId': driverId,
+        'tripId': tripId,
+        'confirmationOtp': confirmationOtp,
+      };
+
+      // Make raw API call to handle the response format
+      // Success: {"success": true, "message": "Trip ended successfully."}
+      // Error: {"message": "Trip not found.", "data": []}
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Trip/TripEnd/TripEndOtp',
+        data: requestData,
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final success = responseData['success'] as bool? ?? false;
+      final message = responseData['message'] as String? ?? '';
+
+      if (success) {
+        return ApiResponse(
+          status: true,
+          message: message.isNotEmpty ? message : 'Trip ended successfully',
+          data: true,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: message.isNotEmpty ? message : 'Failed to end trip',
+        data: false,
+      );
+    } catch (e) {
+      String errorMessage = 'An error occurred while ending trip: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: false,
       );
     }
   }

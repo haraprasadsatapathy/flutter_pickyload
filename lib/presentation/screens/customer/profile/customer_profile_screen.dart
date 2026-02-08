@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
-import '../../cubit/user_profile/edit_profile/edit_profile_bloc.dart';
-import '../../cubit/user_profile/edit_profile/edit_profile_event.dart';
-import '../../cubit/user_profile/edit_profile/edit_profile_state.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../cubit/user_profile/edit_profile/edit_profile_bloc.dart';
+import '../../../cubit/user_profile/edit_profile/edit_profile_event.dart';
+import '../../../cubit/user_profile/edit_profile/edit_profile_state.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});

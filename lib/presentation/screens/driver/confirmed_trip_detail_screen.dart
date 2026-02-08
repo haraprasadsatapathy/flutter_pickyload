@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../domain/models/home_page_response.dart';
 import '../../../domain/repository/driver_repository.dart';
 import '../../../services/local/saved_service.dart';
@@ -36,6 +37,12 @@ class ConfirmedTripDetailScreen extends StatelessWidget {
             // Route Details Card
             _buildRouteCard(context),
             const SizedBox(height: 20),
+
+            // Customer Details Card
+            if (trip.clientName.isNotEmpty || trip.clientNumber.isNotEmpty)
+              _buildCustomerDetailsCard(context),
+            if (trip.clientName.isNotEmpty || trip.clientNumber.isNotEmpty)
+              const SizedBox(height: 20),
 
             // Vehicle & Schedule Card
             _buildVehicleScheduleCard(context),
@@ -256,6 +263,124 @@ class ConfirmedTripDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildCustomerDetailsCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.person, color: colorScheme.primary),
+                const SizedBox(width: 8),
+                Text(
+                  'Customer Details',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    color: Colors.blue,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (trip.clientName.isNotEmpty) ...[
+                        Text(
+                          'Name',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          trip.clientName,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                      if (trip.clientName.isNotEmpty && trip.clientNumber.isNotEmpty)
+                        const SizedBox(height: 8),
+                      if (trip.clientNumber.isNotEmpty) ...[
+                        Text(
+                          'Phone Number',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          trip.clientNumber,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (trip.clientNumber.isNotEmpty)
+                  IconButton(
+                    onPressed: () async {
+                      final Uri phoneUri = Uri(
+                        scheme: 'tel',
+                        path: trip.clientNumber,
+                      );
+                      if (await canLaunchUrl(phoneUri)) {
+                        await launchUrl(phoneUri);
+                      }
+                    },
+                    icon: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: Colors.green.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.call,
+                        color: Colors.green,
+                        size: 24,
+                      ),
+                    ),
+                    tooltip: 'Call Customer',
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildVehicleScheduleCard(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -434,52 +559,97 @@ class ConfirmedTripDetailScreen extends StatelessWidget {
   Widget _buildBottomBar(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Only show Start Trip button if trip is scheduled
-    if (!trip.isScheduled) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: ElevatedButton(
-          onPressed: () => _showOtpDialog(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+    // Show Start Trip button if trip is scheduled
+    if (trip.isScheduled) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
             ),
-            elevation: 2,
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.play_arrow, size: 24),
-              SizedBox(width: 8),
-              Text(
-                'Start Trip',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          ],
+        ),
+        child: SafeArea(
+          child: ElevatedButton(
+            onPressed: () => _showOtpDialog(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+              elevation: 2,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.play_arrow, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'Start Trip',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    // Show End Trip button if trip is in progress
+    if (trip.isInProgress) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: ElevatedButton(
+            onPressed: () => _showEndTripOtpDialog(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.stop, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'End Trip',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   void _showOtpDialog(BuildContext context) {
@@ -494,6 +664,28 @@ class ConfirmedTripDetailScreen extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Trip started successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Go back to home
+          context.pop(true);
+        },
+      ),
+    );
+  }
+
+  void _showEndTripOtpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => EndTripOtpDialog(
+        tripId: trip.tripId,
+        onSuccess: () {
+          Navigator.of(dialogContext).pop();
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Trip ended successfully!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -596,8 +788,8 @@ class _StartTripOtpDialogState extends State<StartTripOtpDialog> {
         confirmationOtp: _otp,
       );
 
-      if (response.status == true && response.data != null) {
-        // Success - data is present
+      if (response.status == true && response.data == true) {
+        // Success - trip started successfully
         widget.onSuccess();
       } else {
         // Failed - show error message from API
@@ -745,6 +937,252 @@ class _StartTripOtpDialogState extends State<StartTripOtpDialog> {
                   ),
                 )
               : const Text('Verify & Start'),
+        ),
+      ],
+    );
+  }
+}
+
+/// OTP Dialog for ending trip
+class EndTripOtpDialog extends StatefulWidget {
+  final String tripId;
+  final VoidCallback onSuccess;
+
+  const EndTripOtpDialog({
+    super.key,
+    required this.tripId,
+    required this.onSuccess,
+  });
+
+  @override
+  State<EndTripOtpDialog> createState() => _EndTripOtpDialogState();
+}
+
+class _EndTripOtpDialogState extends State<EndTripOtpDialog> {
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
+    super.dispose();
+  }
+
+  String get _otp => _controllers.map((c) => c.text).join();
+
+  bool get _isOtpComplete => _otp.length == 6;
+
+  void _onOtpChanged(int index, String value) {
+    if (value.isNotEmpty && index < 5) {
+      _focusNodes[index + 1].requestFocus();
+    }
+    setState(() {
+      _errorMessage = null;
+    });
+  }
+
+  void _onKeyDown(int index, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.backspace &&
+        _controllers[index].text.isEmpty &&
+        index > 0) {
+      _focusNodes[index - 1].requestFocus();
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    if (!_isOtpComplete) {
+      setState(() {
+        _errorMessage = 'Please enter complete OTP';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Get driver ID from saved service
+      final savedService = GetIt.instance<SavedService>();
+      final user = await savedService.getUserDetailsSp();
+
+      if (user == null) {
+        setState(() {
+          _errorMessage = 'User not found. Please login again.';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Call API to verify OTP and end trip
+      final driverRepository = GetIt.instance<DriverRepository>();
+      final response = await driverRepository.endTripWithOtp(
+        driverId: user.id,
+        tripId: widget.tripId,
+        confirmationOtp: _otp,
+      );
+
+      if (response.status == true && response.data == true) {
+        // Success - trip ended successfully
+        widget.onSuccess();
+      } else {
+        // Failed - show error message from API
+        setState(() {
+          _errorMessage = response.message ?? 'Invalid OTP. Please try again.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An error occurred. Please try again.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lock_outline,
+              color: Colors.red,
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Enter OTP to End Trip',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Please enter the OTP shared by the customer to end the trip',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // OTP Input Fields
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(6, (index) {
+              return SizedBox(
+                width: 42,
+                height: 50,
+                child: KeyboardListener(
+                  focusNode: FocusNode(),
+                  onKeyEvent: (event) => _onKeyDown(index, event),
+                  child: TextField(
+                    controller: _controllers[index],
+                    focusNode: _focusNodes[index],
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    maxLength: 1,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      isDense: true,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: _errorMessage != null
+                              ? Colors.red
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: Colors.red,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    onChanged: (value) => _onOtpChanged(index, value),
+                  ),
+                ),
+              );
+            }),
+          ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _verifyOtp,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: _isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('Verify & End'),
         ),
       ],
     );

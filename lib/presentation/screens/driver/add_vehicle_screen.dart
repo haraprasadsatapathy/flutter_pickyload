@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import '../../../config/dependency_injection.dart';
 import '../../../domain/repository/driver_repository.dart';
@@ -64,20 +65,25 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       child: BlocConsumer<AddVehicleBloc, AddVehicleState>(
         listener: (context, state) {
           if (state is VehicleAddedSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
+            // Show toast message
+            Fluttertoast.showToast(
+              msg: state.message,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0,
             );
             // Navigate back to previous screen or vehicle list
             context.pop();
           } else if (state is VehicleAdditionError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red,
-              ),
+            Fluttertoast.showToast(
+              msg: state.error,
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0,
             );
           }
         },
@@ -280,8 +286,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                         controller: _numberOfWheelsController,
                         decoration: const InputDecoration(
                           labelText: 'Number of Wheels',
-                          hintText: 'e.g., 4, 6, 10, 12',
-                          helperText: 'Common: 4 (car), 6 (small truck), 10-12 (large truck)',
+                          hintText: 'e.g., 3, 4, 6, 10, 12...',
                           prefixIcon: Icon(Icons.settings_outlined),
                         ),
                         keyboardType: TextInputType.number,

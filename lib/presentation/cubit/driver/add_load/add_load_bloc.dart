@@ -17,6 +17,16 @@ class AddLoadBloc extends Bloc<AddLoadEvent, AddLoadState> {
   void _registerEventHandlers() {
     // Fetch Driver Vehicles
     on<FetchDriverVehicles>((event, emit) async {
+      // Validate driver ID before making API call
+      if (event.driverId.isEmpty) {
+        emit(AddLoadError(
+          error: 'Driver ID not found. Please login again.',
+          vehicles: state.vehicles,
+          selectedVehicleId: state.selectedVehicleId,
+        ));
+        return;
+      }
+
       emit(AddLoadLoading(
         vehicles: state.vehicles,
         selectedVehicleId: state.selectedVehicleId,
@@ -98,7 +108,7 @@ class AddLoadBloc extends Bloc<AddLoadEvent, AddLoadState> {
 
         if (result.status == true && result.data != null) {
           emit(LoadOfferSubmitted(
-            message: result.data!.message,
+            message: result.message ?? 'Load offer submitted successfully',
             offerId: result.data!.data?.offerId ?? '',
             vehicles: state.vehicles,
           ));

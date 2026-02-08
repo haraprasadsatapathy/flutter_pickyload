@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:picky_load/presentation/cubit/customer/home/customer_home_tab_bloc.dart';
 import 'package:picky_load/presentation/cubit/customer/home/customer_home_tab_event.dart';
-import 'package:picky_load/presentation/screens/customer/tabs/home_tab.dart';
-import 'tabs/my_trips_tab.dart';
-import 'tabs/notifications_tab.dart';
-import 'tabs/profile_tab.dart';
+import 'home/home_tab.dart';
+import 'my_trips/my_trips_tab.dart';
+import 'alerts/notifications_tab.dart';
+import 'profile/profile_tab.dart';
 
 class CustomerDashboard extends StatefulWidget {
   const CustomerDashboard({super.key});

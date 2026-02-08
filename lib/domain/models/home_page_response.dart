@@ -39,11 +39,11 @@ class HomePageData {
   factory HomePageData.fromJson(Map<String, dynamic> json) {
     return HomePageData(
       loadStatus: json['loadStatus'] as String? ?? '',
-      tripDetails: (json['tripDetails'] as List<dynamic>?)
+      tripDetails: (json['tripsOffered'] as List<dynamic>?)
               ?.map((e) => TripDetail.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      confirmedTrips: (json['tripStatus'] as List<dynamic>?)
+      confirmedTrips: (json['tripsConfirmed'] as List<dynamic>?)
               ?.map((e) => ConfirmedTrip.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -53,8 +53,8 @@ class HomePageData {
   Map<String, dynamic> toJson() {
     return {
       'loadStatus': loadStatus,
-      'tripDetails': tripDetails.map((e) => e.toJson()).toList(),
-      'tripStatus': confirmedTrips.map((e) => e.toJson()).toList(),
+      'tripsOffered': tripDetails.map((e) => e.toJson()).toList(),
+      'tripsConfirmed': confirmedTrips.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -69,6 +69,8 @@ class ConfirmedTrip {
   final double advanceAmount;
   final String vehicleNo;
   final String tripStatus;
+  final String clientName;
+  final String clientNumber;
   final DateTime? tripStartDate;
 
   ConfirmedTrip({
@@ -80,6 +82,8 @@ class ConfirmedTrip {
     required this.advanceAmount,
     required this.vehicleNo,
     required this.tripStatus,
+    required this.clientName,
+    required this.clientNumber,
     this.tripStartDate,
   });
 
@@ -93,6 +97,8 @@ class ConfirmedTrip {
       advanceAmount: (json['advanceAmount'] as num?)?.toDouble() ?? 0.0,
       vehicleNo: json['vehicleNo'] as String? ?? '',
       tripStatus: json['tripstatus'] as String? ?? '',
+      clientName: json['clientName'] as String? ?? '',
+      clientNumber: json['clinetNumber'] as String? ?? '', // Note: API has typo 'clinet'
       tripStartDate: json['tripStartDate'] != null
           ? DateTime.tryParse(json['tripStartDate'] as String)
           : null,
@@ -109,6 +115,8 @@ class ConfirmedTrip {
       'advanceAmount': advanceAmount,
       'vehicleNo': vehicleNo,
       'tripstatus': tripStatus,
+      'clientName': clientName,
+      'clinetNumber': clientNumber, // Note: API has typo 'clinet'
       'tripStartDate': tripStartDate?.toIso8601String(),
     };
   }

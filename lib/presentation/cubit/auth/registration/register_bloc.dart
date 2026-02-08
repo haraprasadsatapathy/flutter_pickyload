@@ -36,7 +36,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterStates> {
       // ============================================
 
       // Validation Rule 1: Check if all fields are filled
-      if (event.name.isEmpty || event.email.isEmpty || event.phone.isEmpty) {
+      if (event.name.isEmpty || event.phone.isEmpty) {
         emit(OnRegisterError('Please fill all fields'));
         return;
       }
