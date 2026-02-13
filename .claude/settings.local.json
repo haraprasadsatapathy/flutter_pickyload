@@ -33,7 +33,8 @@
       "Bash(cmd.exe /c del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\android\\\\app\\\\google-services.json\")",
       "Bash(cmd.exe /c del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\ios\\\\Runner\\\\GoogleService-Info.plist\")",
       "Bash(cmd.exe /c \"del /f E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\android\\\\app\\\\google-services.json\")",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(flutter build:*)"
     ],
     "deny": [],
     "ask": []

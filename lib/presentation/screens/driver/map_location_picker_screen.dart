@@ -308,7 +308,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.grey.shade600,
         ),
       );
     } finally {
@@ -375,9 +375,9 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No location found for this address'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('No location found for this address'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
       }
@@ -386,7 +386,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error searching address: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.grey.shade600,
         ),
       );
     } finally {
@@ -405,9 +405,9 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a location on the map'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please select a location on the map'),
+          backgroundColor: Colors.grey.shade600,
         ),
       );
     }

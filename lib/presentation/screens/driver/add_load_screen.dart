@@ -45,7 +45,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
           msg: 'Driver ID not found. Please login again.',
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.grey.shade600,
           textColor: Colors.white,
           fontSize: 16.0,
         );
@@ -295,7 +295,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
               msg: state.error,
               toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.grey.shade600,
               textColor: Colors.white,
               fontSize: 16.0,
             );

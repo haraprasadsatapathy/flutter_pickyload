@@ -108,7 +108,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.error),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.grey.shade600,
               ),
             );
           }

@@ -31,6 +31,7 @@ class AdvancePaymentScreen extends StatefulWidget {
 
 class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
   bool _isProcessing = false;
+  bool _agreeToShareDetails = false;
   late final RazorpayService _razorpayService;
   final CustomerRepository _customerRepository = getIt<CustomerRepository>();
   final SavedService _savedService = getIt<SavedService>();
@@ -100,7 +101,7 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
       ),
       error: null,
       bookingId: widget.booking.bookingId,
-      quotationId: widget.paymentData.quotationId,
+      subscriptionId: widget.paymentData.quotationId,
       userId: userId,
       amount: _advanceAmount,
     );
@@ -168,8 +169,17 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              context.go('/customer-dashboard');
+              // Get router reference before any pops
+              final router = GoRouter.of(this.context);
+              Navigator.pop(context); // Close dialog
+              // Pop back through navigation stack to home and trigger refresh
+              if (this.context.mounted) {
+                // Pop AdvancePaymentScreen first (MaterialPageRoute)
+                Navigator.of(this.context).pop();
+                // Then pop MatchedVehiclesScreen (GoRouter route) back to home
+                // This triggers RefreshHomePage in home_tab's push callback
+                router.pop();
+              }
             },
             child: const Text('Done'),
           ),
@@ -218,7 +228,7 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
         paymentId: errorData?['metadata']?['payment_id'] ?? '',
       ),
       bookingId: widget.booking.bookingId,
-      quotationId: widget.paymentData.quotationId,
+      subscriptionId: widget.paymentData.quotationId,
       userId: userId,
       amount: _advanceAmount,
     );
@@ -403,6 +413,44 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // Agree to share details checkbox
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: _agreeToShareDetails,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToShareDetails = value ?? false;
+                              });
+                            },
+                            activeColor: Colors.green.shade600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _agreeToShareDetails = !_agreeToShareDetails;
+                              });
+                            },
+                            child: const Text(
+                              'Agree to share the details with driver',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 20),
 
                     // Trip Details Card
@@ -473,7 +521,7 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isProcessing ? null : _handlePay,
+                  onPressed: (_isProcessing || !_agreeToShareDetails) ? null : _handlePay,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.green.shade600,

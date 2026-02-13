@@ -92,7 +92,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         ),
         actions: [
           TextButton.icon(
-            onPressed: () => context.push('/cancel-booking'),
+            onPressed: () => context.push('/cancel-booking', extra: widget.trip.tripId),
             icon: const Icon(Icons.cancel_outlined, color: Colors.red),
             label: const Text(
               'Cancel',
@@ -207,7 +207,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                               ),
                               const SizedBox(height: 14),
                               Text(
-                                'Drop',
+                                'Unload',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -441,34 +441,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
 
               const SizedBox(height: 16),
 
-              // Tags Row - Insurance & Payment Status
+              // Tags Row - Payment Status
               Row(
                 children: [
-                  if (widget.trip.insuranceOpted)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.shield, size: 16, color: Colors.green.shade700),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Insured',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.green.shade700,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(width: 10),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
@@ -559,14 +534,14 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 ),
               ],
 
-              // Drop Confirmation OTP - Show when trip is in progress
-              if (widget.trip.isInProgress && widget.trip.dropConfirmationOtp.isNotEmpty) ...[
+              // Unload Confirmation OTP - Show when OTP is available
+              if (widget.trip.dropConfirmationOtp.isNotEmpty) ...[
                 const SizedBox(height: 16),
 
                 _buildOtpCard(
                   context,
-                  title: 'Drop Confirmation OTP',
-                  subtitle: 'Share this OTP with the driver at drop-off to end the trip',
+                  title: 'Unload Confirmation OTP',
+                  subtitle: 'Share this OTP with the driver at unload point to end the trip',
                   otp: widget.trip.dropConfirmationOtp,
                   isVisible: _showDropOtp,
                   onToggle: _toggleDropOtp,

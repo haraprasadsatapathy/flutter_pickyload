@@ -193,4 +193,70 @@ class CustomerRepository {
       );
     }
   }
+
+  /// Cancel an ongoing trip
+  ///
+  /// Parameters:
+  /// - tripId: Trip ID (UUID)
+  /// - cancellationReason: Reason for cancellation
+  Future<ApiResponse<Map<String, dynamic>>> cancelTrip({
+    required String tripId,
+    required String cancellationReason,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/Trip/TripCancel',
+        data: {
+          'tripId': tripId,
+          'cancelledBy': 'Customer',
+          'cancellationReason': cancellationReason,
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while cancelling trip: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
+  /// Submit trip rating and feedback
+  ///
+  /// Parameters:
+  /// - tripId: Trip ID (UUID)
+  /// - reviewById: User ID who is reviewing (UUID)
+  /// - rating: Rating value (1-5)
+  /// - comment: Feedback comment
+  Future<ApiResponse<Map<String, dynamic>>> submitTripRating({
+    required String tripId,
+    required String reviewById,
+    required int rating,
+    required String comment,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/User/TripRatingFeedBack',
+        data: {
+          'tripId': tripId,
+          'reviewById': reviewById,
+          'rating': rating,
+          'comment': comment,
+          'createdAt': DateTime.now().toUtc().toIso8601String(),
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while submitting rating: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
 }

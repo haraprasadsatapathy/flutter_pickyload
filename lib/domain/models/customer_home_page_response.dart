@@ -127,7 +127,7 @@ class VehicleMatch {
   String get displayStatus {
     if (isRequestQuote) return 'Request Quote';
     if (isPending) return 'Pending';
-    if (isUpdated) return 'Quotation Sent';
+    if (isUpdated) return 'Quotation Received';
     if (isAccepted) return 'Accepted';
     if (isRejected) return 'Rejected';
     if (isWithdrawn) return 'Withdrawn';

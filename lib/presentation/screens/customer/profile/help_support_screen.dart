@@ -115,7 +115,7 @@ class HelpSupportScreen extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Could not launch email: $e'),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: Colors.grey.shade600,
                                 ),
                               );
                             }
@@ -137,7 +137,7 @@ class HelpSupportScreen extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Could not make call: $e'),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: Colors.grey.shade600,
                                 ),
                               );
                             }

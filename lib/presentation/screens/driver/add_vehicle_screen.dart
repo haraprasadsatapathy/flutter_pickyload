@@ -81,7 +81,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               msg: state.error,
               toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.grey.shade600,
               textColor: Colors.white,
               fontSize: 16.0,
             );

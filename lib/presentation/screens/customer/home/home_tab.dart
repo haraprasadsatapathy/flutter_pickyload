@@ -74,7 +74,10 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
           context.go('/login');
         } else if (state is CustomerHomeTabError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error)),
+            SnackBar(
+              content: Text(state.error),
+              backgroundColor: Colors.grey.shade600,
+            ),
           );
         }
       },
@@ -496,45 +499,48 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                       height: 36,
                       color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
                     ),
-                    // Vehicle matched count highlight
+                    // Vehicle matched count highlight - HIGHLIGHTED
                     Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.green.shade500, Colors.green.shade600],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                            child: Icon(
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
                               Icons.local_shipping,
                               size: 18,
-                              color: Colors.green.shade700,
+                              color: Colors.white,
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Vehicles Matched',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[500],
-                                ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${booking.vehicleMatch.length} Matched',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                              Text(
-                                '${booking.vehicleMatch.length}',
-                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -581,7 +587,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                                 : vehicle.isRejected
                                     ? Colors.red.shade50
                                     : vehicle.isUpdated
-                                        ? Colors.blue.shade50
+                                        ? Colors.orange.shade50
                                         : vehicle.isPending
                                             ? Colors.amber.shade50
                                             : Colors.orange.shade50,
@@ -592,7 +598,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                                   : vehicle.isRejected
                                       ? Colors.red.shade300
                                       : vehicle.isUpdated
-                                          ? Colors.blue.shade300
+                                          ? Colors.orange.shade300
                                           : vehicle.isPending
                                               ? Colors.amber.shade300
                                               : Colors.orange.shade300,
@@ -608,7 +614,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                                   : vehicle.isRejected
                                       ? Colors.red.shade700
                                       : vehicle.isUpdated
-                                          ? Colors.blue.shade700
+                                          ? Colors.orange.shade700
                                           : vehicle.isPending
                                               ? Colors.amber.shade700
                                               : Colors.orange.shade700,
@@ -861,67 +867,6 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                     ],
                   ),
 
-                  const SizedBox(height: 12),
-
-                  // Insurance and payment status
-                  Row(
-                    children: [
-                      if (trip.insuranceOpted)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.green.shade200),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.shield, size: 14, color: Colors.green.shade700),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Insured',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.green.shade700,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: trip.isPaidFull ? Colors.green.shade50 : Colors.orange.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: trip.isPaidFull ? Colors.green.shade200 : Colors.orange.shade200,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              trip.isPaidFull ? Icons.check_circle : Icons.pending,
-                              size: 14,
-                              color: trip.isPaidFull ? Colors.green.shade700 : Colors.orange.shade700,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              trip.isPaidFull ? 'Fully Paid' : 'Partial Payment',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: trip.isPaidFull ? Colors.green.shade700 : Colors.orange.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),

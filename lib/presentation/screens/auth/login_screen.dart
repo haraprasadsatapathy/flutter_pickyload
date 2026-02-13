@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
@@ -57,11 +58,13 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
       listener: (context, state) {
         // Handle OTP sent success - navigate to OTP verification screen
         if (state is OnOtpSentSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: state.message,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
           // Pass both phone number and OTP to OTP verification screen
           context.push('/otp-verification', extra: {
@@ -75,7 +78,7 @@ class _LoginScreenContentState extends State<_LoginScreenContent> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.grey.shade600,
             ),
           );
         }

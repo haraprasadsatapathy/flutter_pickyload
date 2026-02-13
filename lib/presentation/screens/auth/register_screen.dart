@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import '../../../domain/repository/user_repository.dart';
 import '../../cubit/auth/registration/register_bloc.dart';
@@ -60,11 +61,13 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
       listener: (context, state) {
         // Handle registration success - navigate to OTP verification screen
         if (state is OnRegisterSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: state.message,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
           // Pass both phone number and OTP to OTP verification screen
           context.push(
@@ -76,7 +79,7 @@ class _RegisterScreenContentState extends State<_RegisterScreenContent> {
         // Handle registration error
         if (state is OnRegisterError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.grey.shade600),
           );
         }
 

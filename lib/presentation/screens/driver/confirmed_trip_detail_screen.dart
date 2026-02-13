@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -661,11 +662,13 @@ class ConfirmedTripDetailScreen extends StatelessWidget {
         onSuccess: () {
           Navigator.of(dialogContext).pop();
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Trip started successfully!'),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: 'Trip started successfully!',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
           // Go back to home
           context.pop(true);
@@ -683,11 +686,13 @@ class ConfirmedTripDetailScreen extends StatelessWidget {
         onSuccess: () {
           Navigator.of(dialogContext).pop();
           // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Trip ended successfully!'),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: 'Trip ended successfully!',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
           // Go back to home
           context.pop(true);

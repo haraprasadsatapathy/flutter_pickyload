@@ -1,14 +1,18 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'theme/app_theme.dart';
 import 'config/routes.dart';
 import 'services/local/storage_service.dart';
+import 'services/notification/notification_service.dart';
 import 'config/dependency_injection.dart';
 import 'domain/repository/user_repository.dart';
 import 'domain/repository/trip_repository.dart';
@@ -27,9 +31,22 @@ class CustomHttpOverrides extends HttpOverrides {
   }
 }
 
+/// Handle background messages
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('Handling a background message: ${message.messageId}');
+  // Background messages are handled by NotificationService
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Set up Firebase Messaging background handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // Load environment variables from .env file
   await dotenv.load(fileName: ".env");
@@ -50,11 +67,112 @@ void main() async {
   // Setup dependency injection
   await setupDependencyInjection();
 
+  // Initialize notification service
+  await NotificationService().initialize();
+
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _setupNotificationHandler();
+  }
+
+  void _setupNotificationHandler() {
+    // Set up notification tap handler
+    NotificationService.onNotificationTap = (payload) {
+      debugPrint('Notification tapped with payload: $payload');
+      _handleNotificationNavigation(payload);
+    };
+  }
+
+  void _handleNotificationNavigation(String? payload) {
+    if (payload == null || payload.isEmpty) {
+      // No payload, just open the app (already done by default)
+      return;
+    }
+
+    try {
+      // Parse the payload JSON
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+
+      // Get the notification type to determine navigation
+      final type = data['type'] as String?;
+      final screen = data['screen'] as String?;
+
+      // Navigate based on notification type or screen
+      if (screen != null) {
+        // Direct screen navigation
+        switch (screen) {
+          case 'customer-dashboard':
+            router.go('/customer-dashboard');
+            break;
+          case 'driver-dashboard':
+            router.go('/driver-dashboard');
+            break;
+          case 'trip-details':
+            final tripId = data['tripId'] as String?;
+            if (tripId != null) {
+              // Navigate to trip details (you may need to fetch trip data first)
+              router.go('/customer-dashboard');
+            }
+            break;
+          case 'notifications':
+            router.go('/notifications');
+            break;
+          default:
+            // Default to home based on user role
+            _navigateToHome();
+        }
+      } else if (type != null) {
+        // Type-based navigation
+        switch (type) {
+          case 'new_booking':
+          case 'booking_update':
+          case 'trip_started':
+          case 'trip_completed':
+            _navigateToHome();
+            break;
+          case 'payment':
+            router.go('/transaction-history');
+            break;
+          default:
+            _navigateToHome();
+        }
+      } else {
+        // No specific navigation, go to home
+        _navigateToHome();
+      }
+    } catch (e) {
+      debugPrint('Error parsing notification payload: $e');
+      _navigateToHome();
+    }
+  }
+
+  Future<void> _navigateToHome() async {
+    // Check user role and navigate to appropriate dashboard
+    final userRepo = getIt<UserRepository>();
+    final user = await userRepo.getUserDetailsSp();
+
+    if (user != null) {
+      if (user.role.name == 'driver') {
+        router.go('/driver-dashboard');
+      } else {
+        router.go('/customer-dashboard');
+      }
+    } else {
+      router.go('/login');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

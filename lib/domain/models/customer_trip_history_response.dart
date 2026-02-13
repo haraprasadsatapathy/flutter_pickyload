@@ -38,6 +38,7 @@ class CustomerTripHistoryModel {
   final String pickupAddress;
   final String dropAddress;
   final String clientName;
+  final int feedbackRating;
 
   CustomerTripHistoryModel({
     required this.tripId,
@@ -51,6 +52,7 @@ class CustomerTripHistoryModel {
     required this.pickupAddress,
     required this.dropAddress,
     required this.clientName,
+    required this.feedbackRating,
   });
 
   factory CustomerTripHistoryModel.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,7 @@ class CustomerTripHistoryModel {
       pickupAddress: json['pickupAddress'] as String? ?? '',
       dropAddress: json['dropAddress'] as String? ?? '',
       clientName: json['clientName'] as String? ?? '',
+      feedbackRating: (json['feedbackRating'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -88,6 +91,7 @@ class CustomerTripHistoryModel {
       'pickupAddress': pickupAddress,
       'dropAddress': dropAddress,
       'clientName': clientName,
+      'feedbackRating': feedbackRating,
     };
   }
 

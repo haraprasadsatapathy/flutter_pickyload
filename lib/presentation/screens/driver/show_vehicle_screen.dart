@@ -76,14 +76,14 @@ class ShowVehicleScreen extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.error),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.grey.shade600,
                 ),
               );
             } else if (state is VehicleListError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.error),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.grey.shade600,
                 ),
               );
             }

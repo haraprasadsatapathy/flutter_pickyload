@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../cubit/driver/user_offers_list/user_offers_list_bloc.dart';
@@ -24,21 +25,22 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
     return BlocConsumer<UserOffersListBloc, UserOffersListState>(
       listener: (context, state) {
         if (state is UserOfferPriceUpdated) {
-          final messenger = ScaffoldMessenger.of(context);
+          // Show success message
+          Fluttertoast.showToast(
+            msg: state.message,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
           // Navigate back to driver home and refresh
           context.go('/driver-dashboard');
-          // Show success message
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
-          );
         } else if (state is UserOffersListError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.grey.shade600,
             ),
           );
         }
@@ -285,8 +287,8 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
       statusBgColor = Colors.amber.shade50;
       statusIcon = Icons.hourglass_empty;
     } else if (userOffer.isUpdated) {
-      statusColor = Colors.blue.shade700;
-      statusBgColor = Colors.blue.shade50;
+      statusColor = Colors.orange.shade700;
+      statusBgColor = Colors.orange.shade50;
       statusIcon = Icons.price_check;
     } else if (userOffer.isWithdrawn) {
       statusColor = Colors.grey.shade700;

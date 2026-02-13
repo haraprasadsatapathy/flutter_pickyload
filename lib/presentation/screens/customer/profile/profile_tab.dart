@@ -91,7 +91,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.grey.shade600,
                   ),
                 );
               }
@@ -113,7 +113,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.grey.shade600,
                   ),
                 );
               }
@@ -137,7 +137,14 @@ class _ProfileTabState extends State<ProfileTab> {
                           context,
                           Icons.person_outlined,
                           'Edit Profile',
-                          () => context.push('/customer-profile'),
+                          () async {
+                            await context.push('/customer-profile');
+                            // Refresh profile when coming back from edit profile
+                            final userId = authProvider.currentUser?.id;
+                            if (userId != null && _bloc != null) {
+                              _bloc!.add(FetchProfile(userId: userId));
+                            }
+                          },
                         ),
                         _buildProfileOption(
                           context,

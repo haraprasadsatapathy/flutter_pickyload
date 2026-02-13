@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../domain/repository/trip_repository.dart';
@@ -192,9 +193,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
     if (_formKey.currentState!.validate()) {
       if (_pickupLatitude == null || _pickupLongitude == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select pickup location from map'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please select pickup location from map'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -202,9 +203,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
 
       if (_dropLatitude == null || _dropLongitude == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select drop location from map'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please select drop location from map'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -212,9 +213,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
 
       if (_selectedDate == null || _selectedTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select both date and time'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please select both date and time'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -223,9 +224,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
       final userIdFromStorage = StorageService.getString('userId');
       if (userIdFromStorage == null || userIdFromStorage.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('User not logged in'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('User not logged in'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -270,18 +271,20 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
     return BlocListener<TripRequestBloc, TripRequestStates>(
       listener: (context, state) {
         if (state is OnTripRequestSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: state.message,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
           context.pop();
         }
 
         if (state is OnTripRequestError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.grey.shade600),
           );
         }
       },

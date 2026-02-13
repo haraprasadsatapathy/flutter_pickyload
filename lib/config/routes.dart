@@ -140,7 +140,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/cancel-booking',
-      builder: (context, state) => const CancelBookingScreen(),
+      builder: (context, state) => CancelBookingScreen(tripId: state.extra as String?),
     ),
     GoRoute(
       path: '/payment',

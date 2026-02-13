@@ -140,7 +140,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to logout: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.grey.shade600,
           ),
         );
       }
@@ -173,7 +173,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.grey.shade600,
               ),
             );
           }

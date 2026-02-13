@@ -88,7 +88,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterStates> {
               OnRegisterSuccess(
                 phoneNumber: event.phone,
                 otp: otpData.otp,
-                message: registerResult.data!.message,
+                message: registerResult.message ?? 'Registration successful',
               ),
             );
           } else {

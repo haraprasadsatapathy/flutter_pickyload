@@ -406,6 +406,55 @@ class UserRepository {
     }
   }
 
+  /// Register device for FCM push notifications
+  ///
+  /// Parameters:
+  /// - userId: User ID (UUID)
+  /// - token: FCM device token
+  /// - platform: Device platform (Android/iOS)
+  Future<ApiResponse<Map<String, dynamic>>> registerDevice({
+    required String userId,
+    required String token,
+    required String platform,
+  }) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/User/RegisterDevice',
+        data: {
+          'userId': userId,
+          'token': token,
+          'platform': platform,
+        },
+        fromJsonT: (json) => json as Map<String, dynamic>,
+      );
+
+      // Check for success
+      final isSuccess = response.status == true ||
+          response.data != null ||
+          (response.message?.toLowerCase().contains('success') ?? false);
+
+      if (isSuccess) {
+        return ApiResponse(
+          status: true,
+          message: response.message ?? 'Device registered successfully',
+          data: response.data,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: response.message ?? 'Failed to register device',
+        data: null,
+      );
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while registering device: ${e.toString()}',
+        data: null,
+      );
+    }
+  }
+
   /// Update user profile with image (multipart/form-data)
   Future<ApiResponse<Map<String, dynamic>>> updateProfileWithImage({
     required String userId,
@@ -474,7 +523,10 @@ class UserRepository {
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      if (response.status == true) {
+      // Check for success: either status is true OR data is present (API returns data on success)
+      final isSuccess = response.status == true || response.data != null;
+
+      if (isSuccess) {
         // Update local user details
         final currentUser = await getUserDetailsSp();
         if (currentUser != null) {

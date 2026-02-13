@@ -3,7 +3,7 @@ class VerifyPaymentRequest {
   final PaymentSuccess? success;
   final PaymentError? error;
   final String bookingId;
-  final String quotationId;
+  final String subscriptionId;
   final String userId;
   final double amount;
 
@@ -11,7 +11,7 @@ class VerifyPaymentRequest {
     this.success,
     this.error,
     required this.bookingId,
-    required this.quotationId,
+    required this.subscriptionId,
     required this.userId,
     required this.amount,
   });
@@ -21,7 +21,7 @@ class VerifyPaymentRequest {
       'success': success?.toJson(),
       'error': error?.toJson(),
       'bookingId': bookingId,
-      'quotationId': quotationId,
+      'subscriptionId': subscriptionId,
       'userId': userId,
       'amount': amount,
     };

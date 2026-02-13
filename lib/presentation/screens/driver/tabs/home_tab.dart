@@ -77,7 +77,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.grey.shade600,
             ),
           );
         }
@@ -703,7 +703,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                           const Icon(Icons.visibility, size: 18, color: Colors.white),
                           const SizedBox(width: 8),
                           Text(
-                            'View ${tripDetail.userOffers.length} Customer Request${tripDetail.userOffers.length > 1 ? 's' : ''}',
+                            'View ${tripDetail.userOffers.length} Customer Requested Quote${tripDetail.userOffers.length > 1 ? 's' : ''}',
                             style: const TextStyle(
                               fontSize: 13,
                               color: Colors.white,

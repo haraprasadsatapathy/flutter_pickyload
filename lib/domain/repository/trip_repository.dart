@@ -63,7 +63,7 @@ class TripRepository {
 
         return ApiResponse(
           status: true,
-          message: bookingResponse.message,
+          message: response.message ?? 'Booking created successfully',
           data: bookingResponse,
         );
       }
