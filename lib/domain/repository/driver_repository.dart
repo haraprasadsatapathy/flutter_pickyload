@@ -14,6 +14,7 @@ import '../models/offer_loads_list_response.dart';
 import '../models/update_offer_price_response.dart';
 import '../models/home_page_response.dart';
 import '../models/trip_history_response.dart';
+import '../models/subscription_payment_response.dart';
 
 /// Repository for driver-related operations
 class DriverRepository {
@@ -583,6 +584,158 @@ class DriverRepository {
         status: false,
         message: 'An error occurred while fetching home page data: ${e.toString()}',
         data: null,
+      );
+    }
+  }
+
+  // ============================================
+  // SUBSCRIPTION OPERATIONS
+  // ============================================
+
+  /// Request subscription payment - creates a Razorpay order for subscription
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  ///
+  /// Returns subscription payment details including orderId for Razorpay
+  Future<ApiResponse<SubscriptionPaymentResponse>> requestSubscriptionPayment({
+    required String driverId,
+  }) async {
+    try {
+      print('DriverRepository: Calling POST /Driver/RequestSubscriptionPayment?driverId=$driverId');
+
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Driver/RequestSubscriptionPayment',
+        queryParameters: {'driverId': driverId},
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final subscriptionResponse = SubscriptionPaymentResponse.fromJson(responseData);
+
+      print('DriverRepository: Subscription payment response - message: ${subscriptionResponse.message}');
+
+      return ApiResponse(
+        status: true,
+        message: subscriptionResponse.message,
+        data: subscriptionResponse,
+      );
+    } catch (e) {
+      print('DriverRepository: Error in requestSubscriptionPayment: $e');
+
+      String errorMessage = 'An error occurred while requesting subscription payment: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: null,
+      );
+    }
+  }
+
+  /// Verify subscription payment after Razorpay checkout
+  ///
+  /// Parameters:
+  /// - userId: User/Driver ID (UUID)
+  /// - subscriptionId: Subscription ID from requestSubscriptionPayment
+  /// - amount: Amount paid
+  /// - isSuccess: Whether payment was successful
+  /// - razorpayPaymentId: Payment ID from Razorpay (on success)
+  /// - razorpayOrderId: Order ID from Razorpay (on success)
+  /// - razorpaySignature: Signature from Razorpay (on success)
+  /// - errorCode: Error code if payment failed
+  /// - errorDescription: Error description if payment failed
+  /// - errorSource: Error source if payment failed
+  /// - errorStep: Error step if payment failed
+  /// - errorReason: Error reason if payment failed
+  /// - errorOrderId: Order ID from error if payment failed
+  /// - errorPaymentId: Payment ID from error if payment failed
+  Future<ApiResponse<bool>> verifySubscriptionPayment({
+    required String userId,
+    required String subscriptionId,
+    required double amount,
+    required bool isSuccess,
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
+    String? razorpaySignature,
+    String? errorCode,
+    String? errorDescription,
+    String? errorSource,
+    String? errorStep,
+    String? errorReason,
+    String? errorOrderId,
+    String? errorPaymentId,
+  }) async {
+    try {
+      final requestData = {
+        'success': isSuccess
+            ? {
+                'razorpayPaymentId': razorpayPaymentId ?? '',
+                'razorpayOrderId': razorpayOrderId ?? '',
+                'razorpaySignature': razorpaySignature ?? '',
+              }
+            : null,
+        'error': !isSuccess
+            ? {
+                'code': errorCode ?? '',
+                'description': errorDescription ?? '',
+                'source': errorSource ?? '',
+                'step': errorStep ?? '',
+                'reason': errorReason ?? '',
+                'orderId': errorOrderId ?? '',
+                'paymentId': errorPaymentId ?? '',
+              }
+            : null,
+        'bookingId': userId,
+        'subscriptionId': subscriptionId,
+        'userId': userId,
+        'amount': amount,
+      };
+
+      print('DriverRepository: Verifying subscription payment');
+      print('Request: $requestData');
+
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Driver/verify-subscription-payment',
+        data: requestData,
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final responseSuccess = responseData['success'] as bool? ??
+          (responseData['message']?.toString().toLowerCase().contains('success') ?? false);
+      final message = responseData['message'] as String? ?? '';
+
+      print('DriverRepository: Verify response - success: $responseSuccess, message: $message');
+
+      return ApiResponse(
+        status: responseSuccess,
+        message: message.isNotEmpty ? message : (responseSuccess ? 'Payment verified successfully' : 'Payment verification failed'),
+        data: responseSuccess,
+      );
+    } catch (e) {
+      print('DriverRepository: Error verifying subscription payment: $e');
+
+      String errorMessage = 'An error occurred while verifying payment: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: false,
       );
     }
   }

@@ -1,13 +1,23 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../../../../config/dependency_injection.dart';
+import '../../../../domain/models/subscription_payment_response.dart';
+import '../../../../domain/repository/driver_repository.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/theme_provider.dart';
+import '../../../../services/payment/razorpay_service.dart';
 import '../../../cubit/driver/home/home_tab_bloc.dart';
 import '../../../cubit/driver/home/home_tab_event.dart';
 import '../../../cubit/driver/home/home_tab_state.dart';
+import '../../../cubit/driver/subscription/subscription_bloc.dart';
+import '../../../cubit/driver/subscription/subscription_event.dart';
+import '../../../cubit/driver/subscription/subscription_state.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
@@ -17,15 +27,22 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
+  late final RazorpayService _razorpayService;
+  SubscriptionPaymentData? _currentPaymentData;
+  bool _isProcessingPayment = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _razorpayService = RazorpayService();
+    _razorpayService.init();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _razorpayService.dispose();
     super.dispose();
   }
 
@@ -161,7 +178,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                           if (state.tripDetails.isEmpty && state.confirmedTrips.isEmpty) ...[
                             _buildMyDocumentsSection(context, state),
                             const SizedBox(height: 24),
-                            _buildEmptyState(context),
+                            _buildEmptyState(context, state),
                           ] else ...[
                             // Confirmed Trips Section
                             if (state.confirmedTrips.isNotEmpty) ...[
@@ -192,9 +209,14 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                               const SizedBox(height: 24),
                             ],
 
-                            // Add Load Offer Card when loadStatus is Yes
-                            if (state.loadStatus.toLowerCase() == 'yes') ...[
+                            // Add Load Offer Card when hasActiveSubscription is true and loadStatus is Yes
+                            if (state.hasActiveSubscription && state.isAvailableForLoad.toLowerCase() == 'yes') ...[
                               _buildAddLoadOfferCard(context),
+                            ],
+
+                            // Show subscription payment card when hasActiveSubscription is false
+                            if (!state.hasActiveSubscription) ...[
+                              _buildSubscriptionPaymentCard(context),
                             ],
                           ],
                           const SizedBox(height: 80),
@@ -1189,7 +1211,10 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, HomeTabState state) {
+    final showAddLoadOffer = state.hasActiveSubscription && state.isAvailableForLoad.toLowerCase() == 'yes';
+    final showSubscriptionPayment = !state.hasActiveSubscription;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
@@ -1224,7 +1249,9 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
           ),
           const SizedBox(height: 8),
           Text(
-            'You haven\'t offered any trips yet.\nStart by adding a load offer to find customers.',
+            showSubscriptionPayment
+                ? 'Subscribe to start offering loads and find customers.'
+                : 'You haven\'t offered any trips yet.\nStart by adding a load offer to find customers.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.outline,
               height: 1.5,
@@ -1232,7 +1259,10 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          _buildAddLoadOfferCard(context),
+          if (showSubscriptionPayment)
+            _buildSubscriptionPaymentCard(context)
+          else if (showAddLoadOffer)
+            _buildAddLoadOfferCard(context),
         ],
       ),
     );
@@ -1323,6 +1353,452 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionPaymentCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Card(
+      elevation: 3,
+      shadowColor: Colors.orange.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: Colors.orange.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: isDark
+                ? [
+                    Colors.orange.shade900.withValues(alpha: 0.3),
+                    Colors.orange.shade800.withValues(alpha: 0.2),
+                  ]
+                : [
+                    Colors.orange.shade50,
+                    Colors.orange.shade100.withValues(alpha: 0.5),
+                  ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.orange.shade600,
+                          Colors.orange.shade400,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Subscription Required',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Activate your subscription to start offering loads',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark
+                                ? Colors.orange.shade200
+                                : Colors.orange.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleSubscribeNow(context),
+                  icon: const Icon(Icons.payment, size: 20),
+                  label: const Text(
+                    'Subscribe Now',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 2,
+                    shadowColor: Colors.orange.withValues(alpha: 0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleSubscribeNow(BuildContext context) {
+    // Show loading dialog and call API
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => BlocProvider(
+        create: (context) => SubscriptionBloc(getIt<DriverRepository>())
+          ..add(RequestSubscriptionPayment()),
+        child: BlocConsumer<SubscriptionBloc, SubscriptionState>(
+          listener: (context, state) {
+            if (state is SubscriptionPaymentReady) {
+              // Close loading dialog
+              Navigator.pop(dialogContext);
+
+              // Store payment data and open Razorpay directly
+              _currentPaymentData = state.paymentData;
+              _openRazorpayCheckout(state.paymentData!);
+            } else if (state is SubscriptionError) {
+              // Close loading dialog
+              Navigator.pop(dialogContext);
+
+              // Show error
+              ScaffoldMessenger.of(this.context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return const Center(
+              child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Preparing subscription...'),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openRazorpayCheckout(SubscriptionPaymentData paymentData) {
+    setState(() => _isProcessingPayment = true);
+
+    _razorpayService.openCheckout(
+      amount: (paymentData.amountPayable * 100).toInt(), // amount in paise
+      name: 'Picky Load',
+      description: 'Driver Subscription Payment',
+      email: paymentData.email,
+      contact: paymentData.contact,
+      orderId: paymentData.orderId,
+      onSuccess: _onPaymentSuccess,
+      onFailure: _onPaymentFailure,
+      onExternalWallet: _onExternalWallet,
+    );
+  }
+
+  void _onPaymentSuccess(PaymentSuccessResponse response) {
+    final paymentData = _currentPaymentData;
+    if (paymentData == null) return;
+
+    debugPrint('=== RAZORPAY SUBSCRIPTION PAYMENT SUCCESS ===');
+    debugPrint('PaymentId: ${response.paymentId}');
+    debugPrint('OrderId: ${response.orderId}');
+    debugPrint('==============================================');
+
+    if (!mounted) return;
+
+    setState(() => _isProcessingPayment = false);
+
+    // Verify payment using repository
+    _verifyPayment(
+      paymentData: paymentData,
+      success: true,
+      razorpayPaymentId: response.paymentId ?? '',
+      razorpayOrderId: response.orderId ?? '',
+      razorpaySignature: response.signature ?? '',
+    );
+  }
+
+  void _onPaymentFailure(PaymentFailureResponse response) {
+    final paymentData = _currentPaymentData;
+    if (paymentData == null) return;
+
+    debugPrint('=== RAZORPAY SUBSCRIPTION PAYMENT FAILURE ===');
+    debugPrint('Code: ${response.code}');
+    debugPrint('Message: ${response.message}');
+    debugPrint('==============================================');
+
+    if (!mounted) return;
+
+    setState(() => _isProcessingPayment = false);
+
+    // Parse error details from Razorpay response
+    Map<String, dynamic>? errorData;
+    if (response.message != null) {
+      try {
+        errorData = jsonDecode(response.message!) as Map<String, dynamic>;
+      } catch (_) {
+        // If message is not JSON, use it as description
+      }
+    }
+
+    // Extract error metadata if available
+    final errorMeta = errorData?['error'] as Map<String, dynamic>?;
+
+    // Verify payment (failure case)
+    _verifyPayment(
+      paymentData: paymentData,
+      success: false,
+      errorCode: errorMeta?['code']?.toString() ?? response.code?.toString() ?? '',
+      errorDescription: errorMeta?['description']?.toString() ?? errorData?['description']?.toString() ?? response.message ?? 'Payment failed',
+      errorSource: errorMeta?['source']?.toString() ?? '',
+      errorStep: errorMeta?['step']?.toString() ?? '',
+      errorReason: errorMeta?['reason']?.toString() ?? '',
+      errorOrderId: errorMeta?['metadata']?['order_id']?.toString() ?? '',
+      errorPaymentId: errorMeta?['metadata']?['payment_id']?.toString() ?? '',
+    );
+  }
+
+  void _onExternalWallet(ExternalWalletResponse response) {
+    if (!mounted) return;
+    setState(() => _isProcessingPayment = false);
+  }
+
+  void _verifyPayment({
+    required SubscriptionPaymentData paymentData,
+    required bool success,
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
+    String? razorpaySignature,
+    String? errorCode,
+    String? errorDescription,
+    String? errorSource,
+    String? errorStep,
+    String? errorReason,
+    String? errorOrderId,
+    String? errorPaymentId,
+  }) async {
+    // Show verifying dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Verifying payment...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final driverRepository = getIt<DriverRepository>();
+      final user = await driverRepository.getUserDetailsSp();
+
+      if (user == null || user.id.isEmpty) {
+        if (mounted) Navigator.pop(context); // Close verifying dialog
+        _showPaymentFailureDialog('Driver ID not found. Please login again.');
+        return;
+      }
+
+      final response = await driverRepository.verifySubscriptionPayment(
+        userId: user.id,
+        subscriptionId: paymentData.subscriptionId,
+        amount: paymentData.amountPayable,
+        isSuccess: success,
+        razorpayPaymentId: razorpayPaymentId,
+        razorpayOrderId: razorpayOrderId,
+        razorpaySignature: razorpaySignature,
+        errorCode: errorCode,
+        errorDescription: errorDescription,
+        errorSource: errorSource,
+        errorStep: errorStep,
+        errorReason: errorReason,
+        errorOrderId: errorOrderId,
+        errorPaymentId: errorPaymentId,
+      );
+
+      if (mounted) Navigator.pop(context); // Close verifying dialog
+
+      if (response.status == true) {
+        _showPaymentSuccessDialog(paymentData.amountPayable);
+      } else {
+        _showPaymentFailureDialog(response.message ?? 'Payment verification failed');
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context); // Close verifying dialog
+      _showPaymentFailureDialog('Failed to verify payment: ${e.toString()}');
+    }
+  }
+
+  void _showPaymentSuccessDialog(double amount) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 60,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Subscription Activated!',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '\u20B9${amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Your subscription has been activated successfully. You can now start offering loads.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext); // Close dialog
+              // Refresh home page
+              if (mounted) {
+                context.read<HomeTabBloc>().add(FetchHomePage());
+              }
+            },
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentFailureDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Payment Failed',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              // Retry by calling subscribe again
+              _handleSubscribeNow(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade600,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Retry Payment'),
+          ),
+        ],
       ),
     );
   }

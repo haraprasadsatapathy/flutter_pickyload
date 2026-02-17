@@ -26,19 +26,22 @@ class HomePageResponse {
 
 /// Home page data containing load status and trip details
 class HomePageData {
-  final String loadStatus;
+  final String isAvailableForLoad;
+  final bool hasActiveSubscription;
   final List<TripDetail> tripDetails;
   final List<ConfirmedTrip> confirmedTrips;
 
   HomePageData({
-    required this.loadStatus,
+    required this.isAvailableForLoad,
+    required this.hasActiveSubscription,
     required this.tripDetails,
     required this.confirmedTrips,
   });
 
   factory HomePageData.fromJson(Map<String, dynamic> json) {
     return HomePageData(
-      loadStatus: json['loadStatus'] as String? ?? '',
+      isAvailableForLoad: json['isAvailableforload'] as String? ?? '',
+      hasActiveSubscription: json['hasActiveSubscription'] as bool? ?? false,
       tripDetails: (json['tripsOffered'] as List<dynamic>?)
               ?.map((e) => TripDetail.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -52,7 +55,8 @@ class HomePageData {
 
   Map<String, dynamic> toJson() {
     return {
-      'loadStatus': loadStatus,
+      'isAvailableforload': isAvailableForLoad,
+      'hasActiveSubscription': hasActiveSubscription,
       'tripsOffered': tripDetails.map((e) => e.toJson()).toList(),
       'tripsConfirmed': confirmedTrips.map((e) => e.toJson()).toList(),
     };
