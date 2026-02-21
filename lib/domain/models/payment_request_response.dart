@@ -22,7 +22,8 @@ class PaymentRequestResponse {
       orderId: json['orderId'] ?? '',
       totalAmount: (json['totalAmount'] ?? 0).toDouble(),
       amountPayable: (json['amountPayable'] ?? 0).toDouble(),
-      quotationId: json['quotationId'] ?? '',
+      // Check for both quotationId and subscriptionId field names
+      quotationId: json['quotationId'] ?? json['subscriptionId'] ?? '',
       currency: json['currency'] ?? 'INR',
       email: json['email'] ?? '',
       contact: json['contact'] ?? '',

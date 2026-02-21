@@ -26,7 +26,7 @@ import '../presentation/screens/customer/my_trips/transaction_history_screen.dar
 import '../presentation/screens/customer/profile/customer_profile_screen.dart';
 import '../presentation/screens/customer/alerts/notifications_screen.dart';
 import '../presentation/screens/customer/profile/help_support_screen.dart';
-import '../presentation/screens/driver/user_offers_list_screen.dart';
+import '../presentation/screens/driver/load_deal_list_screen.dart';
 import '../presentation/screens/driver/confirmed_trip_detail_screen.dart';
 import '../domain/models/payment_request_response.dart';
 import '../domain/models/customer_home_page_response.dart';
@@ -205,7 +205,7 @@ final router = GoRouter(
             context,
             Provider.of<DriverRepository>(context, listen: false),
           )..add(InitializeUserOffersList(tripDetail: tripDetail)),
-          child: UserOffersListScreen(tripDetail: tripDetail),
+          child: LoadDealListScreen(tripDetail: tripDetail),
         );
       },
     ),

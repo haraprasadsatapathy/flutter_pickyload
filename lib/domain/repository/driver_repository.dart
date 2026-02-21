@@ -477,7 +477,8 @@ class DriverRepository {
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      if (response.status == true && response.data != null) {
+      // Check if response has data (API returns data on success, doesn't have status field)
+      if (response.data != null) {
         final updateOfferPriceResponse = UpdateOfferPriceResponse.fromJson(response.data!);
 
         return ApiResponse(status: true, message: updateOfferPriceResponse.message, data: updateOfferPriceResponse);

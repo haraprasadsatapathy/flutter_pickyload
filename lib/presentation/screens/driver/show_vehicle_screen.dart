@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import '../../../config/dependency_injection.dart';
 import '../../../domain/repository/driver_repository.dart';
-import '../../../providers/auth_provider.dart';
+import '../../../services/local/saved_service.dart';
 import '../../cubit/driver/vehicle_list/vehicle_list_bloc.dart';
 import '../../cubit/driver/vehicle_list/vehicle_list_event.dart';
 import '../../cubit/driver/vehicle_list/vehicle_list_state.dart';
 
 class ShowVehicleScreen extends StatelessWidget {
   const ShowVehicleScreen({super.key});
+
+  Future<void> _loadVehicles(VehicleListBloc bloc, SavedService savedService) async {
+    final user = await savedService.getUserDetailsSp();
+    if (user != null && user.id.isNotEmpty) {
+      bloc.add(FetchVehicles(driverId: user.id));
+    }
+  }
+
+  Future<void> _refreshVehicles(BuildContext context) async {
+    final savedService = SavedService();
+    final user = await savedService.getUserDetailsSp();
+    if (user != null && user.id.isNotEmpty) {
+      context.read<VehicleListBloc>().add(RefreshVehicles(driverId: user.id));
+    }
+  }
 
   // void _showDeleteConfirmation(
   //   BuildContext context,
@@ -47,16 +61,12 @@ class ShowVehicleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final driverId = authProvider.currentUser?.id ?? '';
+    final savedService = SavedService();
 
     return BlocProvider(
       create: (context) {
         final bloc = VehicleListBloc(context, getIt<DriverRepository>());
-        // Fetch vehicles on initialization
-        if (driverId.isNotEmpty) {
-          bloc.add(FetchVehicles(driverId: driverId));
-        }
+        _loadVehicles(bloc, savedService);
         return bloc;
       },
       child: Scaffold(
@@ -100,13 +110,7 @@ class ShowVehicleScreen extends StatelessWidget {
             }
 
             return RefreshIndicator(
-              onRefresh: () async {
-                if (driverId.isNotEmpty) {
-                  context.read<VehicleListBloc>().add(
-                        RefreshVehicles(driverId: driverId),
-                      );
-                }
-              },
+              onRefresh: () => _refreshVehicles(context),
               child: ListView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: state.vehicles.length,

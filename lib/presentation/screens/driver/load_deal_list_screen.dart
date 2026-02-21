@@ -7,16 +7,16 @@ import '../../cubit/driver/user_offers_list/user_offers_list_bloc.dart';
 import '../../cubit/driver/user_offers_list/user_offers_list_event.dart';
 import '../../cubit/driver/user_offers_list/user_offers_list_state.dart';
 
-class UserOffersListScreen extends StatefulWidget {
+class LoadDealListScreen extends StatefulWidget {
   final TripDetail tripDetail;
 
-  const UserOffersListScreen({super.key, required this.tripDetail});
+  const LoadDealListScreen({super.key, required this.tripDetail});
 
   @override
-  State<UserOffersListScreen> createState() => _UserOffersListScreenState();
+  State<LoadDealListScreen> createState() => _LoadDealListScreenState();
 }
 
-class _UserOffersListScreenState extends State<UserOffersListScreen> {
+class _LoadDealListScreenState extends State<LoadDealListScreen> {
   final dateFormat = DateFormat('MMM dd, yyyy');
   final timeFormat = DateFormat('hh:mm a');
 
@@ -34,8 +34,8 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
             textColor: Colors.white,
             fontSize: 16.0,
           );
-          // Navigate back to driver home and refresh
-          context.go('/driver-dashboard');
+          // Navigate back to home screen (pop will trigger refresh in home_tab)
+          context.pop();
         } else if (state is UserOffersListError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -423,15 +423,11 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
                           Text(
                             userOffer.pickupAddress,
                             style: Theme.of(context).textTheme.bodySmall,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           Text(
                             userOffer.dropAddress,
                             style: Theme.of(context).textTheme.bodySmall,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -750,120 +746,305 @@ class _UserOffersListScreenState extends State<UserOffersListScreen> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.currency_rupee, color: Colors.orange.shade600),
-            const SizedBox(width: 8),
-            const Text('Give Quote'),
-          ],
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        content: Form(
-          key: formKey,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: Container(
+          width: double.maxFinite,
+          constraints: const BoxConstraints(maxWidth: 400),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Container(
-                padding: const EdgeInsets.all(12),
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.orange.shade600,
+                      Colors.orange.shade400,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Trip Details',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.blue.shade700,
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.currency_rupee,
+                        color: Colors.white,
+                        size: 36,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Give Quote',
+                      style: TextStyle(
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
                     Text(
-                      userOffer.route,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Distance: ${userOffer.formattedDistance}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.secondary,
+                      'One-way trip only. Quote your best price to win this load.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Enter your quote price for this trip:',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: priceController,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: 'Quote Price',
-                  prefixText: '\u20B9 ',
-                  border: const OutlineInputBorder(),
-                  hintText: 'Enter amount',
-                  suffixIcon: Icon(Icons.currency_rupee, color: Colors.grey.shade400),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a price';
-                  }
-                  final price = double.tryParse(value);
-                  if (price == null || price <= 0) {
-                    return 'Please enter a valid price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'This quote will be sent to the customer for approval.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey.shade600,
-                  fontStyle: FontStyle.italic,
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Distance info
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.blue.shade100,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.route,
+                                color: Colors.blue.shade700,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Trip Distance',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    userOffer.formattedDistance,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      Text(
+                        'Enter Your Quote Price',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: priceController,
+                        keyboardType: TextInputType.number,
+                        autofocus: true,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        decoration: InputDecoration(
+                          prefixIcon: Container(
+                            padding: const EdgeInsets.all(14),
+                            child: Text(
+                              '\u20B9',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ),
+                          hintText: '0',
+                          hintStyle: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade300,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(color: Colors.orange.shade400, width: 2),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Colors.red, width: 1),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a price';
+                          }
+                          final price = double.tryParse(value);
+                          if (price == null || price <= 0) {
+                            return 'Please enter a valid price';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.amber.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 20,
+                              color: Colors.amber.shade700,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'This quote will be sent to the customer for approval.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.amber.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(dialogContext).pop(),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                side: BorderSide(color: Colors.grey.shade400),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                if (formKey.currentState!.validate()) {
+                                  final price = double.parse(priceController.text);
+                                  Navigator.of(dialogContext).pop();
+                                  context.read<UserOffersListBloc>().add(
+                                    UpdateUserOfferPrice(
+                                      quotationId: userOffer.quotationId,
+                                      offerId: tripDetail.offerId,
+                                      bookingId: userOffer.bookingId,
+                                      price: price,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.send_rounded, size: 20),
+                              label: const Text(
+                                'Submit Quote',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange.shade600,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                elevation: 2,
+                                shadowColor: Colors.orange.withValues(alpha: 0.4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                final price = double.parse(priceController.text);
-                Navigator.of(dialogContext).pop();
-                context.read<UserOffersListBloc>().add(
-                  UpdateUserOfferPrice(
-                    quotationId: userOffer.quotationId,
-                    offerId: tripDetail.offerId,
-                    bookingId: userOffer.bookingId,
-                    price: price,
-                  ),
-                );
-              }
-            },
-            icon: const Icon(Icons.send),
-            label: const Text('Submit Quote'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange.shade600,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
       ),
     );
   }

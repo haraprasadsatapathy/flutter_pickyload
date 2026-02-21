@@ -629,7 +629,7 @@ class MyOffersContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 14),
                           Text(
-                            'DROP-OFF',
+                            'UNLOAD',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -1055,7 +1055,7 @@ class MyTripsContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 14),
                           Text(
-                            'DROP-OFF',
+                            'UNLOAD',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
