@@ -16,6 +16,42 @@ class UploadDocumentsBloc extends Bloc<UploadDocumentsEvent, UploadDocumentsStat
   }
 
   void _registerEventHandlers() {
+    on<FetchExistingDocuments>((event, emit) async {
+      try {
+        emit(state.copyWith(isLoadingDocuments: true));
+
+        final currentUser = await driverRepository.getUserDetailsSp();
+        if (currentUser == null) {
+          emit(state.copyWith(isLoadingDocuments: false));
+          return;
+        }
+
+        final response = await driverRepository.getAllDocuments(userId: currentUser.id);
+
+        if (response.status == true && response.data != null) {
+          final documents = response.data!.documents;
+
+          final hasDL = documents.any((doc) => doc.documentType == 'DrivingLicense');
+          final hasRC = documents.any((doc) => doc.documentType == 'RegistrationCertificate');
+
+          emit(DocumentsFetched(
+            hasDrivingLicense: hasDL,
+            hasRegistrationCertificate: hasRC,
+          ));
+        } else {
+          emit(DocumentsFetched(
+            hasDrivingLicense: false,
+            hasRegistrationCertificate: false,
+          ));
+        }
+      } catch (e) {
+        emit(DocumentsFetched(
+          hasDrivingLicense: false,
+          hasRegistrationCertificate: false,
+        ));
+      }
+    });
+
     on<UpdateDlNumber>((event, emit) async {
       emit(state.copyWith(dlNumber: event.dlNumber));
     });
@@ -26,6 +62,12 @@ class UploadDocumentsBloc extends Bloc<UploadDocumentsEvent, UploadDocumentsStat
 
     on<SubmitSingleDocument>((event, emit) async {
       try {
+        // Preserve existing document state while loading
+        emit(UploadDocumentsLoading(
+          hasDrivingLicense: state.hasDrivingLicense,
+          hasRegistrationCertificate: state.hasRegistrationCertificate,
+        ));
+
         final currentUser = await driverRepository.getUserDetailsSp();
 
         if (currentUser == null) {

@@ -54,8 +54,8 @@ class NotificationService {
 
   /// Initialize flutter_local_notifications
   Future<void> _initializeLocalNotifications() async {
-    // Android initialization settings
-    const androidSettings = AndroidInitializationSettings('@mipmap/app_icon');
+    // Android initialization settings - use custom notification icon
+    const androidSettings = AndroidInitializationSettings('@drawable/ic_notification');
 
     // iOS initialization settings
     const iosSettings = DarwinInitializationSettings(
@@ -172,7 +172,7 @@ class NotificationService {
           : _defaultChannel.description,
       importance: isHighPriority ? Importance.high : Importance.defaultImportance,
       priority: isHighPriority ? Priority.high : Priority.defaultPriority,
-      icon: '@mipmap/app_icon',
+      icon: '@drawable/ic_notification',
       largeIcon: const DrawableResourceAndroidBitmap('@mipmap/app_icon'),
       playSound: true,
       enableVibration: true,
@@ -181,7 +181,6 @@ class NotificationService {
       styleInformation: BigTextStyleInformation(
         body,
         contentTitle: title,
-        summaryText: 'Picky Load',
       ),
       category: AndroidNotificationCategory.message,
       visibility: NotificationVisibility.public,
@@ -223,9 +222,7 @@ class NotificationService {
       const DrawableResourceAndroidBitmap('@mipmap/app_icon'),
       largeIcon: const DrawableResourceAndroidBitmap('@mipmap/app_icon'),
       contentTitle: title,
-      summaryText: body,
       htmlFormatContentTitle: true,
-      htmlFormatSummaryText: true,
     );
 
     final androidDetails = AndroidNotificationDetails(
@@ -234,7 +231,7 @@ class NotificationService {
       channelDescription: _highImportanceChannel.description,
       importance: Importance.high,
       priority: Priority.high,
-      icon: '@mipmap/app_icon',
+      icon: '@drawable/ic_notification',
       largeIcon: const DrawableResourceAndroidBitmap('@mipmap/app_icon'),
       styleInformation: bigPictureStyle,
       color: const Color(0xFF6200EE),
@@ -268,7 +265,7 @@ class NotificationService {
       channelDescription: _defaultChannel.description,
       importance: Importance.low,
       priority: Priority.low,
-      icon: '@mipmap/app_icon',
+      icon: '@drawable/ic_notification',
       showProgress: true,
       maxProgress: maxProgress,
       progress: progress,

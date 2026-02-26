@@ -275,59 +275,59 @@ class AddVehicleBloc extends Bloc<AddVehicleEvent, AddVehicleState> {
         }
 
         // Validate maximum values as per API constraints
-        if (length > 18.75) {
-          emit(VehicleAdditionError(
-            error: 'Length must not exceed 18.75 meters',
-            vehicleNumberPlate: state.vehicleNumberPlate,
-            rcNumber: state.rcNumber,
-            chassisNumber: state.chassisNumber,
-            bodyCoverType: state.bodyCoverType,
-            capacity: state.capacity,
-            length: state.length,
-            width: state.width,
-            height: state.height,
-            numberOfWheels: state.numberOfWheels,
-            rcDocuments: state.rcDocuments,
-            isLoadingDocuments: state.isLoadingDocuments,
-          ));
-          return;
-        }
-
-        if (width > 2.6) {
-          emit(VehicleAdditionError(
-            error: 'Width must not exceed 2.6 meters',
-            vehicleNumberPlate: state.vehicleNumberPlate,
-            rcNumber: state.rcNumber,
-            chassisNumber: state.chassisNumber,
-            bodyCoverType: state.bodyCoverType,
-            capacity: state.capacity,
-            length: state.length,
-            width: state.width,
-            height: state.height,
-            numberOfWheels: state.numberOfWheels,
-            rcDocuments: state.rcDocuments,
-            isLoadingDocuments: state.isLoadingDocuments,
-          ));
-          return;
-        }
-
-        if (height > 4.75) {
-          emit(VehicleAdditionError(
-            error: 'Height must not exceed 4.75 meters',
-            vehicleNumberPlate: state.vehicleNumberPlate,
-            rcNumber: state.rcNumber,
-            chassisNumber: state.chassisNumber,
-            bodyCoverType: state.bodyCoverType,
-            capacity: state.capacity,
-            length: state.length,
-            width: state.width,
-            height: state.height,
-            numberOfWheels: state.numberOfWheels,
-            rcDocuments: state.rcDocuments,
-            isLoadingDocuments: state.isLoadingDocuments,
-          ));
-          return;
-        }
+        // if (length > 18.75) {
+        //   emit(VehicleAdditionError(
+        //     error: 'Length must not exceed 18.75 meters',
+        //     vehicleNumberPlate: state.vehicleNumberPlate,
+        //     rcNumber: state.rcNumber,
+        //     chassisNumber: state.chassisNumber,
+        //     bodyCoverType: state.bodyCoverType,
+        //     capacity: state.capacity,
+        //     length: state.length,
+        //     width: state.width,
+        //     height: state.height,
+        //     numberOfWheels: state.numberOfWheels,
+        //     rcDocuments: state.rcDocuments,
+        //     isLoadingDocuments: state.isLoadingDocuments,
+        //   ));
+        //   return;
+        // }
+        //
+        // if (width > 2.6) {
+        //   emit(VehicleAdditionError(
+        //     error: 'Width must not exceed 2.6 meters',
+        //     vehicleNumberPlate: state.vehicleNumberPlate,
+        //     rcNumber: state.rcNumber,
+        //     chassisNumber: state.chassisNumber,
+        //     bodyCoverType: state.bodyCoverType,
+        //     capacity: state.capacity,
+        //     length: state.length,
+        //     width: state.width,
+        //     height: state.height,
+        //     numberOfWheels: state.numberOfWheels,
+        //     rcDocuments: state.rcDocuments,
+        //     isLoadingDocuments: state.isLoadingDocuments,
+        //   ));
+        //   return;
+        // }
+        //
+        // if (height > 4.75) {
+        //   emit(VehicleAdditionError(
+        //     error: 'Height must not exceed 4.75 meters',
+        //     vehicleNumberPlate: state.vehicleNumberPlate,
+        //     rcNumber: state.rcNumber,
+        //     chassisNumber: state.chassisNumber,
+        //     bodyCoverType: state.bodyCoverType,
+        //     capacity: state.capacity,
+        //     length: state.length,
+        //     width: state.width,
+        //     height: state.height,
+        //     numberOfWheels: state.numberOfWheels,
+        //     rcDocuments: state.rcDocuments,
+        //     isLoadingDocuments: state.isLoadingDocuments,
+        //   ));
+        //   return;
+        // }
 
         if (numberOfWheels <= 0) {
           emit(VehicleAdditionError(

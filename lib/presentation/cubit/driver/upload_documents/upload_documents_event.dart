@@ -34,3 +34,8 @@ class SubmitSingleDocument extends UploadDocumentsEvent {
   @override
   List<Object?> get props => [documentType, documentNumber, dateOfBirth];
 }
+
+class FetchExistingDocuments extends UploadDocumentsEvent {
+  @override
+  List<Object?> get props => [];
+}

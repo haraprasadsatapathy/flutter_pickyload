@@ -27,7 +27,8 @@ class ApiClient {
       final client = HttpClient();
       client.badCertificateCallback = (X509Certificate cert, String host, int port) {
         // Allow certificates for pickyload.in domain
-        return host == 'pickyload.in';
+        // return host == 'pickyload.in';
+        return host == 'pickyload.com';
       };
       return client;
     };

@@ -91,6 +91,10 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
     return BlocListener<HomeTabBloc, HomeTabState>(
       listener: (context, state) {
         if (state is HomeTabError) {
+          // Don't show "Driver ID not found" error as it's expected during logout
+          if (state.error.contains('Driver ID not found')) {
+            return;
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
@@ -209,13 +213,18 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                               const SizedBox(height: 24),
                             ],
 
+                            // Show Add Vehicle card when vehicleCount is 0
+                            if (state.vehicleCount == 0) ...[
+                              _buildAddVehicleCard(context),
+                            ],
+
                             // Add Load Offer Card when hasActiveSubscription is true and loadStatus is Yes
-                            if (state.hasActiveSubscription && state.isAvailableForLoad.toLowerCase() == 'yes') ...[
+                            if (state.vehicleCount > 0 && state.hasActiveSubscription && state.isAvailableForLoad.toLowerCase() == 'yes') ...[
                               _buildAddLoadOfferCard(context),
                             ],
 
-                            // Show subscription payment card when hasActiveSubscription is false
-                            if (!state.hasActiveSubscription) ...[
+                            // Show subscription payment card when hasActiveSubscription is false and vehicleCount > 0
+                            if (!state.hasActiveSubscription && state.vehicleCount > 0) ...[
                               _buildSubscriptionPaymentCard(context),
                             ],
                           ],
@@ -1212,8 +1221,18 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
   }
 
   Widget _buildEmptyState(BuildContext context, HomeTabState state) {
-    final showAddLoadOffer = state.hasActiveSubscription && state.isAvailableForLoad.toLowerCase() == 'yes';
-    final showSubscriptionPayment = !state.hasActiveSubscription;
+    final showAddVehicle = state.vehicleCount == 0;
+    final showAddLoadOffer = state.vehicleCount > 0 && state.hasActiveSubscription && state.isAvailableForLoad.toLowerCase() == 'yes';
+    final showSubscriptionPayment = !state.hasActiveSubscription && state.vehicleCount > 0;
+
+    String emptyStateMessage;
+    if (showAddVehicle) {
+      emptyStateMessage = 'Add your vehicle to start offering loads and find customers.';
+    } else if (showSubscriptionPayment) {
+      emptyStateMessage = 'Subscribe to start offering loads and find customers.';
+    } else {
+      emptyStateMessage = 'You haven\'t offered any trips yet.\nStart by adding a load offer to find customers.';
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -1249,9 +1268,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
           ),
           const SizedBox(height: 8),
           Text(
-            showSubscriptionPayment
-                ? 'Subscribe to start offering loads and find customers.'
-                : 'You haven\'t offered any trips yet.\nStart by adding a load offer to find customers.',
+            emptyStateMessage,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.outline,
               height: 1.5,
@@ -1259,11 +1276,102 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
-          if (showSubscriptionPayment)
+          if (showAddVehicle)
+            _buildAddVehicleCard(context)
+          else if (showSubscriptionPayment)
             _buildSubscriptionPaymentCard(context)
           else if (showAddLoadOffer)
             _buildAddLoadOfferCard(context),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAddVehicleCard(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.green.withValues(alpha: 0.3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(
+          color: Colors.green.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () async {
+          await context.push('/add-vehicle');
+          if (mounted) {
+            context.read<HomeTabBloc>().add(FetchHomePage());
+          }
+        },
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.green.shade600,
+                      Colors.green.shade400,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.local_shipping,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add Vehicle',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Register your vehicle to start offering loads',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  size: 18,
+                  color: Colors.green,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

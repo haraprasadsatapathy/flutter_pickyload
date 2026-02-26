@@ -19,6 +19,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
       emit(HomeTabLoading(
         isAvailableForLoad: state.isAvailableForLoad,
         hasActiveSubscription: state.hasActiveSubscription,
+        vehicleCount: state.vehicleCount,
         tripDetails: state.tripDetails,
         confirmedTrips: state.confirmedTrips,
       ));
@@ -32,6 +33,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             error: 'Driver ID not found. Please login again.',
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
           ));
@@ -51,10 +53,12 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
           debugPrint('HomeTabBloc: Fetched ${response.data!.data.tripDetails.length} trips');
           debugPrint('HomeTabBloc: Fetched ${response.data!.data.confirmedTrips.length} confirmed trips');
           debugPrint('HomeTabBloc: hasActiveSubscription: ${response.data!.data.hasActiveSubscription}');
+          debugPrint('HomeTabBloc: vehicleCount: ${response.data!.data.vehicleCount}');
           emit(HomeTabSuccess(
             message: response.data!.message,
             isAvailableForLoad: response.data!.data.isAvailableForLoad,
             hasActiveSubscription: response.data!.data.hasActiveSubscription,
+            vehicleCount: response.data!.data.vehicleCount,
             tripDetails: response.data!.data.tripDetails,
             confirmedTrips: response.data!.data.confirmedTrips,
             documents: state.documents,
@@ -69,6 +73,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             error: response.message ?? 'Failed to fetch home page data',
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
           ));
@@ -79,6 +84,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
           error: 'Failed to fetch home page data: ${e.toString()}',
           isAvailableForLoad: state.isAvailableForLoad,
           hasActiveSubscription: state.hasActiveSubscription,
+          vehicleCount: state.vehicleCount,
           tripDetails: state.tripDetails,
           confirmedTrips: state.confirmedTrips,
         ));
@@ -90,6 +96,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
       emit(HomeTabLoading(
         isAvailableForLoad: state.isAvailableForLoad,
         hasActiveSubscription: state.hasActiveSubscription,
+        vehicleCount: state.vehicleCount,
         tripDetails: state.tripDetails,
         confirmedTrips: state.confirmedTrips,
         documents: state.documents,
@@ -104,6 +111,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             error: 'Driver ID not found. Please login again.',
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
             documents: state.documents,
@@ -119,6 +127,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             documents: response.data!.documents,
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
           ));
@@ -127,6 +136,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             error: response.message ?? 'Failed to fetch documents',
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
             documents: state.documents,
@@ -138,6 +148,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
           error: 'Failed to fetch documents: ${e.toString()}',
           isAvailableForLoad: state.isAvailableForLoad,
           hasActiveSubscription: state.hasActiveSubscription,
+          vehicleCount: state.vehicleCount,
           tripDetails: state.tripDetails,
           confirmedTrips: state.confirmedTrips,
           documents: state.documents,
@@ -156,6 +167,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             error: 'Driver ID not found. Please login again.',
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
           ));
@@ -174,6 +186,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             message: 'Data refreshed successfully',
             isAvailableForLoad: response.data!.data.isAvailableForLoad,
             hasActiveSubscription: response.data!.data.hasActiveSubscription,
+            vehicleCount: response.data!.data.vehicleCount,
             tripDetails: response.data!.data.tripDetails,
             confirmedTrips: response.data!.data.confirmedTrips,
             documents: state.documents,
@@ -188,6 +201,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
             error: response.message ?? 'Failed to refresh data',
             isAvailableForLoad: state.isAvailableForLoad,
             hasActiveSubscription: state.hasActiveSubscription,
+            vehicleCount: state.vehicleCount,
             tripDetails: state.tripDetails,
             confirmedTrips: state.confirmedTrips,
             documents: state.documents,
@@ -199,6 +213,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
           error: 'Failed to refresh data: ${e.toString()}',
           isAvailableForLoad: state.isAvailableForLoad,
           hasActiveSubscription: state.hasActiveSubscription,
+          vehicleCount: state.vehicleCount,
           tripDetails: state.tripDetails,
           confirmedTrips: state.confirmedTrips,
         ));

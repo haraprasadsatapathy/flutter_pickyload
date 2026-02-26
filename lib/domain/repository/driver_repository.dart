@@ -64,7 +64,7 @@ class DriverRepository {
 
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/Driver/DocumentVerify',
-        queryParameters: {'isDryRun': 'true'},
+        queryParameters: {'isDryRun': 'false'},
         data: requestBody,
         fromJsonT: (json) => json as Map<String, dynamic>,
       );

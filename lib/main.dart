@@ -96,66 +96,9 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleNotificationNavigation(String? payload) {
-    if (payload == null || payload.isEmpty) {
-      // No payload, just open the app (already done by default)
-      return;
-    }
-
-    try {
-      // Parse the payload JSON
-      final data = jsonDecode(payload) as Map<String, dynamic>;
-
-      // Get the notification type to determine navigation
-      final type = data['type'] as String?;
-      final screen = data['screen'] as String?;
-
-      // Navigate based on notification type or screen
-      if (screen != null) {
-        // Direct screen navigation
-        switch (screen) {
-          case 'customer-dashboard':
-            router.go('/customer-dashboard');
-            break;
-          case 'driver-dashboard':
-            router.go('/driver-dashboard');
-            break;
-          case 'trip-details':
-            final tripId = data['tripId'] as String?;
-            if (tripId != null) {
-              // Navigate to trip details (you may need to fetch trip data first)
-              router.go('/customer-dashboard');
-            }
-            break;
-          case 'notifications':
-            router.go('/notifications');
-            break;
-          default:
-            // Default to home based on user role
-            _navigateToHome();
-        }
-      } else if (type != null) {
-        // Type-based navigation
-        switch (type) {
-          case 'new_booking':
-          case 'booking_update':
-          case 'trip_started':
-          case 'trip_completed':
-            _navigateToHome();
-            break;
-          case 'payment':
-            router.go('/transaction-history');
-            break;
-          default:
-            _navigateToHome();
-        }
-      } else {
-        // No specific navigation, go to home
-        _navigateToHome();
-      }
-    } catch (e) {
-      debugPrint('Error parsing notification payload: $e');
-      _navigateToHome();
-    }
+    debugPrint('Handling notification navigation with payload: $payload');
+    // Navigate to role selection screen on notification tap
+    router.go('/role-selection');
   }
 
   Future<void> _navigateToHome() async {

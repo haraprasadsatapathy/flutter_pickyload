@@ -23,6 +23,9 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   // Document type options - 0 for DL, 1 for RC
   int _selectedDocumentIndex = 0;
 
+  // Track if DL is already uploaded
+  bool _hasDrivingLicense = false;
+
   String get _selectedDocumentType => _selectedDocumentIndex == 0
       ? 'Driving License (DL)'
       : 'Registration Certificate (RC)';
@@ -86,10 +89,18 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       create: (context) => UploadDocumentsBloc(
         context: context,
         driverRepository: driverRepository,
-      ),
+      )..add(FetchExistingDocuments()),
       child: BlocConsumer<UploadDocumentsBloc, UploadDocumentsState>(
         listener: (context, state) {
-          if (state is DocumentsSubmittedSuccess) {
+          if (state is DocumentsFetched) {
+            setState(() {
+              _hasDrivingLicense = state.hasDrivingLicense;
+              // If DL is already uploaded, default to RC
+              if (_hasDrivingLicense && _selectedDocumentIndex == 0) {
+                _selectedDocumentIndex = 1;
+              }
+            });
+          } else if (state is DocumentsSubmittedSuccess) {
             // Show toast message
             Fluttertoast.showToast(
               msg: state.message,
@@ -115,6 +126,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
         },
         builder: (context, state) {
           final isLoading = state is UploadDocumentsLoading;
+          final isLoadingDocuments = state.isLoadingDocuments;
 
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
@@ -192,20 +204,21 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          // DL Card
-                          Expanded(
-                            child: _buildDocumentTypeCard(
-                              context: context,
-                              index: 0,
-                              icon: Icons.badge_outlined,
-                              title: 'DL',
-                              subtitle: 'Driving License',
-                              isSelected: _selectedDocumentIndex == 0,
-                              colorScheme: colorScheme,
-                              isDark: isDark,
+                          // DL Card - Only show if DL is not already uploaded
+                          if (!_hasDrivingLicense)
+                            Expanded(
+                              child: _buildDocumentTypeCard(
+                                context: context,
+                                index: 0,
+                                icon: Icons.badge_outlined,
+                                title: 'DL',
+                                subtitle: 'Driving License',
+                                isSelected: _selectedDocumentIndex == 0,
+                                colorScheme: colorScheme,
+                                isDark: isDark,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                          if (!_hasDrivingLicense) const SizedBox(width: 12),
                           // RC Card
                           Expanded(
                             child: _buildDocumentTypeCard(

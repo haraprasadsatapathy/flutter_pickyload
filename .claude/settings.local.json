@@ -36,7 +36,9 @@
       "Bash(git mv:*)",
       "Bash(flutter build:*)",
       "Bash(del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\subscription_payment_screen.dart\")",
-      "Bash(move \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\user_offers_list_screen.dart\" \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\load_deal_list_screen.dart\")"
+      "Bash(move \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\user_offers_list_screen.dart\" \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\load_deal_list_screen.dart\")",
+      "Bash(git checkout:*)",
+      "Bash(cmd /c:*)"
     ],
     "deny": [],
     "ask": []

@@ -24,7 +24,6 @@ import '../presentation/screens/customer/home/advance_payment_screen.dart';
 import '../presentation/screens/customer/home/matched_vehicles_screen.dart';
 import '../presentation/screens/customer/my_trips/transaction_history_screen.dart';
 import '../presentation/screens/customer/profile/customer_profile_screen.dart';
-import '../presentation/screens/customer/alerts/notifications_screen.dart';
 import '../presentation/screens/customer/profile/help_support_screen.dart';
 import '../presentation/screens/driver/load_deal_list_screen.dart';
 import '../presentation/screens/driver/confirmed_trip_detail_screen.dart';
@@ -180,10 +179,6 @@ final router = GoRouter(
         ),
         child: const CustomerProfileScreen(),
       ),
-    ),
-    GoRoute(
-      path: '/notifications',
-      builder: (context, state) => const NotificationsScreen(),
     ),
     GoRoute(
       path: '/help-support',

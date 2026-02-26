@@ -28,12 +28,14 @@ class HomePageResponse {
 class HomePageData {
   final String isAvailableForLoad;
   final bool hasActiveSubscription;
+  final int vehicleCount;
   final List<TripDetail> tripDetails;
   final List<ConfirmedTrip> confirmedTrips;
 
   HomePageData({
     required this.isAvailableForLoad,
     required this.hasActiveSubscription,
+    required this.vehicleCount,
     required this.tripDetails,
     required this.confirmedTrips,
   });
@@ -42,6 +44,7 @@ class HomePageData {
     return HomePageData(
       isAvailableForLoad: json['isAvailableforload'] as String? ?? '',
       hasActiveSubscription: json['hasActiveSubscription'] as bool? ?? false,
+      vehicleCount: json['vehiclecount'] as int? ?? 0,
       tripDetails: (json['tripsOffered'] as List<dynamic>?)
               ?.map((e) => TripDetail.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -57,6 +60,7 @@ class HomePageData {
     return {
       'isAvailableforload': isAvailableForLoad,
       'hasActiveSubscription': hasActiveSubscription,
+      'vehiclecount': vehicleCount,
       'tripsOffered': tripDetails.map((e) => e.toJson()).toList(),
       'tripsConfirmed': confirmedTrips.map((e) => e.toJson()).toList(),
     };
