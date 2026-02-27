@@ -6,7 +6,8 @@ class AppConstants {
   AppConstants._();
 
   /// API Base URL
-  static const String baseUrl = 'https://pickyload.in/api';
+  // static const String baseUrl = 'https://pickyload.in/api';
+  static const String baseUrl = 'https://pickyload.com/api';
 
   /// Google Maps API Key
   /// IMPORTANT: API key is now loaded from environment variables for security

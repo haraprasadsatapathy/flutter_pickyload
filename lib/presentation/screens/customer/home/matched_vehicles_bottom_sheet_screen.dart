@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../domain/models/customer_home_page_response.dart';
+import '../../../../domain/models/customer_home_page_response.dart';
+import '../../../../domain/models/payment_request_response.dart';
 import 'advance_payment_screen.dart';
 
 class VehicleDetailsBottomSheet extends StatefulWidget {
   final VehicleMatch vehicle;
   final BookingDetail booking;
-  final Function(double price)? onRequestQuote;
-  final Future<bool> Function()? onAccept;
+  final Future<bool> Function()? onRequestQuote;
+  final Future<PaymentRequestResponse?> Function()? onAccept;
   final Function()? onReject;
 
   const VehicleDetailsBottomSheet({
@@ -37,7 +38,7 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
     if (widget.vehicle.isRejected) return Colors.red.shade700;
     if (widget.vehicle.isWithdrawn) return Colors.grey.shade700;
     if (widget.vehicle.isExpired) return Colors.grey.shade600;
-    if (widget.vehicle.isUpdated) return Colors.blue.shade700;
+    if (widget.vehicle.isUpdated) return Colors.orange.shade700;
     if (widget.vehicle.isPending) return Colors.amber.shade700;
     if (widget.vehicle.isRequestQuote) return Colors.purple.shade700;
     return Colors.amber.shade700;
@@ -48,7 +49,7 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
     if (widget.vehicle.isRejected) return Colors.red.shade50;
     if (widget.vehicle.isWithdrawn) return Colors.grey.shade100;
     if (widget.vehicle.isExpired) return Colors.grey.shade100;
-    if (widget.vehicle.isUpdated) return Colors.blue.shade50;
+    if (widget.vehicle.isUpdated) return Colors.orange.shade50;
     if (widget.vehicle.isPending) return Colors.amber.shade50;
     if (widget.vehicle.isRequestQuote) return Colors.purple.shade50;
     return Colors.amber.shade50;
@@ -68,8 +69,17 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
   Future<void> _handleRequestQuote() async {
     setState(() => _isLoading = true);
     try {
-      widget.onRequestQuote?.call(0);
-    } finally {
+      final success = await widget.onRequestQuote?.call() ?? false;
+      if (!mounted) return;
+
+      if (success) {
+        // Close bottom sheet and return true to indicate navigation needed
+        Navigator.pop(context, true);
+      } else {
+        setState(() => _isLoading = false);
+        Navigator.pop(context);
+      }
+    } catch (_) {
       if (mounted) {
         setState(() => _isLoading = false);
         Navigator.pop(context);
@@ -80,23 +90,22 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
   Future<void> _handleAccept() async {
     setState(() => _isLoading = true);
     try {
-      final success = await widget.onAccept?.call() ?? false;
+      final paymentData = await widget.onAccept?.call();
       if (!mounted) return;
 
-      if (success && widget.vehicle.isUpdated) {
+      if (paymentData != null) {
         // API succeeded — close bottom sheet and navigate to advance payment screen
         final navigator = Navigator.of(context);
-        navigator.pop();
+        navigator.pop(); // Close bottom sheet
         navigator.push(
           MaterialPageRoute(
             builder: (_) => AdvancePaymentScreen(
               vehicle: widget.vehicle,
               booking: widget.booking,
+              paymentData: paymentData,
             ),
           ),
         );
-      } else if (success) {
-        Navigator.pop(context);
       } else {
         setState(() => _isLoading = false);
       }
@@ -350,7 +359,6 @@ class _VehicleDetailsBottomSheetState extends State<VehicleDetailsBottomSheet> {
                   ),
                   const SizedBox(height: 12),
 
-                  _buildDetailRow(context, 'Vehicle ID', widget.vehicle.vehicleId),
                   _buildDetailRow(context, 'Wheels', '${widget.vehicle.vehicleWheels} Wheels'),
                   _buildDetailRow(context, 'Load Type', widget.vehicle.loadType),
                   if (widget.vehicle.isAccepted && widget.vehicle.quotedPrice > 0)

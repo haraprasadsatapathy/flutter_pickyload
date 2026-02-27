@@ -27,7 +27,8 @@ class ApiClient {
       final client = HttpClient();
       client.badCertificateCallback = (X509Certificate cert, String host, int port) {
         // Allow certificates for pickyload.in domain
-        return host == 'pickyload.in';
+        // return host == 'pickyload.in';
+        return host == 'pickyload.com';
       };
       return client;
     };
@@ -35,6 +36,9 @@ class ApiClient {
     // Add custom pretty logger interceptor for formatted JSON output
     _dio.interceptors.add(PrettyDioLoggerInterceptor());
   }
+
+  /// Get the Dio instance for raw API calls
+  Dio get dio => _dio;
 
   /// Set authorization token
   void setToken(String token) {

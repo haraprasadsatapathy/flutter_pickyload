@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../../domain/repository/user_repository.dart';
@@ -76,23 +79,71 @@ class _OtpVerificationScreenContentState
   @override
   Widget build(BuildContext context) {
     return BlocListener<OtpBloc, OtpStates>(
-      listener: (context, state) {
+      listener: (context, state) async {
         // Handle OTP verification success - navigate to role selection
         if (state is OnOtpVerificationSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: state.message,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
+
+          // Register device for FCM push notifications
+          try {
+            // Request notification permission (required for iOS and Android 13+)
+            final messaging = FirebaseMessaging.instance;
+            final settings = await messaging.requestPermission(
+              alert: true,
+              announcement: false,
+              badge: true,
+              carPlay: false,
+              criticalAlert: false,
+              provisional: false,
+              sound: true,
+            );
+
+            // Only proceed if permission is granted or provisional
+            if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+                settings.authorizationStatus == AuthorizationStatus.provisional) {
+              // Get FCM token
+              final fcmToken = await messaging.getToken();
+
+              if (fcmToken != null) {
+                // Get user ID from SharedPreferences
+                final userRepository = context.read<UserRepository>();
+                final user = await userRepository.getUserDetailsSp();
+
+                if (user != null) {
+                  // Determine platform
+                  final platform = Platform.isAndroid ? 'Android' : 'iOS';
+
+                  // Register device with server
+                  await userRepository.registerDevice(
+                    userId: user.id,
+                    token: fcmToken,
+                    platform: platform,
+                  );
+                }
+              }
+            }
+          } catch (e) {
+            // Silently handle error - don't block navigation
+            debugPrint('Failed to register device: $e');
+          }
+
           // Navigate to role selection screen
-          context.go('/role-selection');
+          if (context.mounted) {
+            context.go('/role-selection');
+          }
         }
 
         // Handle OTP verification error
         if (state is OnOtpVerificationError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.grey.shade600),
           );
         }
 
@@ -109,7 +160,7 @@ class _OtpVerificationScreenContentState
         // Handle OTP resend error
         if (state is OnResendOtpError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.grey.shade600),
           );
         }
       },

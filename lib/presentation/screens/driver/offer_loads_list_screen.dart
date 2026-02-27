@@ -39,7 +39,7 @@ class _OfferLoadsListScreenState extends State<OfferLoadsListScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.error),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.grey.shade600,
               ),
             );
           }

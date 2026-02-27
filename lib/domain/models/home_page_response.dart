@@ -26,33 +26,151 @@ class HomePageResponse {
 
 /// Home page data containing load status and trip details
 class HomePageData {
-  final String loadStatus;
+  final String isAvailableForLoad;
+  final bool hasActiveSubscription;
+  final int vehicleCount;
   final List<TripDetail> tripDetails;
-  final List<dynamic> tripStatus;
+  final List<ConfirmedTrip> confirmedTrips;
 
   HomePageData({
-    required this.loadStatus,
+    required this.isAvailableForLoad,
+    required this.hasActiveSubscription,
+    required this.vehicleCount,
     required this.tripDetails,
-    required this.tripStatus,
+    required this.confirmedTrips,
   });
 
   factory HomePageData.fromJson(Map<String, dynamic> json) {
     return HomePageData(
-      loadStatus: json['loadStatus'] as String? ?? '',
-      tripDetails: (json['tripDetails'] as List<dynamic>?)
+      isAvailableForLoad: json['isAvailableforload'] as String? ?? '',
+      hasActiveSubscription: json['hasActiveSubscription'] as bool? ?? false,
+      vehicleCount: json['vehiclecount'] as int? ?? 0,
+      tripDetails: (json['tripsOffered'] as List<dynamic>?)
               ?.map((e) => TripDetail.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-      tripStatus: json['tripStatus'] as List<dynamic>? ?? [],
+      confirmedTrips: (json['tripsConfirmed'] as List<dynamic>?)
+              ?.map((e) => ConfirmedTrip.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'loadStatus': loadStatus,
-      'tripDetails': tripDetails.map((e) => e.toJson()).toList(),
-      'tripStatus': tripStatus,
+      'isAvailableforload': isAvailableForLoad,
+      'hasActiveSubscription': hasActiveSubscription,
+      'vehiclecount': vehicleCount,
+      'tripsOffered': tripDetails.map((e) => e.toJson()).toList(),
+      'tripsConfirmed': confirmedTrips.map((e) => e.toJson()).toList(),
     };
+  }
+}
+
+/// Confirmed trip model for scheduled/confirmed trips
+class ConfirmedTrip {
+  final String tripId;
+  final String pickupAddress;
+  final String dropAddress;
+  final double finalAmount;
+  final double amountDue;
+  final double advanceAmount;
+  final String vehicleNo;
+  final String tripStatus;
+  final String clientName;
+  final String clientNumber;
+  final DateTime? tripStartDate;
+
+  ConfirmedTrip({
+    required this.tripId,
+    required this.pickupAddress,
+    required this.dropAddress,
+    required this.finalAmount,
+    required this.amountDue,
+    required this.advanceAmount,
+    required this.vehicleNo,
+    required this.tripStatus,
+    required this.clientName,
+    required this.clientNumber,
+    this.tripStartDate,
+  });
+
+  factory ConfirmedTrip.fromJson(Map<String, dynamic> json) {
+    return ConfirmedTrip(
+      tripId: json['tripId'] as String? ?? '',
+      pickupAddress: json['pickupAddress'] as String? ?? '',
+      dropAddress: json['dropAddress'] as String? ?? '',
+      finalAmount: (json['finalAmount'] as num?)?.toDouble() ?? 0.0,
+      amountDue: (json['amountDue'] as num?)?.toDouble() ?? 0.0,
+      advanceAmount: (json['advanceAmount'] as num?)?.toDouble() ?? 0.0,
+      vehicleNo: json['vehicleNo'] as String? ?? '',
+      tripStatus: json['tripstatus'] as String? ?? '',
+      clientName: json['clientName'] as String? ?? '',
+      clientNumber: json['clinetNumber'] as String? ?? '', // Note: API has typo 'clinet'
+      tripStartDate: json['tripStartDate'] != null
+          ? DateTime.tryParse(json['tripStartDate'] as String)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'tripId': tripId,
+      'pickupAddress': pickupAddress,
+      'dropAddress': dropAddress,
+      'finalAmount': finalAmount,
+      'amountDue': amountDue,
+      'advanceAmount': advanceAmount,
+      'vehicleNo': vehicleNo,
+      'tripstatus': tripStatus,
+      'clientName': clientName,
+      'clinetNumber': clientNumber, // Note: API has typo 'clinet'
+      'tripStartDate': tripStartDate?.toIso8601String(),
+    };
+  }
+
+  /// Get a formatted route string
+  String get route {
+    final pickup = _getShortAddress(pickupAddress);
+    final drop = _getShortAddress(dropAddress);
+    return '$pickup to $drop';
+  }
+
+  /// Extract short address (city name) from full address
+  String _getShortAddress(String fullAddress) {
+    final parts = fullAddress.split(',');
+    if (parts.isNotEmpty) {
+      return parts.first.trim();
+    }
+    return fullAddress;
+  }
+
+  /// Check if trip is scheduled
+  bool get isScheduled => tripStatus.toLowerCase() == 'scheduled';
+
+  /// Check if trip is in progress
+  bool get isInProgress => tripStatus.toLowerCase() == 'inprogress';
+
+  /// Get display status text
+  String get displayStatus {
+    switch (tripStatus.toLowerCase()) {
+      case 'scheduled':
+        return 'Scheduled';
+      case 'inprogress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return tripStatus;
+    }
+  }
+
+  /// Format trip start date
+  String get formattedStartDate {
+    if (tripStartDate == null) return 'Not scheduled';
+    return '${tripStartDate!.day}/${tripStartDate!.month}/${tripStartDate!.year} at ${tripStartDate!.hour.toString().padLeft(2, '0')}:${tripStartDate!.minute.toString().padLeft(2, '0')}';
   }
 }
 

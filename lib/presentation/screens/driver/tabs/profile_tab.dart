@@ -9,8 +9,15 @@ import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../domain/repository/user_repository.dart';
 
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
+
+  @override
+  State<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<ProfileTab> {
+  ProfileBloc? _bloc;
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -49,12 +56,12 @@ class ProfileTab extends StatelessWidget {
 
     return BlocProvider(
       create: (context) {
-        final bloc = ProfileBloc(context, context.read<UserRepository>());
+        _bloc = ProfileBloc(context, context.read<UserRepository>());
         // Fetch profile data on initialization
         if (userId != null) {
-          bloc.add(FetchProfile(userId: userId));
+          _bloc!.add(FetchProfile(userId: userId));
         }
-        return bloc;
+        return _bloc!;
       },
       child: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
@@ -75,7 +82,14 @@ class ProfileTab extends StatelessWidget {
                     context,
                     Icons.person_outlined,
                     'Edit Profile',
-                    () => context.push('/user-profile'),
+                    () async {
+                      await context.push('/user-profile');
+                      // Refresh profile when coming back from edit profile
+                      final userId = authProvider.currentUser?.id;
+                      if (userId != null && _bloc != null) {
+                        _bloc!.add(FetchProfile(userId: userId));
+                      }
+                    },
                   ),
                   _buildProfileOption(
                     context,

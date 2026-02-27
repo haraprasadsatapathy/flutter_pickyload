@@ -36,17 +36,17 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterStates> {
       // ============================================
 
       // Validation Rule 1: Check if all fields are filled
-      if (event.name.isEmpty || event.email.isEmpty || event.phone.isEmpty) {
+      if (event.name.isEmpty || event.phone.isEmpty) {
         emit(OnRegisterError('Please fill all fields'));
         return;
       }
 
       // Validation Rule 2: Validate email format
-      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-      if (!emailRegex.hasMatch(event.email)) {
-        emit(OnRegisterError('Please enter a valid email'));
-        return;
-      }
+      // final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      // if (!emailRegex.hasMatch(event.email)) {
+      //   emit(OnRegisterError('Please enter a valid email'));
+      //   return;
+      // }
 
       // Validation Rule 3: Validate phone format (must be 10 digits)
       if (event.phone.length != 10) {
@@ -88,7 +88,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterStates> {
               OnRegisterSuccess(
                 phoneNumber: event.phone,
                 otp: otpData.otp,
-                message: registerResult.data!.message,
+                message: registerResult.message ?? 'Registration successful',
               ),
             );
           } else {

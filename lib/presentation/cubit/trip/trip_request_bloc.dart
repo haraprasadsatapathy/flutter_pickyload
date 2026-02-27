@@ -125,7 +125,7 @@ class TripRequestBloc extends Bloc<TripRequestEvent, TripRequestStates> {
           emit(
             OnTripRequestSuccess(
               tripId: result.data!.bookingId,
-              message: result.data!.message,
+              message: result.message ?? 'Booking created successfully',
             ),
           );
         } else {

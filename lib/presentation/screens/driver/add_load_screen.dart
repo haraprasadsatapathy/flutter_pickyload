@@ -37,9 +37,22 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
   void initState() {
     super.initState();
     // Fetch driver's vehicles when screen loads
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final driverId = authProvider.currentUser?.id ?? '';
-    context.read<AddLoadBloc>().add(FetchDriverVehicles(driverId: driverId));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final driverId = authProvider.currentUser?.id ?? '';
+      if (driverId.isEmpty) {
+        Fluttertoast.showToast(
+          msg: 'Driver ID not found. Please login again.',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.grey.shade600,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      } else {
+        context.read<AddLoadBloc>().add(FetchDriverVehicles(driverId: driverId));
+      }
+    });
   }
 
   @override
@@ -194,6 +207,69 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
+  Widget _buildNoVehicleCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.local_shipping_outlined,
+            size: 48,
+            color: Colors.orange.shade700,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No Vehicles Available',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange.shade800,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please add a vehicle first to offer loads',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.orange.shade700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                await context.push('/add-vehicle');
+                // Refresh vehicles list after returning from add vehicle screen
+                if (mounted) {
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final driverId = authProvider.currentUser?.id ?? '';
+                  if (driverId.isNotEmpty) {
+                    context.read<AddLoadBloc>().add(FetchDriverVehicles(driverId: driverId));
+                  }
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Vehicle'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,7 +295,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
               msg: state.error,
               toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.grey.shade600,
               textColor: Colors.white,
               fontSize: 16.0,
             );
@@ -227,283 +303,306 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
         },
         child: BlocBuilder<AddLoadBloc, AddLoadState>(
           builder: (context, state) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Vehicle Selection Dropdown
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Select Vehicle',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+            return Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Vehicle Selection Dropdown
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Select Vehicle',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
+                                  const SizedBox(height: 12),
+                                  if (state is AddLoadLoading && state.vehicles.isEmpty)
+                                    const Center(child: CircularProgressIndicator())
+                                  else if (state.vehicles.isEmpty)
+                                    _buildNoVehicleCard(context)
+                                  else
+                                    DropdownButtonFormField<String>(
+                                      value: _selectedVehicleId,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Vehicle',
+                                        border: OutlineInputBorder(),
+                                      ),
+                                      items: state.vehicles.map((vehicle) {
+                                        return DropdownMenuItem<String>(
+                                          value: vehicle.vehicleId,
+                                          child: Text(vehicle.vehicleNumber),
+                                        );
+                                      }).toList(),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _selectedVehicleId = value;
+                                        });
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please select a vehicle';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            if (state is AddLoadLoading && state.vehicles.isEmpty)
-                              const Center(child: CircularProgressIndicator())
-                            else if (state.vehicles.isEmpty)
-                              const Text('No vehicles available. Please add a vehicle first.')
-                            else
-                              DropdownButtonFormField<String>(
-                                value: _selectedVehicleId,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Origin
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: TextFormField(
+                                controller: _originController,
+                                readOnly: true,
+                                onTap: _selectOriginLocation,
                                 decoration: const InputDecoration(
-                                  labelText: 'Vehicle',
+                                  labelText: 'Origin',
+                                  hintText: 'Tap to select pickup location',
                                   border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.location_on),
+                                  suffixIcon: Icon(Icons.map),
                                 ),
-                                items: state.vehicles.map((vehicle) {
-                                  return DropdownMenuItem<String>(
-                                    value: vehicle.vehicleId,
-                                    child: Text(vehicle.displayName),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedVehicleId = value;
-                                  });
-                                },
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please select a vehicle';
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please select origin location';
                                   }
                                   return null;
                                 },
                               ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Origin
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: TextFormField(
-                          controller: _originController,
-                          readOnly: true,
-                          onTap: _selectOriginLocation,
-                          decoration: const InputDecoration(
-                            labelText: 'Origin',
-                            hintText: 'Tap to select pickup location',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.location_on),
-                            suffixIcon: Icon(Icons.map),
+                            ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please select origin location';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                    // Destination
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: TextFormField(
-                          controller: _destinationController,
-                          readOnly: true,
-                          onTap: _selectDestinationLocation,
-                          decoration: const InputDecoration(
-                            labelText: 'Destination',
-                            hintText: 'Tap to select drop-off location',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.flag),
-                            suffixIcon: Icon(Icons.map),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please select destination location';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Check Distance Button
-                    if (_originLatitude != null &&
-                        _originLongitude != null &&
-                        _destinationLatitude != null &&
-                        _destinationLongitude != null)
-                      Card(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        child: InkWell(
-                          onTap: () async {
-                            final result = await Navigator.push<Map<String, dynamic>>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RouteMapScreen(
-                                  originLat: _originLatitude!,
-                                  originLng: _originLongitude!,
-                                  destinationLat: _destinationLatitude!,
-                                  destinationLng: _destinationLongitude!,
-                                  originAddress: _originController.text,
-                                  destinationAddress: _destinationController.text,
+                          // Destination
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: TextFormField(
+                                controller: _destinationController,
+                                readOnly: true,
+                                onTap: _selectDestinationLocation,
+                                decoration: const InputDecoration(
+                                  labelText: 'Destination',
+                                  hintText: 'Tap to select drop-off location',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.flag),
+                                  suffixIcon: Icon(Icons.map),
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please select destination location';
+                                  }
+                                  return null;
+                                },
                               ),
-                            );
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
-                            // Store the polyline points from the selected route
-                            if (result != null && result['polyline_points'] != null) {
-                              setState(() {
-                                _routePolylinePoints = List<Map<String, double>>.from(
-                                  (result['polyline_points'] as List).map((point) => {
-                                    'latitude': (point['latitude'] as num).toDouble(),
-                                    'longitude': (point['longitude'] as num).toDouble(),
-                                  }),
-                                );
-                              });
-
-                              // Show confirmation to user
-                              if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Route selected: ${result['distance_text']} in ${result['duration_text']}',
-                                    ),
-                                    backgroundColor: Colors.green,
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.route,
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                  size: 28,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  'Check Distance & Route',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          // Check Distance Button
+                          if (_originLatitude != null &&
+                              _originLongitude != null &&
+                              _destinationLatitude != null &&
+                              _destinationLongitude != null)
+                            Card(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              child: InkWell(
+                                onTap: () async {
+                                  final result = await Navigator.push<Map<String, dynamic>>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => RouteMapScreen(
+                                        originLat: _originLatitude!,
+                                        originLng: _originLongitude!,
+                                        destinationLat: _destinationLatitude!,
+                                        destinationLng: _destinationLongitude!,
+                                        originAddress: _originController.text,
+                                        destinationAddress: _destinationController.text,
                                       ),
+                                    ),
+                                  );
+
+                                  // Store the polyline points from the selected route
+                                  if (result != null && result['polyline_points'] != null) {
+                                    setState(() {
+                                      _routePolylinePoints = List<Map<String, double>>.from(
+                                        (result['polyline_points'] as List).map((point) => {
+                                          'latitude': (point['latitude'] as num).toDouble(),
+                                          'longitude': (point['longitude'] as num).toDouble(),
+                                        }),
+                                      );
+                                    });
+
+                                    // Show confirmation to user
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Route selected: ${result['distance_text']} in ${result['duration_text']}',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.route,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                        size: 28,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Check Distance & Route',
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                            ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                  size: 16,
-                                ),
-                              ],
+                              ),
+                            ),
+                          if (_originLatitude != null &&
+                              _originLongitude != null &&
+                              _destinationLatitude != null &&
+                              _destinationLongitude != null)
+                            const SizedBox(height: 16),
+
+                          // Available Time Start
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Available From',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: const Icon(Icons.calendar_today),
+                                    title: Text(_formatDateTime(_availableTimeStart)),
+                                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                                    onTap: () => _selectDateTime(context, true),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(color: Colors.grey.shade300),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    if (_originLatitude != null &&
-                        _originLongitude != null &&
-                        _destinationLatitude != null &&
-                        _destinationLongitude != null)
-                      const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                    // Available Time Start
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Available From',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
+                          // Available Time End
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Available Until',
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
-                            ),
-                            const SizedBox(height: 12),
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.calendar_today),
-                              title: Text(_formatDateTime(_availableTimeStart)),
-                              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                              onTap: () => _selectDateTime(context, true),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: Colors.grey.shade300),
+                                  const SizedBox(height: 12),
+                                  ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: const Icon(Icons.calendar_today),
+                                    title: Text(_formatDateTime(_availableTimeEnd)),
+                                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                                    onTap: () => _selectDateTime(context, false),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(color: Colors.grey.shade300),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Available Time End
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Available Until',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 12),
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.calendar_today),
-                              title: Text(_formatDateTime(_availableTimeEnd)),
-                              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                              onTap: () => _selectDateTime(context, false),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(color: Colors.grey.shade300),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Submit Button
-                    ElevatedButton(
-                      onPressed: state is AddLoadLoading ? null : _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: state is AddLoadLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text(
-                              'Submit Load Offer',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                // Fixed Submit Button at bottom
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: state is AddLoadLoading ? null : _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: state is AddLoadLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text(
+                                'Submit Load Offer',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),

@@ -104,17 +104,18 @@ class EditProfileBloc extends Bloc<EditProfileEvent, EditProfileState> {
     SaveProfileEvent event,
     Emitter<EditProfileState> emit,
   ) async {
+    // Capture the profile image path BEFORE changing state
+    String? profileImagePath;
+    if (state is EditProfileLoaded) {
+      profileImagePath = (state as EditProfileLoaded).profileImagePath;
+    }
+
     emit(const EditProfileSaving());
     try {
       // Get current user to preserve other fields
       final currentUser = await userRepository.getUserDetailsSp();
 
       if (currentUser != null) {
-        // Get the profile image path from current state if available
-        String? profileImagePath;
-        if (state is EditProfileLoaded) {
-          profileImagePath = (state as EditProfileLoaded).profileImagePath;
-        }
 
         // Use the new update-profile API with multipart/form-data
         final response = await userRepository.updateProfileWithImage(

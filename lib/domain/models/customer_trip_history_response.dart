@@ -1,0 +1,108 @@
+/// Response model for customer trip history API
+/// API: GET /User/GetTriphistoryByUserId/{userId}
+class CustomerTripHistoryResponse {
+  final String message;
+  final List<CustomerTripHistoryModel> trips;
+
+  CustomerTripHistoryResponse({
+    required this.message,
+    required this.trips,
+  });
+
+  factory CustomerTripHistoryResponse.fromJson(Map<String, dynamic> json) {
+    final tripsList = json['data'] as List<dynamic>? ?? [];
+    return CustomerTripHistoryResponse(
+      message: json['message'] as String? ?? '',
+      trips: tripsList.map((e) => CustomerTripHistoryModel.fromJson(e as Map<String, dynamic>)).toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'data': trips.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
+/// Model representing a single trip in customer trip history
+class CustomerTripHistoryModel {
+  final String tripId;
+  final String vehicleNo;
+  final DateTime bookingDate;
+  final DateTime? tripStartDate;
+  final DateTime? tripEndDate;
+  final String status;
+  final double finalPrice;
+  final double advanceAmountPaid;
+  final String pickupAddress;
+  final String dropAddress;
+  final String clientName;
+  final int feedbackRating;
+
+  CustomerTripHistoryModel({
+    required this.tripId,
+    required this.vehicleNo,
+    required this.bookingDate,
+    this.tripStartDate,
+    this.tripEndDate,
+    required this.status,
+    required this.finalPrice,
+    required this.advanceAmountPaid,
+    required this.pickupAddress,
+    required this.dropAddress,
+    required this.clientName,
+    required this.feedbackRating,
+  });
+
+  factory CustomerTripHistoryModel.fromJson(Map<String, dynamic> json) {
+    return CustomerTripHistoryModel(
+      tripId: json['tripId'] as String? ?? '',
+      vehicleNo: json['vehicleNo'] as String? ?? '',
+      bookingDate: json['bookigDate'] != null
+          ? DateTime.parse(json['bookigDate'] as String)
+          : DateTime.now(),
+      tripStartDate: json['tripStartDate'] != null
+          ? DateTime.parse(json['tripStartDate'] as String)
+          : null,
+      tripEndDate: json['tripEndDate'] != null
+          ? DateTime.parse(json['tripEndDate'] as String)
+          : null,
+      status: json['status'] as String? ?? '',
+      finalPrice: (json['finalPrice'] as num?)?.toDouble() ?? 0.0,
+      advanceAmountPaid: (json['advanceAmountPaid'] as num?)?.toDouble() ?? 0.0,
+      pickupAddress: json['pickupAddress'] as String? ?? '',
+      dropAddress: json['dropAddress'] as String? ?? '',
+      clientName: json['clientName'] as String? ?? '',
+      feedbackRating: (json['feedbackRating'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'tripId': tripId,
+      'vehicleNo': vehicleNo,
+      'bookigDate': bookingDate.toIso8601String(),
+      'tripStartDate': tripStartDate?.toIso8601String(),
+      'tripEndDate': tripEndDate?.toIso8601String(),
+      'status': status,
+      'finalPrice': finalPrice,
+      'advanceAmountPaid': advanceAmountPaid,
+      'pickupAddress': pickupAddress,
+      'dropAddress': dropAddress,
+      'clientName': clientName,
+      'feedbackRating': feedbackRating,
+    };
+  }
+
+  // Helper getters
+  String get formattedFinalPrice => '₹${finalPrice.toStringAsFixed(0)}';
+
+  String get formattedAdvanceAmount => '₹${advanceAmountPaid.toStringAsFixed(0)}';
+
+  double get remainingAmount => finalPrice - advanceAmountPaid;
+
+  String get formattedRemainingAmount => '₹${remainingAmount.toStringAsFixed(0)}';
+
+  String get route => '$pickupAddress to $dropAddress';
+}

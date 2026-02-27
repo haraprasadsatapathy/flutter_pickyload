@@ -1,11 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:picky_load/presentation/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../presentation/screens/splash/splash_screen.dart';
-// Old login screen
-// import '../presentation/screens/auth/login_screen.dart';
-// New BLoC-based login screen
 import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/auth/otp_verification_screen.dart';
 import '../presentation/screens/auth/password_recovery_screen.dart';
@@ -18,18 +16,20 @@ import '../presentation/screens/driver/show_vehicle_screen.dart';
 import '../presentation/screens/driver/show_documents_screen.dart';
 import '../presentation/screens/driver/add_load_screen.dart';
 import '../presentation/screens/driver/offer_loads_list_screen.dart';
-import '../presentation/screens/customer/trip_request_screen.dart';
-import '../presentation/screens/customer/trip_tracking_screen.dart';
-import '../presentation/screens/customer/payment_screen.dart';
-import '../presentation/screens/customer/advance_payment_screen.dart';
-import '../presentation/screens/customer/transaction_history_screen.dart';
-import '../presentation/screens/customer/customer_profile_screen.dart';
-import '../presentation/screens/customer/notifications_screen.dart';
-import '../presentation/screens/customer/help_support_screen.dart';
-import '../presentation/screens/customer/matched_vehicles_screen.dart';
-import '../presentation/screens/driver/user_offers_list_screen.dart';
+import '../presentation/screens/customer/home/trip_request_screen.dart';
+import '../presentation/screens/customer/home/trip_details_screen.dart';
+import '../presentation/screens/customer/home/cancel_booking_screen.dart';
+import '../presentation/screens/customer/home/payment_screen.dart';
+import '../presentation/screens/customer/home/advance_payment_screen.dart';
+import '../presentation/screens/customer/home/matched_vehicles_screen.dart';
+import '../presentation/screens/customer/my_trips/transaction_history_screen.dart';
+import '../presentation/screens/customer/profile/customer_profile_screen.dart';
+import '../presentation/screens/customer/profile/help_support_screen.dart';
+import '../presentation/screens/driver/load_deal_list_screen.dart';
+import '../presentation/screens/driver/confirmed_trip_detail_screen.dart';
+import '../domain/models/payment_request_response.dart';
 import '../domain/models/customer_home_page_response.dart';
-import '../domain/models/home_page_response.dart';
+import '../domain/models/home_page_response.dart' show TripDetail, ConfirmedTrip;
 import '../domain/repository/user_repository.dart';
 import '../domain/repository/driver_repository.dart';
 import '../domain/repository/customer_repository.dart';
@@ -42,8 +42,12 @@ import '../presentation/cubit/driver/offer_loads_list/offer_loads_list_bloc.dart
 import '../presentation/cubit/driver/user_offers_list/user_offers_list_bloc.dart';
 import '../presentation/cubit/driver/user_offers_list/user_offers_list_event.dart';
 
+/// Global route observer for detecting navigation changes
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 final router = GoRouter(
   initialLocation: '/',
+  observers: [routeObserver],
   routes: [
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
@@ -131,7 +135,11 @@ final router = GoRouter(
     GoRoute(
       path: '/trip-tracking',
       builder: (context, state) =>
-          TripTrackingScreen(trip: state.extra as OngoingTrip),
+          TripDetailsScreen(trip: state.extra as OngoingTrip),
+    ),
+    GoRoute(
+      path: '/cancel-booking',
+      builder: (context, state) => CancelBookingScreen(tripId: state.extra as String?),
     ),
     GoRoute(
       path: '/payment',
@@ -145,6 +153,7 @@ final router = GoRouter(
         return AdvancePaymentScreen(
           vehicle: extra['vehicle'] as VehicleMatch,
           booking: extra['booking'] as BookingDetail,
+          paymentData: extra['paymentData'] as PaymentRequestResponse,
           onPaymentSuccess: extra['onPaymentSuccess'] as Function()?,
         );
       },
@@ -172,10 +181,6 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/notifications',
-      builder: (context, state) => const NotificationsScreen(),
-    ),
-    GoRoute(
       path: '/help-support',
       builder: (context, state) => const HelpSupportScreen(),
     ),
@@ -195,8 +200,15 @@ final router = GoRouter(
             context,
             Provider.of<DriverRepository>(context, listen: false),
           )..add(InitializeUserOffersList(tripDetail: tripDetail)),
-          child: UserOffersListScreen(tripDetail: tripDetail),
+          child: LoadDealListScreen(tripDetail: tripDetail),
         );
+      },
+    ),
+    GoRoute(
+      path: '/confirmed-trip-detail',
+      builder: (context, state) {
+        final confirmedTrip = state.extra as ConfirmedTrip;
+        return ConfirmedTripDetailScreen(trip: confirmedTrip);
       },
     ),
   ],

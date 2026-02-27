@@ -2,14 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../../domain/repository/trip_repository.dart';
-import '../../../services/local/storage_service.dart';
-import '../../cubit/trip/trip_request_bloc.dart';
-import '../../cubit/trip/trip_request_event.dart';
-import '../../cubit/trip/trip_request_state.dart';
-import '../driver/map_location_picker_screen.dart';
+import '../../../../domain/repository/trip_repository.dart';
+import '../../../../services/local/storage_service.dart';
+import '../../../cubit/trip/trip_request_bloc.dart';
+import '../../../cubit/trip/trip_request_event.dart';
+import '../../../cubit/trip/trip_request_state.dart';
+import '../../driver/map_location_picker_screen.dart';
 
 class TripRequestScreen extends StatelessWidget {
   const TripRequestScreen({super.key});
@@ -192,9 +193,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
     if (_formKey.currentState!.validate()) {
       if (_pickupLatitude == null || _pickupLongitude == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select pickup location from map'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please select pickup location from map'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -202,9 +203,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
 
       if (_dropLatitude == null || _dropLongitude == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select drop location from map'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please select drop location from map'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -212,9 +213,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
 
       if (_selectedDate == null || _selectedTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select both date and time'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('Please select both date and time'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -223,9 +224,9 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
       final userIdFromStorage = StorageService.getString('userId');
       if (userIdFromStorage == null || userIdFromStorage.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('User not logged in'),
-            backgroundColor: Colors.red,
+          SnackBar(
+            content: const Text('User not logged in'),
+            backgroundColor: Colors.grey.shade600,
           ),
         );
         return;
@@ -270,18 +271,20 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
     return BlocListener<TripRequestBloc, TripRequestStates>(
       listener: (context, state) {
         if (state is OnTripRequestSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
+          Fluttertoast.showToast(
+            msg: state.message,
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 16.0,
           );
           context.pop();
         }
 
         if (state is OnTripRequestError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.grey.shade600),
           );
         }
       },
@@ -407,13 +410,13 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                   TextFormField(
                     controller: _loadNameController,
                     decoration: const InputDecoration(
-                      labelText: 'Load Name',
-                      hintText: 'Enter load name (e.g., Furniture, Electronics)',
+                      labelText: 'Goods Type',
+                      hintText: 'Enter goods type(e.g., Furniture, Electronics)',
                       prefixIcon: Icon(Icons.inventory_2_outlined),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter load name';
+                        return 'Please enter goods type';
                       }
                       return null;
                     },
@@ -422,7 +425,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
 
                   // Dimensions Section
                   Text(
-                    'Vehicle Dimensions (in meters)',
+                    'Vehicle Dimensions (in foot)',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -434,7 +437,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     controller: _lengthController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Length (m)',
+                      labelText: 'Length (ft)',
                       hintText: 'Enter length',
                       prefixIcon: Icon(Icons.straighten),
                     ),
@@ -456,7 +459,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     controller: _widthController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Width (m)',
+                      labelText: 'Width (ft)',
                       hintText: 'Enter width',
                       prefixIcon: Icon(Icons.height),
                     ),
@@ -478,7 +481,7 @@ class _TripRequestScreenContentState extends State<_TripRequestScreenContent> {
                     controller: _heightController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                      labelText: 'Height (m)',
+                      labelText: 'Height (ft)',
                       hintText: 'Enter height',
                       prefixIcon: Icon(Icons.height_outlined),
                     ),

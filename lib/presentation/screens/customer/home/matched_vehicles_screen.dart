@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../config/dependency_injection.dart';
-import '../../../domain/models/customer_home_page_response.dart';
-import '../../../domain/repository/customer_repository.dart';
-import '../../../services/local/saved_service.dart';
+import '../../../../config/dependency_injection.dart';
+import '../../../../domain/models/customer_home_page_response.dart';
+import '../../../../domain/models/payment_request_response.dart';
+import '../../../../domain/repository/customer_repository.dart';
+import '../../../../services/local/saved_service.dart';
+import 'advance_payment_screen.dart';
 import 'matched_vehicles_bottom_sheet_screen.dart';
 
 class MatchedVehiclesScreen extends StatefulWidget {
@@ -25,7 +27,7 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
     return user?.id ?? '';
   }
 
-  Future<void> _onRequestQuote(VehicleMatch vehicle) async {
+  Future<bool> _onRequestQuote(VehicleMatch vehicle) async {
     final userId = await _getUserId();
     if (userId.isEmpty) {
       if (mounted) {
@@ -33,7 +35,7 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
           const SnackBar(content: Text('User not found. Please login again.')),
         );
       }
-      return;
+      return false;
     }
 
     final response = await _customerRepository.requestQuote(
@@ -42,54 +44,39 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
       offerId: vehicle.offerId,
     );
 
-    if (!mounted) return;
-
-    if (response.status == true) {
-      setState(() {
-        vehicle.status = 'Pending';
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quote requested successfully. Waiting for driver response.')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message ?? 'Failed to request quote')),
-      );
-    }
-  }
-
-  Future<bool> _onAcceptOffer(VehicleMatch vehicle) async {
-    final userId = await _getUserId();
-    if (userId.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User not found. Please login again.')),
-        );
-      }
-      return false;
-    }
-
-    final advanceAmount = vehicle.quotedPrice * 0.10;
-
-    final response = await _customerRepository.acceptOffer(
-      userId: userId,
-      offerId: vehicle.offerId,
-      bookingId: widget.booking.bookingId,
-      advanceAmountPaid: advanceAmount,
-    );
-
     if (!mounted) return false;
 
     if (response.status == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Offer accepted successfully!')),
+        const SnackBar(content: Text('Quote requested successfully. Waiting for driver response.')),
       );
       return true;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message ?? 'Failed to accept offer')),
+        SnackBar(content: Text(response.message ?? 'Failed to request quote')),
       );
       return false;
+    }
+  }
+
+  Future<PaymentRequestResponse?> _onAcceptOffer(VehicleMatch vehicle) async {
+    final response = await _customerRepository.requestPayment(
+      bookingId: widget.booking.bookingId,
+      offerId: vehicle.offerId,
+    );
+
+    if (!mounted) return null;
+
+    // Check if data is available (API returns data on success, status field may be absent)
+    if (response.data != null) {
+      return response.data;
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.message ?? 'Failed to request payment')),
+        );
+      }
+      return null;
     }
   }
 
@@ -361,8 +348,8 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
       statusBgColor = Colors.amber.shade50;
       statusIcon = Icons.pending;
     } else if (vehicle.isUpdated) {
-      statusColor = Colors.blue.shade700;
-      statusBgColor = Colors.blue.shade50;
+      statusColor = Colors.orange.shade700;
+      statusBgColor = Colors.orange.shade50;
       statusIcon = Icons.update;
     } else if (vehicle.isRequestQuote) {
       statusColor = Colors.purple.shade700;
@@ -550,8 +537,8 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
     );
   }
 
-  void _showVehicleDetailsBottomSheet(BuildContext context, VehicleMatch vehicle) {
-    showModalBottomSheet(
+  void _showVehicleDetailsBottomSheet(BuildContext context, VehicleMatch vehicle) async {
+    final shouldNavigateHome = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -560,10 +547,16 @@ class _MatchedVehiclesScreenState extends State<MatchedVehiclesScreen> {
       builder: (context) => VehicleDetailsBottomSheet(
         vehicle: vehicle,
         booking: widget.booking,
-        onRequestQuote: (_) => _onRequestQuote(vehicle),
+        onRequestQuote: () => _onRequestQuote(vehicle),
         onAccept: () => _onAcceptOffer(vehicle),
         onReject: () => _onRejectBooking(vehicle),
       ),
     );
+
+    // Navigate back to home screen after successful quote request
+    // The home screen will refresh automatically via its existing RefreshHomePage logic
+    if (shouldNavigateHome == true && mounted) {
+      context.pop();
+    }
   }
 }

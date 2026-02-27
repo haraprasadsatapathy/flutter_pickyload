@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../config/routes.dart';
 import '../../cubit/driver/home/home_tab_bloc.dart';
 import '../../cubit/driver/home/home_tab_event.dart';
 import 'tabs/home_tab.dart';
@@ -13,7 +14,7 @@ class DriverDashboard extends StatefulWidget {
   State<DriverDashboard> createState() => _DriverDashboardState();
 }
 
-class _DriverDashboardState extends State<DriverDashboard> {
+class _DriverDashboardState extends State<DriverDashboard> with RouteAware {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
@@ -29,6 +30,31 @@ class _DriverDashboardState extends State<DriverDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeTabBloc>().add(FetchHomePage());
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route observer
+    final route = ModalRoute.of(context);
+    if (route != null) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when a route has been popped and this route is now visible
+    // Refresh home tab data when returning from another screen
+    if (_selectedIndex == 0) {
+      context.read<HomeTabBloc>().add(FetchHomePage());
+    }
   }
 
   @override

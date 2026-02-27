@@ -13,6 +13,8 @@ import '../models/offer_loads_response.dart';
 import '../models/offer_loads_list_response.dart';
 import '../models/update_offer_price_response.dart';
 import '../models/home_page_response.dart';
+import '../models/trip_history_response.dart';
+import '../models/subscription_payment_response.dart';
 
 /// Repository for driver-related operations
 class DriverRepository {
@@ -62,7 +64,7 @@ class DriverRepository {
 
       final response = await _apiClient.post<Map<String, dynamic>>(
         '/Driver/DocumentVerify',
-        queryParameters: {'isDryRun': 'true'},
+        queryParameters: {'isDryRun': 'false'},
         data: requestBody,
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
@@ -252,8 +254,9 @@ class DriverRepository {
 
       if (response.status == true || response.data != null) {
         final vehicleUpsertResponse = VehicleUpsertResponse.fromJson(response.data!);
+        final successMessage = response.message ?? 'Vehicle added successfully';
 
-        return ApiResponse(status: true, message: vehicleUpsertResponse.message, data: vehicleUpsertResponse);
+        return ApiResponse(status: true, message: successMessage, data: vehicleUpsertResponse);
       }
 
       return ApiResponse(status: false, message: response.message ?? 'Failed to upsert vehicle', data: null);
@@ -408,8 +411,9 @@ class DriverRepository {
 
       if (response.data != null) {
         final offerLoadsResponse = OfferLoadsResponse.fromJson(response.data!);
+        final successMessage = response.message ?? 'Load offer submitted successfully';
 
-        return ApiResponse(status: true, message: offerLoadsResponse.message, data: offerLoadsResponse);
+        return ApiResponse(status: true, message: successMessage, data: offerLoadsResponse);
       }
 
       return ApiResponse(status: false, message: response.message ?? 'Failed to submit load offer', data: null);
@@ -473,7 +477,8 @@ class DriverRepository {
         fromJsonT: (json) => json as Map<String, dynamic>,
       );
 
-      if (response.status == true && response.data != null) {
+      // Check if response has data (API returns data on success, doesn't have status field)
+      if (response.data != null) {
         final updateOfferPriceResponse = UpdateOfferPriceResponse.fromJson(response.data!);
 
         return ApiResponse(status: true, message: updateOfferPriceResponse.message, data: updateOfferPriceResponse);
@@ -522,14 +527,24 @@ class DriverRepository {
     }
   }
 
-  /// Get driver's trip history
-  /// TODO: Implement when API endpoint is available
-  Future<ApiResponse<List<dynamic>>> getTripHistory({required String driverId, int? page, int? limit}) async {
+  /// Get driver's trip history by driver ID
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  Future<ApiResponse<TripHistoryResponse>> getTripHistoryByDriverId({required String driverId}) async {
     try {
-      // TODO: Implement API call to /Driver/Get-Trip-History
-      throw UnimplementedError('Get trip history API not yet implemented');
+      final response = await _apiClient.getRaw<TripHistoryResponse>(
+        '/Driver/GetTriphistoryByDriverId/$driverId',
+        fromJson: (json) => TripHistoryResponse.fromJson(json),
+      );
+
+      return response;
     } catch (e) {
-      return ApiResponse(status: false, message: 'An error occurred: ${e.toString()}', data: null);
+      return ApiResponse(
+        status: false,
+        message: 'An error occurred while fetching trip history: ${e.toString()}',
+        data: null,
+      );
     }
   }
 
@@ -570,6 +585,290 @@ class DriverRepository {
         status: false,
         message: 'An error occurred while fetching home page data: ${e.toString()}',
         data: null,
+      );
+    }
+  }
+
+  // ============================================
+  // SUBSCRIPTION OPERATIONS
+  // ============================================
+
+  /// Request subscription payment - creates a Razorpay order for subscription
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  ///
+  /// Returns subscription payment details including orderId for Razorpay
+  Future<ApiResponse<SubscriptionPaymentResponse>> requestSubscriptionPayment({
+    required String driverId,
+  }) async {
+    try {
+      print('DriverRepository: Calling POST /Driver/RequestSubscriptionPayment?driverId=$driverId');
+
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Driver/RequestSubscriptionPayment',
+        queryParameters: {'driverId': driverId},
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final subscriptionResponse = SubscriptionPaymentResponse.fromJson(responseData);
+
+      print('DriverRepository: Subscription payment response - message: ${subscriptionResponse.message}');
+
+      return ApiResponse(
+        status: true,
+        message: subscriptionResponse.message,
+        data: subscriptionResponse,
+      );
+    } catch (e) {
+      print('DriverRepository: Error in requestSubscriptionPayment: $e');
+
+      String errorMessage = 'An error occurred while requesting subscription payment: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: null,
+      );
+    }
+  }
+
+  /// Verify subscription payment after Razorpay checkout
+  ///
+  /// Parameters:
+  /// - userId: User/Driver ID (UUID)
+  /// - subscriptionId: Subscription ID from requestSubscriptionPayment
+  /// - amount: Amount paid
+  /// - isSuccess: Whether payment was successful
+  /// - razorpayPaymentId: Payment ID from Razorpay (on success)
+  /// - razorpayOrderId: Order ID from Razorpay (on success)
+  /// - razorpaySignature: Signature from Razorpay (on success)
+  /// - errorCode: Error code if payment failed
+  /// - errorDescription: Error description if payment failed
+  /// - errorSource: Error source if payment failed
+  /// - errorStep: Error step if payment failed
+  /// - errorReason: Error reason if payment failed
+  /// - errorOrderId: Order ID from error if payment failed
+  /// - errorPaymentId: Payment ID from error if payment failed
+  Future<ApiResponse<bool>> verifySubscriptionPayment({
+    required String userId,
+    required String subscriptionId,
+    required double amount,
+    required bool isSuccess,
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
+    String? razorpaySignature,
+    String? errorCode,
+    String? errorDescription,
+    String? errorSource,
+    String? errorStep,
+    String? errorReason,
+    String? errorOrderId,
+    String? errorPaymentId,
+  }) async {
+    try {
+      final requestData = {
+        'success': isSuccess
+            ? {
+                'razorpayPaymentId': razorpayPaymentId ?? '',
+                'razorpayOrderId': razorpayOrderId ?? '',
+                'razorpaySignature': razorpaySignature ?? '',
+              }
+            : null,
+        'error': !isSuccess
+            ? {
+                'code': errorCode ?? '',
+                'description': errorDescription ?? '',
+                'source': errorSource ?? '',
+                'step': errorStep ?? '',
+                'reason': errorReason ?? '',
+                'orderId': errorOrderId ?? '',
+                'paymentId': errorPaymentId ?? '',
+              }
+            : null,
+        'bookingId': userId,
+        'subscriptionId': subscriptionId,
+        'userId': userId,
+        'amount': amount,
+      };
+
+      print('DriverRepository: Verifying subscription payment');
+      print('Request: $requestData');
+
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Driver/verify-subscription-payment',
+        data: requestData,
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final responseSuccess = responseData['success'] as bool? ??
+          (responseData['message']?.toString().toLowerCase().contains('success') ?? false);
+      final message = responseData['message'] as String? ?? '';
+
+      print('DriverRepository: Verify response - success: $responseSuccess, message: $message');
+
+      return ApiResponse(
+        status: responseSuccess,
+        message: message.isNotEmpty ? message : (responseSuccess ? 'Payment verified successfully' : 'Payment verification failed'),
+        data: responseSuccess,
+      );
+    } catch (e) {
+      print('DriverRepository: Error verifying subscription payment: $e');
+
+      String errorMessage = 'An error occurred while verifying payment: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: false,
+      );
+    }
+  }
+
+  // ============================================
+  // TRIP START OPERATIONS
+  // ============================================
+
+  /// Start trip with user OTP verification
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  /// - tripId: Trip ID (UUID)
+  /// - confirmationOtp: OTP shared by customer
+  ///
+  /// Returns ApiResponse<bool> where data is true if trip started successfully
+  Future<ApiResponse<bool>> startTripWithOtp({
+    required String driverId,
+    required String tripId,
+    required String confirmationOtp,
+  }) async {
+    try {
+      final requestData = {
+        'driverId': driverId,
+        'tripId': tripId,
+        'confirmationOtp': confirmationOtp,
+      };
+
+      // Make raw API call to handle the response format
+      // Success: {"success": true, "message": "Trip Started successfully."}
+      // Error: {"message": "...", "data": []}
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Trip/TripStart/TripStartOtp',
+        data: requestData,
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final success = responseData['success'] as bool? ?? false;
+      final message = responseData['message'] as String? ?? '';
+
+      if (success) {
+        return ApiResponse(
+          status: true,
+          message: message.isNotEmpty ? message : 'Trip started successfully',
+          data: true,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: message.isNotEmpty ? message : 'Failed to start trip',
+        data: false,
+      );
+    } catch (e) {
+      String errorMessage = 'An error occurred while starting trip: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: false,
+      );
+    }
+  }
+
+  /// End trip with user OTP verification
+  ///
+  /// Parameters:
+  /// - driverId: Driver ID (UUID)
+  /// - tripId: Trip ID (UUID)
+  /// - confirmationOtp: OTP shared by customer
+  ///
+  /// Returns ApiResponse<bool> where data is true if trip ended successfully
+  Future<ApiResponse<bool>> endTripWithOtp({
+    required String driverId,
+    required String tripId,
+    required String confirmationOtp,
+  }) async {
+    try {
+      final requestData = {
+        'driverId': driverId,
+        'tripId': tripId,
+        'confirmationOtp': confirmationOtp,
+      };
+
+      // Make raw API call to handle the response format
+      // Success: {"success": true, "message": "Trip ended successfully."}
+      // Error: {"message": "Trip not found.", "data": []}
+      final dio = _apiClient.dio;
+      final apiResponse = await dio.post(
+        '/Trip/TripEnd/TripEndOtp',
+        data: requestData,
+      );
+
+      final responseData = apiResponse.data as Map<String, dynamic>;
+      final success = responseData['success'] as bool? ?? false;
+      final message = responseData['message'] as String? ?? '';
+
+      if (success) {
+        return ApiResponse(
+          status: true,
+          message: message.isNotEmpty ? message : 'Trip ended successfully',
+          data: true,
+        );
+      }
+
+      return ApiResponse(
+        status: false,
+        message: message.isNotEmpty ? message : 'Failed to end trip',
+        data: false,
+      );
+    } catch (e) {
+      String errorMessage = 'An error occurred while ending trip: ${e.toString()}';
+
+      if (e is DioException && e.response?.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map<String, dynamic> && responseData['message'] != null) {
+          errorMessage = responseData['message'] as String;
+        }
+      }
+
+      return ApiResponse(
+        status: false,
+        message: errorMessage,
+        data: false,
       );
     }
   }
