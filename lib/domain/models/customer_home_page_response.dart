@@ -138,6 +138,7 @@ class VehicleMatch {
 
 class OngoingTrip {
   final String tripId;
+  final String tripRefId;
   final String vehicleNo;
   final String tripStatus;
   final DateTime createdOn;
@@ -153,9 +154,13 @@ class OngoingTrip {
   final String dropAddress;
   final String driverName;
   final String driverNumber;
+  final double lastLocationLatitude;
+  final double lastLocationLongitude;
+  final String lastLocationTime;
 
   OngoingTrip({
     required this.tripId,
+    required this.tripRefId,
     required this.vehicleNo,
     required this.tripStatus,
     required this.createdOn,
@@ -171,11 +176,15 @@ class OngoingTrip {
     required this.dropAddress,
     required this.driverName,
     required this.driverNumber,
+    required this.lastLocationLatitude,
+    required this.lastLocationLongitude,
+    required this.lastLocationTime,
   });
 
   factory OngoingTrip.fromJson(Map<String, dynamic> json) {
     return OngoingTrip(
       tripId: json['tripId'] as String? ?? '',
+      tripRefId: json['tripRefId'] as String? ?? '',
       vehicleNo: json['vehicleNo'] as String? ?? '',
       tripStatus: json['tripstatus'] as String? ?? json['tripStatus'] as String? ?? '',
       createdOn: json['createdOn'] != null
@@ -199,12 +208,17 @@ class OngoingTrip {
       dropAddress: json['dropAddress'] as String? ?? '',
       driverName: json['driverName'] as String? ?? '',
       driverNumber: json['driverNumber'] as String? ?? '',
+      lastLocationLatitude: (json['lastlocation_lat'] as num?)?.toDouble() ?? 0.0,
+      lastLocationLongitude: (json['lastlocation_long'] as num?)?.toDouble() ?? 0.0,
+      lastLocationTime: json['lastlocation_time'] as String? ?? '',
     );
+
   }
 
   Map<String, dynamic> toJson() {
     return {
       'tripId': tripId,
+      'tripRefId': tripRefId,
       'vehicleNo': vehicleNo,
       'tripstatus': tripStatus,
       'createdOn': createdOn.toIso8601String(),
@@ -220,6 +234,9 @@ class OngoingTrip {
       'dropAddress': dropAddress,
       'driverName': driverName,
       'driverNumber': driverNumber,
+      'lastlocation_lat': lastLocationLatitude,
+      'lastlocation_long': lastLocationLongitude,
+      'lastlocation_time': lastLocationTime,
     };
   }
 

@@ -18,8 +18,8 @@ class CancelBookingScreen extends StatefulWidget {
 }
 
 class _CancelBookingScreenState extends State<CancelBookingScreen> {
-  static const String companyEmail = 'support@pickyload.in';
-  static const String companyPhone = '+91 9876543210';
+  static const String companyEmail = 'admin@pickyload.com';
+  static const String companyPhone = '9187525798';
 
   final CustomerRepository _customerRepository = getIt<CustomerRepository>();
   final TextEditingController _reasonController = TextEditingController();
@@ -306,6 +306,20 @@ class _CancelBookingScreenState extends State<CancelBookingScreen> {
                           contentPadding: const EdgeInsets.all(16),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.check_box, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Text(
+                            'I agree to the Cancellation & Refund Policy',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
@@ -411,19 +425,23 @@ class _CancelBookingScreenState extends State<CancelBookingScreen> {
                     const SizedBox(height: 12),
                     _buildPolicyItem(
                       context,
-                      'Cancellation before 24 hours of pickup: Full refund',
+                      'Cancel within 2 hours → 100% refund',
                     ),
                     _buildPolicyItem(
                       context,
-                      'Cancellation within 24 hours of pickup: 50% refund',
+                      'Cancel between 2–8 hours → 50% refund',
                     ),
                     _buildPolicyItem(
                       context,
-                      'Cancellation after driver dispatch: No refund',
+                      'Cancel after 8 hours → No refund',
                     ),
                     _buildPolicyItem(
                       context,
-                      'Refunds are processed within 5-7 business days',
+                      'No refund after driver dispatch',
+                    ),
+                    _buildPolicyItem(
+                      context,
+                      'Refunds processed in 5–7 business days',
                     ),
                   ],
                 ),

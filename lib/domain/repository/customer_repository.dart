@@ -231,23 +231,75 @@ class CustomerRepository {
   /// - reviewById: User ID who is reviewing (UUID)
   /// - rating: Rating value (1-5)
   /// - comment: Feedback comment
-  Future<ApiResponse<Map<String, dynamic>>> submitTripRating({
+  // Future<ApiResponse<Map<dynamic, dynamic>>> submitTripRating({
+  //   required String tripId,
+  //   required String reviewById,
+  //   required int rating,
+  //   required String comment,
+  // }) async {
+  //   try {
+  //
+  //     // final response = await _apiClient.post<Map<String, dynamic>>(
+  //     //   '/User/verify-payment',
+  //     //   data: request.toJson(),
+  //     //   fromJsonT: (json) => json as Map<String, dynamic>,
+  //     // );
+  //
+  //     CustomerRatingRequest request=CustomerRatingRequest(
+  //         tripId: tripId,
+  //         reviewById: reviewById,
+  //         rating: rating,
+  //         comment: comment,
+  //       createdAt: DateTime.now().toUtc().toIso8601String()
+  //     );
+  //     // final response = await _apiClient.post<Map<String, dynamic>>(
+  //     //   '/User/TripRatingFeedBack',
+  //     //   data: {
+  //     //     'tripId': tripId,
+  //     //     'reviewById': reviewById,
+  //     //     'rating': rating,
+  //     //     'comment': comment,
+  //     //     'createdAt': DateTime.now().toUtc().toIso8601String(),
+  //     //   },
+  //     //   fromJsonT: (json) => json as Map<String, dynamic>,
+  //     // );
+  //
+  //     final response = await _apiClient.post<Map<String, dynamic>>(
+  //       '/User/TripRatingFeedBack',
+  //       data: request.toJson(),
+  //       fromJsonT: (json) => json as Map<String, dynamic>,
+  //     );
+  //
+  //     return response;
+  //   } catch (e) {
+  //     return ApiResponse(
+  //       status: false,
+  //       message: 'An error occurred while submitting rating: ${e.toString()}',
+  //       data: null,
+  //     );
+  //   }
+  // }
+
+
+  Future<ApiResponse<dynamic>> submitTripRating({
     required String tripId,
     required String reviewById,
     required int rating,
     required String comment,
   }) async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      CustomerRatingRequest request = CustomerRatingRequest(
+        tripId: tripId,
+        reviewById: reviewById,
+        rating: rating,
+        comment: comment,
+        createdAt: DateTime.now().toUtc().toIso8601String(),
+      );
+
+      final response = await _apiClient.post<dynamic>(
         '/User/TripRatingFeedBack',
-        data: {
-          'tripId': tripId,
-          'reviewById': reviewById,
-          'rating': rating,
-          'comment': comment,
-          'createdAt': DateTime.now().toUtc().toIso8601String(),
-        },
-        fromJsonT: (json) => json as Map<String, dynamic>,
+        data: request.toJson(),
+        fromJsonT: (json) => json, // No casting needed
       );
 
       return response;
@@ -258,5 +310,40 @@ class CustomerRepository {
         data: null,
       );
     }
+  }
+}
+
+
+
+class CustomerRatingRequest {
+  String? tripId;
+  String? reviewById;
+  int? rating;
+  String? comment;
+  String? createdAt;
+
+  CustomerRatingRequest(
+      {this.tripId,
+        this.reviewById,
+        this.rating,
+        this.comment,
+        this.createdAt});
+
+  CustomerRatingRequest.fromJson(Map<String, dynamic> json) {
+    tripId = json['tripId'];
+    reviewById = json['reviewById'];
+    rating = json['rating'];
+    comment = json['comment'];
+    createdAt = json['createdAt'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['tripId'] = this.tripId;
+    data['reviewById'] = this.reviewById;
+    data['rating'] = this.rating;
+    data['comment'] = this.comment;
+    data['createdAt'] = this.createdAt;
+    return data;
   }
 }

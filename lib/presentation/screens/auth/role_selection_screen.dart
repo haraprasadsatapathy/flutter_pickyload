@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../domain/repository/driver_repository.dart';
@@ -65,6 +66,59 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
   void dispose() {
     _logoController.dispose();
     super.dispose();
+  }
+
+  // Helper method to check and request location permission
+  Future<void> _handleRoleSelection(BuildContext context, RoleSelectionEvent event) async {
+    var status = await Permission.location.status;
+
+    if (status.isDenied) {
+      status = await Permission.location.request();
+    }
+
+    if (status.isGranted || status.isLimited) {
+      if (context.mounted) {
+        context.read<RoleSelectionBloc>().add(event);
+      }
+    } else if (status.isPermanentlyDenied) {
+      if (mounted) {
+        _showPermissionDialog();
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location permission is required to use this app.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Permission Required'),
+        content: const Text(
+          'Picky Load needs location access to help find loads and track trips. Please enable it in app settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showLogoutConfirmation(BuildContext context) {
@@ -216,9 +270,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                                 description: 'I need to transport goods',
                                 icon: Icons.local_shipping_outlined,
                                 isLoading: false,
-                                onTap: () {
-                                  context.read<RoleSelectionBloc>().add(SelectCustomerRole());
-                                },
+                                onTap: () => _handleRoleSelection(context, SelectCustomerRole()),
                               ),
                               const SizedBox(height: 20),
                               _RoleCard(
@@ -226,9 +278,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                                 description: 'I want to offer load carrying services',
                                 icon: Icons.person_pin_outlined,
                                 isLoading: isLoading,
-                                onTap: () {
-                                  context.read<RoleSelectionBloc>().add(SelectDriverRole());
-                                },
+                                onTap: () => _handleRoleSelection(context, SelectDriverRole()),
                               ),
                               const Spacer(),
                               // Logout option

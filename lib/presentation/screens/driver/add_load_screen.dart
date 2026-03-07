@@ -371,7 +371,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                                 readOnly: true,
                                 onTap: _selectOriginLocation,
                                 decoration: const InputDecoration(
-                                  labelText: 'Origin',
+                                  labelText: 'Pickup Location',
                                   hintText: 'Tap to select pickup location',
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.location_on),
@@ -397,7 +397,7 @@ class _AddLoadScreenState extends State<AddLoadScreen> {
                                 readOnly: true,
                                 onTap: _selectDestinationLocation,
                                 decoration: const InputDecoration(
-                                  labelText: 'Destination',
+                                  labelText: 'Drop Location',
                                   hintText: 'Tap to select drop-off location',
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.flag),

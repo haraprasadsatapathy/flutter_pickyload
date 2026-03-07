@@ -526,19 +526,19 @@ class MyBookingsContent extends StatelessWidget {
                     ),
                   ],
                 ),
-                Row(
-                  children: [
-                    const Icon(Icons.scale, size: 14, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${trip.loadCapacity.toStringAsFixed(0)} kg',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
+                // Row(
+                //   children: [
+                //     const Icon(Icons.scale, size: 14, color: Colors.grey),
+                //     const SizedBox(width: 4),
+                //     Text(
+                //       '${trip.loadCapacity.toStringAsFixed(0)} kg',
+                //       style: const TextStyle(
+                //         fontWeight: FontWeight.bold,
+                //         fontSize: 13,
+                //       ),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),
@@ -1249,6 +1249,7 @@ class MyTripsContent extends StatelessWidget {
   void _showRatingDialog(BuildContext context, CustomerTripHistoryModel trip) {
     int selectedRating = 0;
     final feedbackController = TextEditingController();
+    final rootContext = context; // Capture root context
 
     showDialog(
       context: context,
@@ -1420,7 +1421,7 @@ class MyTripsContent extends StatelessWidget {
                                 ? () {
                                     Navigator.pop(dialogContext);
                                     _submitRating(
-                                      context,
+                                      rootContext,
                                       trip,
                                       selectedRating,
                                       feedbackController.text,
@@ -1475,12 +1476,147 @@ class MyTripsContent extends StatelessWidget {
     }
   }
 
+  // Future<void> _submitRating(
+  //     BuildContext context,
+  //     CustomerTripHistoryModel trip,
+  //     int rating,
+  //     String feedback,
+  //     ) async
+  // {
+  //   // Show loading indicator
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: true, // Allow closing by tapping outside
+  //     builder: (context) => Dialog(
+  //       backgroundColor: Colors.transparent,
+  //       elevation: 0,
+  //       child: Center(
+  //         child: Container(
+  //           padding: const EdgeInsets.all(24),
+  //           decoration: BoxDecoration(
+  //             color: Colors.white,
+  //             borderRadius: BorderRadius.circular(12),
+  //           ),
+  //           child: const CircularProgressIndicator(),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  //
+  //   try {
+  //     // Get userId from SharedPreferences
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final userId = prefs.getString('userId') ?? '';
+  //
+  //     if (userId.isEmpty) {
+  //       if (context1.mounted) {
+  //         Navigator.pop(context1); // Close loading
+  //         ScaffoldMessenger.of(context1).showSnackBar(
+  //           SnackBar(
+  //             content: const Text('User not found. Please login again.'),
+  //             backgroundColor: Colors.red.shade600,
+  //             behavior: SnackBarBehavior.floating,
+  //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //             margin: const EdgeInsets.all(16),
+  //           ),
+  //         );
+  //       }
+  //       return;
+  //     }
+  //
+  //     // Create repository and call API
+  //     final apiClient = ApiClient();
+  //     final savedService = SavedService();
+  //     final customerRepository = CustomerRepository(apiClient, savedService);
+  //
+  //     final response = await customerRepository.submitTripRating(
+  //       tripId: trip.tripId,
+  //       reviewById: userId,
+  //       rating: rating,
+  //       comment: feedback,
+  //     );
+  //
+  //     // Close loading - ONLY if context is still mounted
+  //     if (context1.mounted) {
+  //       Navigator.pop(context1);
+  //     }
+  //
+  //     if (!context1.mounted) return;
+  //
+  //     // Check for success - API returns data on success
+  //     final isSuccess = response.data != null;
+  //
+  //     if (isSuccess) {
+  //       // Show success message
+  //       ScaffoldMessenger.of(context1).showSnackBar(
+  //         SnackBar(
+  //           content: Row(
+  //             children: [
+  //               const Icon(Icons.check_circle, color: Colors.white, size: 20),
+  //               const SizedBox(width: 12),
+  //               Text('Thank you for rating ${trip.clientName}!'),
+  //             ],
+  //           ),
+  //           backgroundColor: Colors.green.shade600,
+  //           behavior: SnackBarBehavior.floating,
+  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //           margin: const EdgeInsets.all(16),
+  //         ),
+  //       );
+  //
+  //       // Refresh the trip history
+  //       if (context1.mounted) {
+  //         context1.read<CustomerTripHistoryBloc>().add(
+  //           FetchCustomerTripHistory(userId: userId),
+  //         );
+  //       }
+  //     } else {
+  //       // Show error message
+  //       ScaffoldMessenger.of(context1).showSnackBar(
+  //         SnackBar(
+  //           content: Row(
+  //             children: [
+  //               const Icon(Icons.error_outline, color: Colors.white, size: 20),
+  //               const SizedBox(width: 12),
+  //               Expanded(child: Text(response.message ?? 'Failed to submit rating')),
+  //             ],
+  //           ),
+  //           backgroundColor: Colors.red.shade600,
+  //           behavior: SnackBarBehavior.floating,
+  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //           margin: const EdgeInsets.all(16),
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (context1.mounted) {
+  //       Navigator.pop(context1); // Close loading
+  //       ScaffoldMessenger.of(context1).showSnackBar(
+  //         SnackBar(
+  //           content: Row(
+  //             children: [
+  //               const Icon(Icons.error_outline, color: Colors.white, size: 20),
+  //               const SizedBox(width: 12),
+  //               const Expanded(child: Text('An error occurred. Please try again.')),
+  //             ],
+  //           ),
+  //           backgroundColor: Colors.red.shade600,
+  //           behavior: SnackBarBehavior.floating,
+  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //           margin: const EdgeInsets.all(16),
+  //         ),
+  //       );
+  //     }
+  //   }
+  // }
+
   Future<void> _submitRating(
     BuildContext context,
     CustomerTripHistoryModel trip,
     int rating,
     String feedback,
-  ) async {
+  ) async
+  {
     // Show loading indicator
     showDialog(
       context: context,
@@ -1520,13 +1656,14 @@ class MyTripsContent extends StatelessWidget {
         rating: rating,
         comment: feedback,
       );
-
+      
+      // Close loading dialog
+      Navigator.pop(context);
+      
       if (!context.mounted) return;
-      Navigator.pop(context); // Close loading
 
       // Check for success - API returns data on success
-      final isSuccess = response.data != null ||
-          (response.message?.toLowerCase().contains('success') ?? false);
+      final isSuccess = response.data != null ;
 
       if (isSuccess) {
         // Show success message
@@ -1575,11 +1712,11 @@ class MyTripsContent extends StatelessWidget {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.error_outline, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                const Expanded(child: Text('An error occurred. Please try again.')),
+                 Icon(Icons.error_outline, color: Colors.white, size: 20),
+                 SizedBox(width: 12),
+                 Expanded(child: Text('An error occurred. Please try again.')),
               ],
             ),
             backgroundColor: Colors.red.shade600,

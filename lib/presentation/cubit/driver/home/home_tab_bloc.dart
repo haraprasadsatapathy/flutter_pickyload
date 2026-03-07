@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../domain/repository/driver_repository.dart';
 import 'home_tab_event.dart';
 import 'home_tab_state.dart';
@@ -54,6 +55,14 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
           debugPrint('HomeTabBloc: Fetched ${response.data!.data.confirmedTrips.length} confirmed trips');
           debugPrint('HomeTabBloc: hasActiveSubscription: ${response.data!.data.hasActiveSubscription}');
           debugPrint('HomeTabBloc: vehicleCount: ${response.data!.data.vehicleCount}');
+          if(response.data!.data.confirmedTrips.isNotEmpty){
+            Position position = await getCurrentLocation();
+             await driverRepository.logTripLocation(
+              tripId: response.data!.data.confirmedTrips[0].tripId,
+              latitude:position.latitude,
+              longitude: position.longitude  ,
+            );
+          }
           emit(HomeTabSuccess(
             message: response.data!.message,
             isAvailableForLoad: response.data!.data.isAvailableForLoad,
@@ -90,6 +99,7 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
         ));
       }
     });
+
 
     // Fetch Documents
     on<FetchDocuments>((event, emit) async {
@@ -219,5 +229,31 @@ class HomeTabBloc extends Bloc<HomeTabEvent, HomeTabState> {
         ));
       }
     });
+  }
+
+  Future<Position> getCurrentLocation() async {
+    // Check if location services are enabled
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled.');
+    }
+
+    // Check and request permission
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    // Get current position
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
   }
 }

@@ -146,12 +146,12 @@ class _ProfileTabState extends State<ProfileTab> {
                             }
                           },
                         ),
-                        _buildProfileOption(
-                          context,
-                          Icons.payment,
-                          'Payments',
-                          () => context.push('/transaction-history'),
-                        ),
+                        // _buildProfileOption(
+                        //   context,
+                        //   Icons.payment,
+                        //   'Payments',
+                        //   () => context.push('/transaction-history'),
+                        // ),
                         _buildProfileOption(
                           context,
                           Icons.help_outline,

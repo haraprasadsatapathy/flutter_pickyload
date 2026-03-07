@@ -377,14 +377,16 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                       Text(
                         booking.pickupAddress,
                         style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: 1,
+                        maxLines: 3,
+                        softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         booking.dropAddress,
                         style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: 1,
+                        maxLines: 3,
+                        softWrap: true,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],

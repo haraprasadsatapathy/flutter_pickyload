@@ -64,7 +64,7 @@ class _CustomerDashboardState extends State<CustomerDashboard> {
           }
         },
         icon: const Icon(Icons.add),
-        label: const Text('Request Load'),
+        label: const Text('Request Vehicle'),
       )
           : null,
     );

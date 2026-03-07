@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:picky_load/utils/global_function.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/data_source/api_client.dart';
 import '../../models/user_model.dart';
@@ -59,7 +60,7 @@ class DriverRepository {
         'userId': userId,
         'documentType': documentType,
         'documentNumber': documentNumber,
-        if (dateOfBirth != null) 'dob': dateOfBirth.toUtc().toIso8601String(),
+        if (dateOfBirth != null) 'dob': convertDateFormatSafe(dateOfBirth),
       };
 
       final response = await _apiClient.post<Map<String, dynamic>>(
@@ -869,6 +870,42 @@ class DriverRepository {
         status: false,
         message: errorMessage,
         data: false,
+      );
+    }
+  }
+
+  // ============================================
+  // LOCATION LOGGING
+  // ============================================
+
+  /// Log current trip location
+  Future<ApiResponse<String>> logTripLocation({
+    required String tripId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final requestData = {
+        'tripId': tripId,
+        'currentLocation': {
+          'latitude': latitude,
+          'longitude': longitude,
+        },
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      };
+
+      final response = await _apiClient.post<String>(
+        '/Trip/TripLocation/LogCurrent',
+        data: requestData,
+        fromJsonT: (json) => json as String,
+      );
+
+      return response;
+    } catch (e) {
+      return ApiResponse(
+        status: false,
+        message: 'Failed to log location: ${e.toString()}',
+        data: null,
       );
     }
   }

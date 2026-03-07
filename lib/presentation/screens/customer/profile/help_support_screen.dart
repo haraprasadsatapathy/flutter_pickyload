@@ -4,11 +4,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
-
+  // static const String companyEmail = 'admin@pickyload.com';
+  // static const String companyPhone = '+91 9876543210';
   Future<void> _launchEmail() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@pickyload.com',
+      path: 'admin@pickyload.com',
       query: 'subject=Customer Support Request',
     );
 
@@ -22,7 +23,7 @@ class HelpSupportScreen extends StatelessWidget {
   Future<void> _launchPhone() async {
     final Uri phoneUri = Uri(
       scheme: 'tel',
-      path: '+91-1800-123-4567',
+      path: '9187525798',
     );
 
     if (await canLaunchUrl(phoneUri)) {
@@ -106,7 +107,7 @@ class HelpSupportScreen extends StatelessWidget {
                         context,
                         icon: Icons.email_outlined,
                         title: 'Email Support',
-                        subtitle: 'support@pickyload.com',
+                        subtitle: 'admin@pickyload.com',
                         onPressed: () async {
                           try {
                             await _launchEmail();
@@ -128,7 +129,7 @@ class HelpSupportScreen extends StatelessWidget {
                         context,
                         icon: Icons.phone_outlined,
                         title: 'Customer Care',
-                        subtitle: '+91-1800-123-4567',
+                        subtitle: '9187525798',
                         onPressed: () async {
                           try {
                             await _launchPhone();

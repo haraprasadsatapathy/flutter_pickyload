@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../domain/models/customer_home_page_response.dart';
@@ -23,6 +26,119 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   bool _showDropOtp = false;
   Timer? _pickupOtpTimer;
   Timer? _dropOtpTimer;
+  GoogleMapController? _mapController;
+  final Set<Marker> _markers = {};
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _updateMarkers();
+  // }
+
+  void _updateMarkers() async {
+    _markers.clear();
+
+    if (widget.trip.lastLocationLatitude != null && widget.trip.lastLocationLongitude != null) {
+      final BitmapDescriptor customIcon = await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(90, 90)),
+        'assets/images/truck4.png',
+      );
+
+      setState(() {
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('bus'),
+            position: LatLng(widget.trip.lastLocationLatitude, widget.trip.lastLocationLongitude),
+            icon: customIcon,
+            infoWindow: const InfoWindow(
+              title: 'Driver Last Location',
+              snippet:  '',
+            ),
+          ),
+        );
+      });
+    }
+  }
+
+  // Future<void> findLocation() async {
+  //   try {
+  //     // Validate coordinates first
+  //     if (widget.trip.lastLocationLatitude < -90 ||
+  //         widget.trip.lastLocationLatitude > 90 ||
+  //         widget.trip.lastLocationLongitude < -180 ||
+  //         widget.trip.lastLocationLongitude > 180) {
+  //       print("==============================");
+  //       print("Invalid coordinates provided");
+  //       print("==============================");
+  //       return;
+  //     }
+  //
+  //     // Get placemarks from coordinates
+  //     List<Placemark> placemarks = await placemarkFromCoordinates(
+  //       widget.trip.lastLocationLatitude,
+  //       widget.trip.lastLocationLongitude,
+  //     );
+  //
+  //     // Check if placemarks list is empty
+  //     if (placemarks.isEmpty) {
+  //       print("==============================");
+  //       print("No address found for coordinates");
+  //       print("==============================");
+  //       return;
+  //     }
+  //
+  //     // Get the first placemark
+  //     Placemark place = placemarks[0];
+  //
+  //     // Build address from placemark properties
+  //     String address = _buildAddress(place);
+  //
+  //     print("==============================");
+  //     print(address);
+  //     print("==============================");
+  //   } on PlatformException catch (e) {
+  //     // Handle platform-specific exceptions
+  //     print("==============================");
+  //     if (e.code == 'NOT_FOUND') {
+  //       print("NOT_FOUND: No address data available for these coordinates");
+  //     } else if (e.code == 'ERROR') {
+  //       print("ERROR: Geocoding service error - ${e.message}");
+  //     } else {
+  //       print("PlatformException: ${e.code} - ${e.message}");
+  //     }
+  //     print("==============================");
+  //   } catch (e) {
+  //     // Handle any other exceptions
+  //     print("==============================");
+  //     print("Error getting location: ${e.toString()}");
+  //     print("==============================");
+  //   }
+  // }
+  //
+  // /// Helper method to build address safely
+  // String _buildAddress(Placemark place) {
+  //   List<String> addressParts = [];
+  //
+  //   // Add street if available
+  //   if (place.street?.isNotEmpty ?? false) {
+  //     addressParts.add(place.street!);
+  //   }
+  //
+  //   // Add locality (city) if available
+  //   if (place.locality?.isNotEmpty ?? false) {
+  //     addressParts.add(place.locality!);
+  //   }
+  //
+  //   // Add country if available
+  //   if (place.country?.isNotEmpty ?? false) {
+  //     addressParts.add(place.country!);
+  //   }
+  //
+  //   // Return formatted address or default message
+  //   return addressParts.isNotEmpty
+  //       ? addressParts.join(', ')
+  //       : 'Unknown location';
+  // }
 
   @override
   void dispose() {
@@ -108,6 +224,85 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Status Header
+              Container(
+                height: MediaQuery.of(context).size.height * 0.4,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Driver last location',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Expanded(  // Add this
+                      child: GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: LatLng(widget.trip.lastLocationLatitude, widget.trip.lastLocationLongitude),
+                          zoom: 15,
+                        ),
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                          _updateMarkers();
+
+                          // Animate camera to marker
+                          if (widget.trip.lastLocationLatitude != null && widget.trip.lastLocationLongitude != null) {
+                            _mapController?.animateCamera(
+                              CameraUpdate.newLatLng(
+                                LatLng(widget.trip.lastLocationLatitude, widget.trip.lastLocationLongitude),
+                              ),
+                            );
+                          }
+                        },
+                        markers: _markers,
+                        // polylines: _polylines,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
+                        mapToolbarEnabled: false,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Text(
+                          "Trip Id: ",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          widget.trip.tripRefId,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -735,3 +930,4 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
     );
   }
 }
+
