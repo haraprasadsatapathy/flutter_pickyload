@@ -1535,7 +1535,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Subscription Required',
+                          'Driver Activation Required',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.orange.shade800,
@@ -1543,7 +1543,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Activate your subscription to start offering loads',
+                          'For document verification and account activation.',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: isDark
                                 ? Colors.orange.shade200
@@ -1562,7 +1562,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                   onPressed: () => _handleSubscribeNow(context),
                   icon: const Icon(Icons.payment, size: 20),
                   label: const Text(
-                    'Subscribe Now',
+                    'Activate Now',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
