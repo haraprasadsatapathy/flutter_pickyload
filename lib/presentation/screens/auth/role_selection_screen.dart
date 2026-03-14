@@ -329,7 +329,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                               ),
                               child: ClipOval(
                                 child: Image.asset(
-                                  'assets/images/app_icon.png',
+                                  'assets/images/app_icon.jpeg',
                                   fit: BoxFit.cover,
                                 ),
                               ),

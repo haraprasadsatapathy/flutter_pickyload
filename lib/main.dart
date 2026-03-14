@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -39,6 +40,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Background messages are handled by NotificationService
 }
 
+/// Clear keychain and stored data on fresh install.
+/// iOS keychain persists across uninstalls, so we detect a reinstall
+/// using a SharedPreferences flag (which does get cleared on uninstall).
+Future<void> _clearDataOnReinstall() async {
+  const key = 'hasRunBefore';
+  if (StorageService.getBool(key) != true) {
+    const secureStorage = FlutterSecureStorage();
+    await secureStorage.deleteAll();
+    await StorageService.clear();
+    await StorageService.setBool(key, true);
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -63,6 +77,9 @@ void main() async {
 
   // Initialize storage service
   await StorageService.init();
+
+  // Clear keychain/data on fresh install (iOS keychain persists across uninstalls)
+  await _clearDataOnReinstall();
 
   // Setup dependency injection
   await setupDependencyInjection();
