@@ -38,7 +38,18 @@
       "Bash(del \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\subscription_payment_screen.dart\")",
       "Bash(move \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\user_offers_list_screen.dart\" \"E:\\\\Flutter\\\\Ramesh\\\\flutter_pickyload\\\\lib\\\\presentation\\\\screens\\\\driver\\\\load_deal_list_screen.dart\")",
       "Bash(git checkout:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(python generate_assets.py)",
+      "Bash(py --version)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(\"/c/Users/harap/AppData/Local/Microsoft/WindowsApps/python3.exe\" --version 2>&1)",
+      "Bash(dart --version)",
+      "Bash(flutter --version)",
+      "Bash(dart pub:*)",
+      "Bash(dart run:*)"
     ],
     "deny": [],
     "ask": []
