@@ -434,8 +434,11 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
                         ),
                         const SizedBox(width: 8),
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Expanded(
+                            Align(
+                              alignment: Alignment.centerLeft,
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -451,7 +454,8 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
                                 ),
                               ),
                             ),
-                            Expanded(
+                            Align(
+                              alignment: Alignment.centerLeft,
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -469,6 +473,44 @@ class _AdvancePaymentScreenState extends State<AdvancePaymentScreen> {
                             ),
                           ],
                         ),
+                        // Column(
+                        //   crossAxisAlignment: CrossAxisAlignment.start,
+                        //   mainAxisAlignment: MainAxisAlignment.start,
+                        //   children: [
+                        //     Expanded(
+                        //       child: GestureDetector(
+                        //         onTap: () {
+                        //           setState(() {
+                        //             _agreeToShareDetails = !_agreeToShareDetails;
+                        //           });
+                        //         },
+                        //         child: const Text(
+                        //           'I agree to share my contact details (Name & Mobile Number) with the driver for trip coordination.',
+                        //           style: TextStyle(
+                        //             fontSize: 14,
+                        //             fontWeight: FontWeight.w500,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //     Expanded(
+                        //       child: GestureDetector(
+                        //         onTap: () {
+                        //           setState(() {
+                        //             _agreeToShareDetails = !_agreeToShareDetails;
+                        //           });
+                        //         },
+                        //         child: const Text(
+                        //           'Contact details are shared only after booking confirmation.',
+                        //           style: TextStyle(
+                        //             fontSize: 14,
+                        //             fontWeight: FontWeight.w500,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                     const SizedBox(height: 20),

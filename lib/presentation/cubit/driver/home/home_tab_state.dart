@@ -3,8 +3,10 @@ import 'package:picky_load/domain/models/home_page_response.dart';
 import 'package:picky_load/domain/models/document_list_response.dart';
 
 // Re-export TripDetail for convenience
-export 'package:picky_load/domain/models/home_page_response.dart' show TripDetail, UserOffer, ConfirmedTrip;
-export 'package:picky_load/domain/models/document_list_response.dart' show DocumentInfo;
+export 'package:picky_load/domain/models/home_page_response.dart'
+    show TripDetail, UserOffer, ConfirmedTrip;
+export 'package:picky_load/domain/models/document_list_response.dart'
+    show DocumentInfo;
 
 // Base state class for Home Tab feature
 class HomeTabState extends BaseEventState {
@@ -27,7 +29,15 @@ class HomeTabState extends BaseEventState {
   });
 
   @override
-  List<Object?> get props => [isAvailableForLoad, hasActiveSubscription, vehicleCount, tripDetails, confirmedTrips, documents, isDocumentsLoading];
+  List<Object?> get props => [
+    isAvailableForLoad,
+    hasActiveSubscription,
+    vehicleCount,
+    tripDetails,
+    confirmedTrips,
+    documents,
+    isDocumentsLoading,
+  ];
 }
 
 // Initial state
@@ -62,7 +72,16 @@ class HomeTabSuccess extends HomeTabState {
   });
 
   @override
-  List<Object?> get props => [message, isAvailableForLoad, hasActiveSubscription, vehicleCount, tripDetails, confirmedTrips, documents, isDocumentsLoading];
+  List<Object?> get props => [
+    message,
+    isAvailableForLoad,
+    hasActiveSubscription,
+    vehicleCount,
+    tripDetails,
+    confirmedTrips,
+    documents,
+    isDocumentsLoading,
+  ];
 }
 
 // Error state
@@ -81,7 +100,85 @@ class HomeTabError extends HomeTabState {
   });
 
   @override
-  List<Object?> get props => [error, isAvailableForLoad, hasActiveSubscription, vehicleCount, tripDetails, confirmedTrips, documents, isDocumentsLoading];
+  List<Object?> get props => [
+    error,
+    isAvailableForLoad,
+    hasActiveSubscription,
+    vehicleCount,
+    tripDetails,
+    confirmedTrips,
+    documents,
+    isDocumentsLoading,
+  ];
+}
+
+// Cancel trip loading state
+class HomeTabCanceling extends HomeTabState {
+  HomeTabCanceling({
+    super.isAvailableForLoad,
+    super.hasActiveSubscription,
+    super.vehicleCount,
+    super.tripDetails,
+    super.confirmedTrips,
+    super.documents,
+    super.isDocumentsLoading,
+  });
+}
+
+// Cancel trip success state
+class HomeTabCancelSuccess extends HomeTabState {
+  final String message;
+
+  HomeTabCancelSuccess({
+    required this.message,
+    super.isAvailableForLoad,
+    super.hasActiveSubscription,
+    super.vehicleCount,
+    super.tripDetails,
+    super.confirmedTrips,
+    super.documents,
+    super.isDocumentsLoading,
+  });
+
+  @override
+  List<Object?> get props => [
+    message,
+    isAvailableForLoad,
+    hasActiveSubscription,
+    vehicleCount,
+    tripDetails,
+    confirmedTrips,
+    documents,
+    isDocumentsLoading,
+  ];
+}
+
+// Cancel trip error state
+class HomeTabCancelError extends HomeTabState {
+  final String error;
+
+  HomeTabCancelError({
+    required this.error,
+    super.isAvailableForLoad,
+    super.hasActiveSubscription,
+    super.vehicleCount,
+    super.tripDetails,
+    super.confirmedTrips,
+    super.documents,
+    super.isDocumentsLoading,
+  });
+
+  @override
+  List<Object?> get props => [
+    error,
+    isAvailableForLoad,
+    hasActiveSubscription,
+    vehicleCount,
+    tripDetails,
+    confirmedTrips,
+    documents,
+    isDocumentsLoading,
+  ];
 }
 
 // Documents loaded state
@@ -99,5 +196,13 @@ class DocumentsFetched extends HomeTabState {
   });
 
   @override
-  List<Object?> get props => [message, isAvailableForLoad, hasActiveSubscription, vehicleCount, tripDetails, confirmedTrips, documents];
+  List<Object?> get props => [
+    message,
+    isAvailableForLoad,
+    hasActiveSubscription,
+    vehicleCount,
+    tripDetails,
+    confirmedTrips,
+    documents,
+  ];
 }

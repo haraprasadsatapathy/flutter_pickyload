@@ -15,6 +15,16 @@ class RefreshHomePage extends HomeTabEvent {
   List<Object?> get props => [];
 }
 
+// Cancel a driver's trip offer
+class CancelTripOffer extends HomeTabEvent {
+  final String offerId;
+
+  CancelTripOffer({required this.offerId});
+
+  @override
+  List<Object?> get props => [offerId];
+}
+
 // Fetch documents for user
 class FetchDocuments extends HomeTabEvent {
   @override
