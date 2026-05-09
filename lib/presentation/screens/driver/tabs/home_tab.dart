@@ -2098,7 +2098,7 @@ class _HomeTabState extends State<HomeTab> with WidgetsBindingObserver {
                 Icons.error_outline,
                 color: Colors.red,
                 size: 60,
-              ),
+              ), 
             ),
             const SizedBox(height: 20),
             const Text(

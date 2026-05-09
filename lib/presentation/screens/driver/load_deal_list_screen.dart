@@ -47,7 +47,9 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
       },
       builder: (context, state) {
         final tripDetail = state.tripDetail ?? widget.tripDetail;
-        final userOffers = state.userOffers.isNotEmpty ? state.userOffers : widget.tripDetail.userOffers;
+        final userOffers = state.userOffers.isNotEmpty
+            ? state.userOffers
+            : widget.tripDetail.userOffers;
 
         return Scaffold(
           appBar: AppBar(
@@ -74,12 +76,14 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                     children: [
                       Text(
                         'Customer Requests',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.blue.shade100,
                           borderRadius: BorderRadius.circular(12),
@@ -108,9 +112,15 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                     itemCount: userOffers.length,
                     itemBuilder: (context, index) {
                       final userOffer = userOffers[index];
-                      final isUpdating = state is UserOfferPriceUpdating &&
+                      final isUpdating =
+                          state is UserOfferPriceUpdating &&
                           state.updatingBookingId == userOffer.bookingId;
-                      return _buildUserOfferCard(context, userOffer, tripDetail, isUpdating);
+                      return _buildUserOfferCard(
+                        context,
+                        userOffer,
+                        tripDetail,
+                        isUpdating,
+                      );
                     },
                   ),
                 ),
@@ -127,7 +137,9 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: Border(
           bottom: BorderSide(
             color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
@@ -158,21 +170,15 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
             children: [
               Column(
                 children: [
-                  Icon(
-                    Icons.circle,
-                    size: 10,
-                    color: Colors.green.shade600,
-                  ),
+                  Icon(Icons.circle, size: 10, color: Colors.green.shade600),
                   Container(
                     width: 2,
                     height: 20,
-                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.3),
                   ),
-                  Icon(
-                    Icons.location_on,
-                    size: 14,
-                    color: Colors.red.shade600,
-                  ),
+                  Icon(Icons.location_on, size: 14, color: Colors.red.shade600),
                 ],
               ),
               const SizedBox(width: 12),
@@ -323,7 +329,9 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -339,9 +347,8 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                         children: [
                           Text(
                             userOffer.route,
-                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 4),
                           if (userOffer.offerDate != null)
@@ -350,15 +357,20 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                                 Icon(
                                   Icons.schedule,
                                   size: 12,
-                                  color: Theme.of(context).colorScheme.secondary,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
                                 ),
                                 const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
                                     '${dateFormat.format(userOffer.offerDate!)} at ${timeFormat.format(userOffer.offerDate!)}',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.secondary,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.secondary,
+                                        ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -368,7 +380,10 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: statusBgColor,
                         borderRadius: BorderRadius.circular(12),
@@ -439,12 +454,18 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                 // Distance and price
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.15),
                     ),
                   ),
                   child: Row(
@@ -471,10 +492,13 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                                 ),
                                 Text(
                                   userOffer.formattedDistance,
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
                                 ),
                               ],
                             ),
@@ -485,7 +509,9 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                         Container(
                           width: 1,
                           height: 32,
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withValues(alpha: 0.2),
                         ),
                         Expanded(
                           child: Row(
@@ -534,7 +560,11 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                     child: ElevatedButton.icon(
                       onPressed: isUpdating
                           ? null
-                          : () => _showUpdatePriceDialog(context, userOffer, tripDetail),
+                          : () => _showUpdatePriceDialog(
+                              context,
+                              userOffer,
+                              tripDetail,
+                            ),
                       icon: isUpdating
                           ? const SizedBox(
                               width: 18,
@@ -542,7 +572,9 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.currency_rupee),
-                      label: Text(isUpdating ? 'Submitting...' : 'Give Quote Price'),
+                      label: Text(
+                        isUpdating ? 'Submitting...' : 'Give Quote Price',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange.shade600,
                         foregroundColor: Colors.white,
@@ -560,7 +592,10 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(8),
@@ -593,7 +628,10 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green.shade50,
                       borderRadius: BorderRadius.circular(8),
@@ -626,7 +664,10 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(8),
@@ -659,18 +700,17 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.undo,
-                          size: 16,
-                          color: Colors.grey.shade700,
-                        ),
+                        Icon(Icons.undo, size: 16, color: Colors.grey.shade700),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -692,7 +732,10 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                   const SizedBox(height: 12),
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(8),
@@ -730,9 +773,7 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                   color: Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -740,7 +781,11 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
     );
   }
 
-  void _showUpdatePriceDialog(BuildContext context, UserOffer userOffer, TripDetail tripDetail) {
+  void _showUpdatePriceDialog(
+    BuildContext context,
+    UserOffer userOffer,
+    TripDetail tripDetail,
+  ) {
     final priceController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -748,26 +793,24 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-        child: Container(
-          width: double.maxFinite,
-          constraints: const BoxConstraints(maxWidth: 400),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 400,
+            // KEY FIX: limit max height so dialog stays within screen
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
+              // Header (not scrollable - stays pinned at top)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.shade600,
-                      Colors.orange.shade400,
-                    ],
+                    colors: [Colors.orange.shade600, Colors.orange.shade400],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -812,233 +855,254 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                 ),
               ),
 
-              // Content
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Distance info
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.blue.shade100,
+              // KEY FIX: Scrollable content area
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Distance info
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.blue.shade100),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade100,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  Icons.route,
+                                  color: Colors.blue.shade700,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Trip Distance',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.blue.shade700,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      userOffer.formattedDistance,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue.shade800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade100,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                Icons.route,
-                                color: Colors.blue.shade700,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Trip Distance',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blue.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    userOffer.formattedDistance,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                      Text(
-                        'Enter Your Quote Price',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                        Text(
+                          'Enter Your Quote Price',
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      TextFormField(
-                        controller: priceController,
-                        keyboardType: TextInputType.number,
-                        autofocus: true,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        decoration: InputDecoration(
-                          prefixIcon: Container(
-                            padding: const EdgeInsets.all(14),
-                            child: Text(
-                              '\u20B9',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green.shade700,
-                              ),
-                            ),
-                          ),
-                          hintText: '0',
-                          hintStyle: TextStyle(
+                        TextFormField(
+                          controller: priceController,
+                          keyboardType: TextInputType.number,
+                          autofocus: true,
+                          style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade300,
                           ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(color: Colors.orange.shade400, width: 2),
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Colors.red, width: 1),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a price';
-                          }
-                          final price = double.tryParse(value);
-                          if (price == null || price <= 0) {
-                            return 'Please enter a valid price';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.amber.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 20,
-                              color: Colors.amber.shade700,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
+                          decoration: InputDecoration(
+                            prefixIcon: Container(
+                              padding: const EdgeInsets.all(14),
                               child: Text(
-                                'This quote will be sent to the customer for approval.',
+                                '₹',
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.amber.shade800,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ),
+                            hintText: '0',
+                            hintStyle: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade300,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: Colors.orange.shade400,
+                                width: 2,
+                              ),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 1,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 18,
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a price';
+                            }
+                            final price = double.tryParse(value);
+                            if (price == null || price <= 0) {
+                              return 'Please enter a valid price';
+                            }
+                            return null;
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.amber.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 20,
+                                color: Colors.amber.shade700,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'This quote will be sent to the customer for approval.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.amber.shade800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Action Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    Navigator.of(dialogContext).pop(),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  side: BorderSide(color: Colors.grey.shade400),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  if (formKey.currentState!.validate()) {
+                                    final price = double.parse(
+                                      priceController.text,
+                                    );
+                                    Navigator.of(dialogContext).pop();
+                                    context.read<UserOffersListBloc>().add(
+                                      UpdateUserOfferPrice(
+                                        quotationId: userOffer.quotationId,
+                                        offerId: tripDetail.offerId,
+                                        bookingId: userOffer.bookingId,
+                                        price: price,
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.send_rounded, size: 20),
+                                label: const Text(
+                                  'Submit Quote',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  elevation: 2,
+                                  shadowColor: Colors.orange.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-
-                      const SizedBox(height: 28),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.of(dialogContext).pop(),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: BorderSide(color: Colors.grey.shade400),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                'Cancel',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            flex: 2,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                if (formKey.currentState!.validate()) {
-                                  final price = double.parse(priceController.text);
-                                  Navigator.of(dialogContext).pop();
-                                  context.read<UserOffersListBloc>().add(
-                                    UpdateUserOfferPrice(
-                                      quotationId: userOffer.quotationId,
-                                      offerId: tripDetail.offerId,
-                                      bookingId: userOffer.bookingId,
-                                      price: price,
-                                    ),
-                                  );
-                                }
-                              },
-                              icon: const Icon(Icons.send_rounded, size: 20),
-                              label: const Text(
-                                'Submit Quote',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.orange.shade600,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                elevation: 2,
-                                shadowColor: Colors.orange.withValues(alpha: 0.4),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1048,4 +1112,313 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
       ),
     );
   }
+
+  // void _showUpdatePriceDialog(BuildContext context, UserOffer userOffer, TripDetail tripDetail) {
+  //   final priceController = TextEditingController();
+  //   final formKey = GlobalKey<FormState>();
+
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (dialogContext) => Dialog(
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(20),
+  //       ),
+  //       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+  //       child: Container(
+  //         width: double.maxFinite,
+  //         constraints: const BoxConstraints(maxWidth: 400),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             // Header
+  //             Container(
+  //               width: double.infinity,
+  //               padding: const EdgeInsets.all(24),
+  //               decoration: BoxDecoration(
+  //                 gradient: LinearGradient(
+  //                   colors: [
+  //                     Colors.orange.shade600,
+  //                     Colors.orange.shade400,
+  //                   ],
+  //                   begin: Alignment.topLeft,
+  //                   end: Alignment.bottomRight,
+  //                 ),
+  //                 borderRadius: const BorderRadius.only(
+  //                   topLeft: Radius.circular(20),
+  //                   topRight: Radius.circular(20),
+  //                 ),
+  //               ),
+  //               child: Column(
+  //                 children: [
+  //                   Container(
+  //                     padding: const EdgeInsets.all(16),
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.white.withValues(alpha: 0.2),
+  //                       shape: BoxShape.circle,
+  //                     ),
+  //                     child: const Icon(
+  //                       Icons.currency_rupee,
+  //                       color: Colors.white,
+  //                       size: 36,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 16),
+  //                   const Text(
+  //                     'Give Quote',
+  //                     style: TextStyle(
+  //                       fontSize: 22,
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.white,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 8),
+  //                   Text(
+  //                     'One-way trip only. Quote your best price to win this load.',
+  //                     textAlign: TextAlign.center,
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       color: Colors.white.withValues(alpha: 0.9),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+
+  //             // Content
+  //             Padding(
+  //               padding: const EdgeInsets.all(24),
+  //               child: Form(
+  //                 key: formKey,
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     // Distance info
+  //                     Container(
+  //                       width: double.infinity,
+  //                       padding: const EdgeInsets.all(16),
+  //                       decoration: BoxDecoration(
+  //                         color: Colors.blue.shade50,
+  //                         borderRadius: BorderRadius.circular(12),
+  //                         border: Border.all(
+  //                           color: Colors.blue.shade100,
+  //                         ),
+  //                       ),
+  //                       child: Row(
+  //                         children: [
+  //                           Container(
+  //                             padding: const EdgeInsets.all(10),
+  //                             decoration: BoxDecoration(
+  //                               color: Colors.blue.shade100,
+  //                               borderRadius: BorderRadius.circular(10),
+  //                             ),
+  //                             child: Icon(
+  //                               Icons.route,
+  //                               color: Colors.blue.shade700,
+  //                               size: 24,
+  //                             ),
+  //                           ),
+  //                           const SizedBox(width: 14),
+  //                           Expanded(
+  //                             child: Column(
+  //                               crossAxisAlignment: CrossAxisAlignment.start,
+  //                               children: [
+  //                                 Text(
+  //                                   'Trip Distance',
+  //                                   style: TextStyle(
+  //                                     fontSize: 12,
+  //                                     color: Colors.blue.shade700,
+  //                                     fontWeight: FontWeight.w500,
+  //                                   ),
+  //                                 ),
+  //                                 const SizedBox(height: 2),
+  //                                 Text(
+  //                                   userOffer.formattedDistance,
+  //                                   style: TextStyle(
+  //                                     fontSize: 18,
+  //                                     fontWeight: FontWeight.bold,
+  //                                     color: Colors.blue.shade800,
+  //                                   ),
+  //                                 ),
+  //                               ],
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+
+  //                     const SizedBox(height: 24),
+
+  //                     Text(
+  //                       'Enter Your Quote Price',
+  //                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
+  //                         fontWeight: FontWeight.w600,
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 12),
+
+  //                     TextFormField(
+  //                       controller: priceController,
+  //                       keyboardType: TextInputType.number,
+  //                       autofocus: true,
+  //                       style: const TextStyle(
+  //                         fontSize: 24,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                       decoration: InputDecoration(
+  //                         prefixIcon: Container(
+  //                           padding: const EdgeInsets.all(14),
+  //                           child: Text(
+  //                             '\u20B9',
+  //                             style: TextStyle(
+  //                               fontSize: 24,
+  //                               fontWeight: FontWeight.bold,
+  //                               color: Colors.green.shade700,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                         hintText: '0',
+  //                         hintStyle: TextStyle(
+  //                           fontSize: 24,
+  //                           fontWeight: FontWeight.bold,
+  //                           color: Colors.grey.shade300,
+  //                         ),
+  //                         filled: true,
+  //                         fillColor: Colors.grey.shade50,
+  //                         border: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(14),
+  //                           borderSide: BorderSide(color: Colors.grey.shade300),
+  //                         ),
+  //                         enabledBorder: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(14),
+  //                           borderSide: BorderSide(color: Colors.grey.shade300),
+  //                         ),
+  //                         focusedBorder: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(14),
+  //                           borderSide: BorderSide(color: Colors.orange.shade400, width: 2),
+  //                         ),
+  //                         errorBorder: OutlineInputBorder(
+  //                           borderRadius: BorderRadius.circular(14),
+  //                           borderSide: const BorderSide(color: Colors.red, width: 1),
+  //                         ),
+  //                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+  //                       ),
+  //                       validator: (value) {
+  //                         if (value == null || value.isEmpty) {
+  //                           return 'Please enter a price';
+  //                         }
+  //                         final price = double.tryParse(value);
+  //                         if (price == null || price <= 0) {
+  //                           return 'Please enter a valid price';
+  //                         }
+  //                         return null;
+  //                       },
+  //                     ),
+
+  //                     const SizedBox(height: 16),
+
+  //                     Container(
+  //                       width: double.infinity,
+  //                       padding: const EdgeInsets.all(12),
+  //                       decoration: BoxDecoration(
+  //                         color: Colors.amber.shade50,
+  //                         borderRadius: BorderRadius.circular(10),
+  //                         border: Border.all(color: Colors.amber.shade200),
+  //                       ),
+  //                       child: Row(
+  //                         children: [
+  //                           Icon(
+  //                             Icons.info_outline,
+  //                             size: 20,
+  //                             color: Colors.amber.shade700,
+  //                           ),
+  //                           const SizedBox(width: 10),
+  //                           Expanded(
+  //                             child: Text(
+  //                               'This quote will be sent to the customer for approval.',
+  //                               style: TextStyle(
+  //                                 fontSize: 13,
+  //                                 color: Colors.amber.shade800,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+
+  //                     const SizedBox(height: 28),
+
+  //                     // Action Buttons
+  //                     Row(
+  //                       children: [
+  //                         Expanded(
+  //                           child: OutlinedButton(
+  //                             onPressed: () => Navigator.of(dialogContext).pop(),
+  //                             style: OutlinedButton.styleFrom(
+  //                               padding: const EdgeInsets.symmetric(vertical: 16),
+  //                               side: BorderSide(color: Colors.grey.shade400),
+  //                               shape: RoundedRectangleBorder(
+  //                                 borderRadius: BorderRadius.circular(12),
+  //                               ),
+  //                             ),
+  //                             child: Text(
+  //                               'Cancel',
+  //                               style: TextStyle(
+  //                                 fontSize: 16,
+  //                                 fontWeight: FontWeight.w600,
+  //                                 color: Colors.grey.shade700,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                         const SizedBox(width: 16),
+  //                         Expanded(
+  //                           flex: 2,
+  //                           child: ElevatedButton.icon(
+  //                             onPressed: () {
+  //                               if (formKey.currentState!.validate()) {
+  //                                 final price = double.parse(priceController.text);
+  //                                 Navigator.of(dialogContext).pop();
+  //                                 context.read<UserOffersListBloc>().add(
+  //                                   UpdateUserOfferPrice(
+  //                                     quotationId: userOffer.quotationId,
+  //                                     offerId: tripDetail.offerId,
+  //                                     bookingId: userOffer.bookingId,
+  //                                     price: price,
+  //                                   ),
+  //                                 );
+  //                               }
+  //                             },
+  //                             icon: const Icon(Icons.send_rounded, size: 20),
+  //                             label: const Text(
+  //                               'Submit Quote',
+  //                               style: TextStyle(
+  //                                 fontSize: 16,
+  //                                 fontWeight: FontWeight.w600,
+  //                               ),
+  //                             ),
+  //                             style: ElevatedButton.styleFrom(
+  //                               backgroundColor: Colors.orange.shade600,
+  //                               foregroundColor: Colors.white,
+  //                               padding: const EdgeInsets.symmetric(vertical: 16),
+  //                               elevation: 2,
+  //                               shadowColor: Colors.orange.withValues(alpha: 0.4),
+  //                               shape: RoundedRectangleBorder(
+  //                                 borderRadius: BorderRadius.circular(12),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
