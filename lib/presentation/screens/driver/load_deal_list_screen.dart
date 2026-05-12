@@ -791,7 +791,7 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -821,23 +821,12 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                 ),
                 child: Column(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.currency_rupee,
-                        color: Colors.white,
-                        size: 36,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+
+                    const SizedBox(height: 8),
                     const Text(
                       'Give Quote',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -847,7 +836,7 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                       'One-way trip only. Quote your best price to win this load.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
@@ -867,19 +856,19 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                         // Distance info
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: Colors.blue.shade100),
                           ),
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(
                                   Icons.route,
@@ -887,7 +876,7 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                                   size: 24,
                                 ),
                               ),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -904,7 +893,7 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                                     Text(
                                       userOffer.formattedDistance,
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.blue.shade800,
                                       ),
@@ -916,30 +905,30 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
 
                         Text(
                           'Enter Your Quote Price',
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 10),
 
                         TextFormField(
                           controller: priceController,
                           keyboardType: TextInputType.number,
                           autofocus: true,
                           style: const TextStyle(
-                            fontSize: 24,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                           decoration: InputDecoration(
                             prefixIcon: Container(
-                              padding: const EdgeInsets.all(14),
+                              padding: const EdgeInsets.all(10),
                               child: Text(
                                 '₹',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green.shade700,
                                 ),
@@ -996,14 +985,14 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                           },
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 8),
 
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.amber.shade50,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: Colors.amber.shade200),
                           ),
                           child: Row(
@@ -1013,12 +1002,12 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                                 size: 20,
                                 color: Colors.amber.shade700,
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'This quote will be sent to the customer for approval.',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 12,
                                     color: Colors.amber.shade800,
                                   ),
                                 ),
@@ -1027,7 +1016,7 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 16),
 
                         // Action Buttons
                         Row(
@@ -1048,14 +1037,14 @@ class _LoadDealListScreenState extends State<LoadDealListScreen> {
                                 child: Text(
                                   'Cancel',
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.grey.shade700,
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 8),
                             Expanded(
                               flex: 2,
                               child: ElevatedButton.icon(
